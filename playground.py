@@ -12,5 +12,7 @@ class Users(Model):
     name = Column(type="int", unique=True)
 
 
-database.sync([Users])
-print(database.tables)
+Users(name="Crispen", age=20, id=5)
+
+# database.sync([Users])
+# print(database.tables)

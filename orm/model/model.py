@@ -5,6 +5,11 @@ import re
 
 
 class Model:
+    def __init__(self, **args) -> None:
+        self._data = {id: None}
+        for k, v in args.items():
+            self._data[k] = v
+
     @classmethod
     def _get_name(cls):
         return cls.__name__.lower()

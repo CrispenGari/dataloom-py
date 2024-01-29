@@ -1,0 +1,2 @@
+1. altering tables
+2. inserting data 
