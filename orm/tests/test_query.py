@@ -4,7 +4,7 @@ class TestQueryingPG:
         from orm.model.column import Column
         from orm.model.model import Model
 
-        db = Database("hi", password="root", user="postgres")
+        db = Database("postgres", password="postgres", user="postgres")
         conn = db.connect()
 
         class User(Model):
