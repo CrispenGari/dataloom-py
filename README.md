@@ -76,19 +76,72 @@ class User(Model):
 
 ```
 
-You will need to `sync` your database tables. To Syn
+You will need to `sync` your database tables. To Sync a database you call the method called `sync`. This method allows you to create and commit tables into the database. Let's say we have two models `User` and `Post` and you want to create commit them to the database you can do it as follows:
 
 ```py
-db.sync([User], drop=True, force=True)
+tables = db.sync([User, Post], drop=True, force=True)
 ```
 
+The method returns a list of table names that have been created or the table names that are in your database. The `sync` method accepts the following arguments:
+
+<table border="1">
+  <thead>
+    <tr><th>Argument</th><th>Description</th><th>Type</th><th>Default</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>models</td><td>A list of your table class that are inheriting from the Model class.</td>
+      <td>list</td><td>[]</td>
+    </tr>
+     <tr>
+      <td>drop</td><td>Weather to drop tables during syncing or not.</td>
+      <td>bool</td><td>False</td>
+    </tr>
+     <tr>
+      <td>force</td><td>Force to drop tables during syncing or not.</td>
+      <td>bool</td><td>False</td>
+    </tr>
+     <tr>
+      <td>alter</td><td>Alter tables rather than dropping them during syncing or not.</td>
+      <td>bool</td><td>False</td>
+    </tr>
+  </tbody>
+</table>
+
+> We have noticed that there are two steps that we are doing here to start working with our `orm`. First you need to create a connection and then `sync` the tables in another steps. The `connect_and_sync` is very handy as it does the database connection and also does the `sync` of tables. Here is an example on how you can use it:
+
+```py
+db = Database("hi", password="root", user="postgres")
+conn, tables = db.connect_and_sync([User, Post], drop=True, force=True)
+
+if __name__ == "__main__":
+    conn.close()
+```
+
+Returns a `conn` and `tablenames` that are in the database. The method accepts the same arguments as the `sync` method.
+
 1. Creating a Record
+
+The `commit` method let you create save a single row in a particular table. When you save this will return the `id` of the inserted document
 
 ```py
 user = User(name="Crispen", username="heyy")
 userId = db.commit(user)
 print(userId)
 ```
+
+Using the `commit_bulk` you will be able to save in bulk as the method explains itself. The following is an example showing how we can add `3` post to the database table at the same time.
+
+```py
+posts = [
+    Post(userId=userId, title="What are you thinking"),
+    Post(userId=userId, title="What are you doing?"),
+    Post(userId=userId, title="What are we?"),
+]
+row_count = db.commit_bulk(posts)
+```
+
+> Unlike the `commit`, `commit_bulk` method returns the row count of the inserted documents rather that individual `id` of those document.
 
 2. Getting records
 
@@ -123,3 +176,71 @@ Using the `find_one` you can specify the filters of your query as follows:
 him = db.find_one(User, filters={"id": 1})
 print(him.to_dict())
 ```
+
+### Associations
+
+With `dataloom` you can define models that have relationships. Let's say we have a model called `Post` and every post should belong to a single `User`. Here is how you can define model mappings between a `Post` and a `User` using the `ForeignKeyColumn()`
+
+```py
+
+from dataloom import Column, CreatedAtColumn, UpdatedAtColumn, ForeignKeyColumn
+
+class User(Model):
+    __tablename__ = "users"
+    id = Column(type="bigint", primary_key=True, nullable=False, auto_increment=True)
+    username = Column(type="text", nullable=False)
+    name = Column(type="varchar", unique=False, length=255)
+    createAt = CreatedAtColumn()
+    updatedAt = UpdatedAtColumn()
+
+    def __str__(self) -> str:
+        return f"User<{self.id}>"
+
+    def __repr__(self) -> str:
+        return f"User<{self.id}>"
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "username": self.username,
+            "createdAt": self.createAt,
+            "updatedAt": self.updatedAt,
+        }
+
+
+class Post(Model):
+    __tablename__ = "posts"
+
+    id = Column(type="bigint", primary_key=True, nullable=False, auto_increment=True)
+    title = Column(type="text", nullable=False, default="Hello there!!")
+    createAt = CreatedAtColumn()
+    updatedAt = UpdatedAtColumn()
+
+    userId = ForeignKeyColumn(User, onDelete="CASCADE", onUpdate="CASCADE")
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "title": self.title,
+            "userId": self.userId,
+            "createdAt": self.createAt,
+            "updatedAt": self.updatedAt,
+        }
+
+```
+
+So to insert a single post you first need to have a user that will create a post. Here is an example on how it is done:
+
+```py
+user = User(name="Crispen", username="heyy")
+userId = db.commit(user)
+
+post = Post(userId=userId, title="What are you thinking")
+db.commit(post)
+post = Post(userId=userId, title="What are you thinking")
+db.commit(post)
+post = Post(userId=userId, title="What are we?")
+db.commit(post)
+```
+
+> We have created `3` posts that belongs to `Crispen`.

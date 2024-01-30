@@ -1,9 +1,49 @@
-from typing import Any
 from orm.types import POSTGRES_SQL_TYPES
 
 
-class ForeignKey:
-    pass
+class CreatedAtColumn:
+    def __init__(self):
+        pass
+
+    @property
+    def created_at(self):
+        return "{type} DEFAULT {value}".format(
+            type=POSTGRES_SQL_TYPES["timestamp"], value="CURRENT_TIMESTAMP"
+        )
+
+
+class UpdatedAtColumn:
+    def __init__(self):
+        pass
+
+    @property
+    def updated_at(self):
+        return "{type} DEFAULT {value}".format(
+            type=POSTGRES_SQL_TYPES["timestamp"], value="CURRENT_TIMESTAMP"
+        )
+
+
+class ForeignKeyColumn:
+    def __init__(
+        self,
+        table,
+        type: str | None = None,
+        required: bool = True,
+        onDelete: str = "NO ACTION",
+        onUpdate: str = "NO ACTION",
+    ):
+        self.table = table
+        self.required = required
+        self.onDelete = onDelete
+        self.onUpdate = onUpdate
+        self.type = type
+
+    @property
+    def sql_type(self):
+        if self.type in POSTGRES_SQL_TYPES:
+            return POSTGRES_SQL_TYPES[self.type]
+        else:
+            raise ValueError(f"Unsupported column type: {self.type}")
 
 
 class Column:

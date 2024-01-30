@@ -42,6 +42,7 @@ class Database:
         fetchmany=False,
         fetchall=False,
         mutation=True,
+        bulk: bool = False,
     ):
         # do we need to log the executed SQL?
         if self.logs:
@@ -51,20 +52,25 @@ class Database:
             if args is None:
                 cursor.execute(sql)
             else:
-                cursor.execute(sql, args)
+                cursor.executemany(sql, vars_list=args) if bulk else cursor.execute(
+                    sql, vars=args
+                )
             # options
-            if fetchmany:
-                row = cursor.fetchmany()
-            elif fetchall:
-                row = cursor.fetchall()
-            elif fetchone:
-                row = cursor.fetchone()
+            if bulk:
+                result = cursor.rowcount
             else:
-                row = None
+                if fetchmany:
+                    result = cursor.fetchmany()
+                elif fetchall:
+                    result = cursor.fetchall()
+                elif fetchone:
+                    result = cursor.fetchone()
+                else:
+                    result = None
             if mutation:
                 self.conn.commit()
 
-        return row
+        return result
 
     def connect(self):
         try:
@@ -79,7 +85,9 @@ class Database:
         except Exception as e:
             raise Exception(e)
 
-    def connect_and_sync(self, drop=False):
+    def connect_and_sync(
+        self, models: list[Model], drop=False, force=False, alter=False
+    ):
         try:
             self.conn = psycopg2.connect(
                 host=self.host,
@@ -88,8 +96,15 @@ class Database:
                 password=self.password,
                 port=self.port,
             )
-            with self.conn.cursor() as cursor:
-                cursor.execute("")
+            for model in models:
+                if drop or force:
+                    self._execute_sql(model._drop_sql())
+                    self._execute_sql(model._create_sql())
+                elif alter:
+                    pass
+                else:
+                    self._execute_sql(model._create_sql(ignore_exists=True))
+            return self.conn, self.tables
 
         except Exception as e:
             raise Exception(e)
@@ -105,11 +120,12 @@ class Database:
                 else:
                     self._execute_sql(model._create_sql(ignore_exists=True))
 
+            return self.tables
         except Exception as e:
             raise Exception(e)
 
     def commit(self, instance: Model):
-        sql, values = instance._get_insert_stm()
+        sql, values = instance._get_insert_one_stm()
         fields = list()
         for name, field in inspect.getmembers(instance):
             if isinstance(field, Column):
@@ -118,6 +134,26 @@ class Database:
         row = self._execute_sql(sql, args=tuple(values), fetchone=True)
         return dict(zip(fields, row)).get(fields[0])
 
+    def commit_bulk(self, instances: list[Model]):
+        columns = None
+        placeholders = None
+        data = list()
+        for instance in instances:
+            (
+                column_names,
+                placeholder_values,
+                _values,
+            ) = instance._get_insert_bulk_attrs()
+            if columns is None:
+                columns = column_names
+            if placeholders is None:
+                placeholders = placeholder_values
+
+            data.append(_values)
+        sql, values = instance._get_insert_bulk_smt(placeholders, columns, data)
+        row_count = self._execute_sql(sql, args=tuple(values), fetchall=True, bulk=True)
+        return row_count
+
     def find_all(self, instance: Model):
         fields = list()
         for name, field in inspect.getmembers(instance):
@@ -125,7 +161,8 @@ class Database:
                 fields.append(name)
         sql, _, __ = instance._get_select_where_stm(fields)
         data = list()
-        rows = self._execute_sql(sql, fetchmany=True)
+        rows = self._execute_sql(sql, fetchall=True)
+        print(len(rows))
         for row in rows:
             res = dict(zip(fields, row))
             data.append(instance(**res))
@@ -138,7 +175,7 @@ class Database:
                 fields.append(name)
         sql, _, params = instance._get_select_where_stm(fields, filters)
         data = list()
-        rows = self._execute_sql(sql, args=params, fetchmany=True)
+        rows = self._execute_sql(sql, args=params, fetchall=True)
         for row in rows:
             res = dict(zip(fields, row))
             data.append(instance(**res))

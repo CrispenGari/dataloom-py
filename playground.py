@@ -1,20 +1,15 @@
 from orm.db import Database
-from orm.model.column import Column
+from orm.model.column import Column, CreatedAtColumn, UpdatedAtColumn, ForeignKeyColumn
 from orm.model.model import Model
-
-db = Database("hi", password="root", user="postgres")
-conn = db.connect()
 
 
 class User(Model):
     __tablename__ = "users"
     id = Column(type="bigint", primary_key=True, nullable=False, auto_increment=True)
-    username = Column(type="text", nullable=False, default="Hello there!!")
-    name = Column(
-        type="varchar",
-        unique=True,
-        length=255,
-    )
+    username = Column(type="text", nullable=False)
+    name = Column(type="varchar", unique=False, length=255)
+    createAt = CreatedAtColumn()
+    updatedAt = UpdatedAtColumn()
 
     def __str__(self) -> str:
         return f"User<{self.id}>"
@@ -23,23 +18,68 @@ class User(Model):
         return f"User<{self.id}>"
 
     def to_dict(self):
-        return {"id": self.id, "name": self.name, "username": self.username}
+        return {
+            "id": self.id,
+            "name": self.name,
+            "username": self.username,
+            "createdAt": self.createAt,
+            "updatedAt": self.updatedAt,
+        }
 
 
-db.sync([User], drop=True, force=True)
+class Post(Model):
+    __tablename__ = "posts"
 
+    id = Column(type="bigint", primary_key=True, nullable=False, auto_increment=True)
+    title = Column(type="text", nullable=False, default="Hello there!!")
+    createAt = CreatedAtColumn()
+    updatedAt = UpdatedAtColumn()
+    userId = ForeignKeyColumn(User, onDelete="CASCADE", onUpdate="CASCADE")
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "title": self.title,
+            "userId": self.userId,
+            "createdAt": self.createAt,
+            "updatedAt": self.updatedAt,
+        }
+
+
+db = Database("hi", password="root", user="postgres")
+conn, tables = db.connect_and_sync([User, Post], drop=True, force=True)
 user = User(name="Crispen", username="heyy")
-db.commit(user)
-users = db.find_all(User)
-print([u.to_dict() for u in users])
-me = db.find_by_pk(User, 1)
-print(me.to_dict())
+userId = db.commit(user)
+postId = db.commit(
+    Post(userId=userId, title="What are you thinking"),
+)
 
-him = db.find_one(User, filters={"id": 1})
-print(him.to_dict())
+now = db.find_by_pk(Post, 1)
+print(now.userId)
+print(postId)
 
-many = db.find_many(User, {"id": 5})
-print([u.to_dict() for u in many])
+
+# print(userId)
+# post =
+# db.commit(post)
+# post = Post(userId=userId, title="What are you thinking")
+# db.commit(post)
+# post =
+# db.commit(post)
+# post =
+# db.commit(post)
+
+
+# posts = db.find_all(Post)
+# print([u.to_dict() for u in posts])
+# me = db.find_by_pk(User, 1)
+# print(me.to_dict())
+
+# him = db.find_one(User, filters={"id": 1})
+# print(him.to_dict())
+
+# many = db.find_many(User, {"id": 5})
+# print([u.to_dict() for u in many])
 
 
 if __name__ == "__main__":
