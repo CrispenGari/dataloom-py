@@ -3,9 +3,10 @@ class TestCreatingTablePG:
         from orm.db import Database
         from orm.model.column import Column
         from orm.model.model import Model
+        from orm.keys import password, database, user
         import pytest
 
-        db = Database("postgres", password="postgres", user="postgres")
+        db = Database(database, password=password, user=user)
         conn = db.connect()
 
         class Users(Model):
@@ -31,9 +32,10 @@ class TestCreatingTablePG:
         from orm.db import Database
         from orm.model.column import Column
         from orm.model.model import Model
+        from orm.keys import password, database, user
         import pytest
 
-        db = Database("postgres", password="postgres", user="postgres")
+        db = Database(database, password=password, user=user)
         conn = db.connect()
 
         class Users(Model):
@@ -50,8 +52,9 @@ class TestCreatingTablePG:
         from orm.db import Database
         from orm.model.column import Column
         from orm.model.model import Model
+        from orm.keys import database, password, user
 
-        db = Database("postgres", password="postgres", user="postgres")
+        db = Database(database, password=password, user=user)
         conn = db.connect()
 
         class Todos(Model):
