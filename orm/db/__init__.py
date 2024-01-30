@@ -1,7 +1,10 @@
 import psycopg2
+import inspect
 from orm.constants import instances
 from orm.model.statements import Statements
 from orm.model.model import Model
+from orm.model.column import Column
+from functools import partial
 
 
 class Database:
@@ -13,6 +16,7 @@ class Database:
         host: str | None = None,
         port: int | None = None,
         password: str | None = None,
+        logs: bool = True,
     ) -> None:
         config = instances[dialect]
         self.user = user if user else config["user"]
@@ -21,6 +25,7 @@ class Database:
         self.host = host if host else config["host"]
         self.database = database
         self.conn = None
+        self.logs = logs
 
     @property
     def tables(self):
@@ -38,8 +43,16 @@ class Database:
         fetchall=False,
         mutation=True,
     ):
+        # do we need to log the executed SQL?
+        if self.logs:
+            print(sql)
+
         with self.conn.cursor() as cursor:
-            cursor.execute(sql)
+            if args is None:
+                cursor.execute(sql)
+            else:
+                cursor.execute(sql, args)
+            # options
             if fetchmany:
                 row = cursor.fetchmany()
             elif fetchall:
@@ -50,6 +63,7 @@ class Database:
                 row = None
             if mutation:
                 self.conn.commit()
+
         return row
 
     def connect(self):
@@ -94,6 +108,60 @@ class Database:
         except Exception as e:
             raise Exception(e)
 
+    def commit(self, instance: Model):
+        sql, values = instance._get_insert_stm()
+        fields = list()
+        for name, field in inspect.getmembers(instance):
+            if isinstance(field, Column):
+                fields.append(name)
+        # save to the database
+        row = self._execute_sql(sql, args=tuple(values), fetchone=True)
+        return dict(zip(fields, row)).get(fields[0])
 
-class ForeignKey:
-    pass
+    def find_all(self, instance: Model):
+        fields = list()
+        for name, field in inspect.getmembers(instance):
+            if isinstance(field, Column):
+                fields.append(name)
+        sql, _, __ = instance._get_select_where_stm(fields)
+        data = list()
+        rows = self._execute_sql(sql, fetchmany=True)
+        for row in rows:
+            res = dict(zip(fields, row))
+            data.append(instance(**res))
+        return data
+
+    def find_many(self, instance: Model, filters: dict = {}):
+        fields = list()
+        for name, field in inspect.getmembers(instance):
+            if isinstance(field, Column):
+                fields.append(name)
+        sql, _, params = instance._get_select_where_stm(fields, filters)
+        data = list()
+        rows = self._execute_sql(sql, args=params, fetchmany=True)
+        for row in rows:
+            res = dict(zip(fields, row))
+            data.append(instance(**res))
+        return data
+
+    def find_by_pk(self, instance: Model, pk):
+        # what is the name of the primary key column?
+        pk_name = "id"
+        fields = list()
+        for name, field in inspect.getmembers(instance):
+            if isinstance(field, Column):
+                if field.primary_key:
+                    pk_name = name
+                fields.append(name)
+        sql, fields = instance._get_select_by_pk_stm(pk, pk_name, fields=fields)
+        row = self._execute_sql(sql, fetchone=True)
+        return None if row is None else instance(**dict(zip(fields, row)))
+
+    def find_one(self, instance: Model, filters: dict = {}):
+        fields = list()
+        for name, field in inspect.getmembers(instance):
+            if isinstance(field, Column):
+                fields.append(name)
+        sql, _, params = instance._get_select_where_stm(fields, filters)
+        row = self._execute_sql(sql, args=params, fetchone=True)
+        return None if row is None else instance(**dict(zip(fields, row)))

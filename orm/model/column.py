@@ -1,15 +1,20 @@
+from typing import Any
 from orm.types import POSTGRES_SQL_TYPES
+
+
+class ForeignKey:
+    pass
 
 
 class Column:
     def __init__(
         self,
         type,
-        primary_key=False,
-        nullable=True,
-        unique=False,
-        length=None,
-        auto_increment=False,
+        primary_key: bool = False,
+        nullable: bool = True,
+        unique: bool = False,
+        length: int | None = None,
+        auto_increment: bool = False,
         default=None,
     ):
         self.type = type
@@ -19,6 +24,8 @@ class Column:
         self.length = length
         self.auto_increment = (auto_increment,)
         self.default = default
+
+        self._data = {}
 
     @property
     def primary_key_constraint(self):

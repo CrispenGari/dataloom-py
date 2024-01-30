@@ -1,2 +1,6 @@
 1. altering tables
 2. inserting data 
+3. created at and updated at field
+4. foreign key and primary key
+
+
