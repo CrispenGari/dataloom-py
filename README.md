@@ -144,10 +144,6 @@ The `PrimaryKeyColumn` takes the following arguments:
     </tr>
   </thead>
   <tbody>
-    <tr>
-      <td>type</td><td>The datatype of your primary key.</td>
-      <td>str</td><td>"bigserial"</td>
-    </tr>
      <tr>
       <td>type</td><td>The datatype of your primary key.</td>
       <td>str</td><td>"bigserial"</td>
