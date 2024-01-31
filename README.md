@@ -340,6 +340,14 @@ him = db.find_one(User, filters={"id": 1})
 print(him.to_dict())
 ```
 
+4. Deleting a record
+
+With the `delete_by_pk` method you can delete a record in a database based on the primary-key value:
+
+```py
+affected_rows = db.delete_by_pk(User, userId)
+```
+
 ### Associations
 
 With `dataloom` you can define models that have relationships. Let's say we have a model called `Post` and every post should belong to a single `User`. Here is how you can define model mappings between a `Post` and a `User` using the `ForeignKeyColumn()`

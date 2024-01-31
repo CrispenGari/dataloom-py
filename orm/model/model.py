@@ -29,7 +29,11 @@ class Model:
         for name, _ in inspect.getmembers(cls):
             if name == "__tablename__":
                 __tablename__ = cls.__tablename__
-        return cls.__name__.lower() if __tablename__ is None else __tablename__
+        return (
+            f'"{cls.__name__.lower()}"'
+            if __tablename__ is None
+            else f'"{__tablename__}"'
+        )
 
     @classmethod
     def _get_pk_attributes(cls):
@@ -191,6 +195,15 @@ class Model:
         return sql, fields
 
     @classmethod
+    def _get_delete_by_pk_stm(cls, pk, pk_name: str = "id"):
+        sql = Statements.DELETE_BY_PK.format(
+            table_name=cls._get_name(),
+            pk="%s",  # mask it to avoid SQL Injection
+            pk_name=pk_name,
+        )
+        return sql, pk
+
+    @classmethod
     def _get_insert_bulk_smt(cls, placeholders, columns, data):
         column_names = columns
         placeholders = placeholders
@@ -249,3 +262,39 @@ class Model:
                 filters=" AND ".join(filters),
             )
         return sql, fields, params
+
+    @classmethod
+    def _get_delete_where_stm(cls, args: dict = {}):
+        params = []
+        filters = []
+        for key, value in args.items():
+            filters.append(f"{key} = %s")
+            params.append(value)
+        if len(filters) == 0:
+            sql = Statements.DELETE_ALL_COMMAND.format(
+                table_name=cls._get_name(),
+            )
+        else:
+            sql = Statements.DELETE_ONE_WHERE_COMMAND.format(
+                table_name=cls._get_name(),
+                filters=" AND ".join(filters),
+            )
+        return sql, params
+
+    @classmethod
+    def _get_delete_bulk_where_stm(cls, args: dict = {}):
+        params = []
+        filters = []
+        for key, value in args.items():
+            filters.append(f"{key} = %s")
+            params.append(value)
+        if len(filters) == 0:
+            sql = Statements.DELETE_ALL_COMMAND.format(
+                table_name=cls._get_name(),
+            )
+        else:
+            sql = Statements.DELETE_BULK_WHERE_COMMAND.format(
+                table_name=cls._get_name(),
+                filters=" AND ".join(filters),
+            )
+        return sql, params

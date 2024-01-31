@@ -1,4 +1,9 @@
 class Statements:
+    # delete
+    DELETE_BY_PK = "DELETE FROM {table_name} WHERE {pk_name} = {pk};"
+    DELETE_ONE_WHERE_COMMAND = "DELETE FROM {table_name} WHERE {filters};"
+    DELETE_BULK_WHERE_COMMAND = "DELETE FROM {table_name} WHERE {filters};"
+    DELETE_ALL_COMMAND = "DELETE FROM {table_name};"
     # select
     SELECT_COMMAND = "SELECT {column_names} FROM {table_name};"
     SELECT_BY_PK = "SELECT {column_names} FROM {table_name} WHERE {pk_name}={pk};"

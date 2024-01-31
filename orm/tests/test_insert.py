@@ -1,4 +1,4 @@
-class TestInsertingOnePG:
+class TestInsertingOnPG:
     def test_insetting_single_document(self):
         from orm.db import Database
         from orm.model.column import Column
