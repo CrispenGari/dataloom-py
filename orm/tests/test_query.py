@@ -1,7 +1,7 @@
 class TestQueryingPG:
     def test_querying_data(self):
         from orm.db import Database
-        from orm.model.column import Column
+        from orm.model.column import Column, PrimaryKeyColumn
         from orm.model.model import Model
         from orm.keys import password, database, user
 
@@ -10,9 +10,7 @@ class TestQueryingPG:
 
         class User(Model):
             __tablename__ = "users"
-            id = Column(
-                type="bigint", primary_key=True, nullable=False, auto_increment=True
-            )
+            id = PrimaryKeyColumn(type="bigint", nullable=False, auto_increment=True)
             username = Column(type="text", nullable=False, default="Hello there!!")
             name = Column(
                 type="varchar",

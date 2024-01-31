@@ -1,11 +1,17 @@
 from orm.db import Database
-from orm.model.column import Column, CreatedAtColumn, UpdatedAtColumn, ForeignKeyColumn
+from orm.model.column import (
+    Column,
+    CreatedAtColumn,
+    UpdatedAtColumn,
+    ForeignKeyColumn,
+    PrimaryKeyColumn,
+)
 from orm.model.model import Model
 
 
 class User(Model):
     __tablename__ = "users"
-    id = Column(type="bigint", primary_key=True, nullable=False, auto_increment=True)
+    id = PrimaryKeyColumn(type="bigint", auto_increment=True)
     username = Column(type="text", nullable=False)
     name = Column(type="varchar", unique=False, length=255)
     createAt = CreatedAtColumn()
@@ -29,8 +35,7 @@ class User(Model):
 
 class Post(Model):
     __tablename__ = "posts"
-
-    id = Column(type="bigint", primary_key=True, nullable=False, auto_increment=True)
+    id = PrimaryKeyColumn(type="bigint", auto_increment=True)
     title = Column(type="text", nullable=False, default="Hello there!!")
     createAt = CreatedAtColumn()
     updatedAt = UpdatedAtColumn()
@@ -51,7 +56,7 @@ conn, tables = db.connect_and_sync([User, Post], drop=True, force=True)
 user = User(name="Crispen", username="heyy")
 userId = db.commit(user)
 postId = db.commit(
-    Post(userId=userId, title="What are you thinking"),
+    Post(userId=1, title="What are you thinking"),
 )
 
 now = db.find_by_pk(Post, 1)
@@ -59,14 +64,7 @@ print(now.userId)
 print(postId)
 
 
-# print(userId)
-# post =
-# db.commit(post)
 # post = Post(userId=userId, title="What are you thinking")
-# db.commit(post)
-# post =
-# db.commit(post)
-# post =
 # db.commit(post)
 
 

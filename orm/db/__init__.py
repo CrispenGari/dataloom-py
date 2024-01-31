@@ -3,7 +3,13 @@ import inspect
 from orm.constants import instances
 from orm.model.statements import Statements
 from orm.model.model import Model
-from orm.model.column import Column
+from orm.model.column import (
+    Column,
+    UpdatedAtColumn,
+    PrimaryKeyColumn,
+    CreatedAtColumn,
+    ForeignKeyColumn,
+)
 from functools import partial
 
 
@@ -126,13 +132,8 @@ class Database:
 
     def commit(self, instance: Model):
         sql, values = instance._get_insert_one_stm()
-        fields = list()
-        for name, field in inspect.getmembers(instance):
-            if isinstance(field, Column):
-                fields.append(name)
-        # save to the database
         row = self._execute_sql(sql, args=tuple(values), fetchone=True)
-        return dict(zip(fields, row)).get(fields[0])
+        return row[0]
 
     def commit_bulk(self, instances: list[Model]):
         columns = None
@@ -186,10 +187,18 @@ class Database:
         pk_name = "id"
         fields = list()
         for name, field in inspect.getmembers(instance):
-            if isinstance(field, Column):
-                if field.primary_key:
-                    pk_name = name
+            if (
+                isinstance(field, Column)
+                or isinstance(field, ForeignKeyColumn)
+                or isinstance(field, CreatedAtColumn)
+                or isinstance(field, UpdatedAtColumn)
+            ):
                 fields.append(name)
+            elif isinstance(field, PrimaryKeyColumn):
+                pk_name = name
+                fields.append(name)
+
+        print(fields)
         sql, fields = instance._get_select_by_pk_stm(pk, pk_name, fields=fields)
         row = self._execute_sql(sql, fetchone=True)
         return None if row is None else instance(**dict(zip(fields, row)))
@@ -201,4 +210,26 @@ class Database:
                 fields.append(name)
         sql, _, params = instance._get_select_where_stm(fields, filters)
         row = self._execute_sql(sql, args=params, fetchone=True)
+        return None if row is None else instance(**dict(zip(fields, row)))
+
+    def delete_one(self, instance: Model, filters: dict = {}):
+        fields = list()
+        for name, field in inspect.getmembers(instance):
+            if isinstance(field, Column):
+                fields.append(name)
+        sql, _, params = instance._get_select_where_stm(fields, filters)
+        row = self._execute_sql(sql, args=params, fetchone=True)
+        return None if row is None else instance(**dict(zip(fields, row)))
+
+    def delete_by_pk(self, instance: Model, pk):
+        # what is the name of the primary key column?
+        pk_name = "id"
+        fields = list()
+        for name, field in inspect.getmembers(instance):
+            if isinstance(field, Column):
+                if field.primary_key:
+                    pk_name = name
+                fields.append(name)
+        sql, fields = instance._get_select_by_pk_stm(pk, pk_name, fields=fields)
+        row = self._execute_sql(sql, fetchone=True)
         return None if row is None else instance(**dict(zip(fields, row)))

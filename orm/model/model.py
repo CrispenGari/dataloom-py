@@ -1,4 +1,10 @@
-from orm.model.column import Column, CreatedAtColumn, UpdatedAtColumn, ForeignKeyColumn
+from orm.model.column import (
+    Column,
+    CreatedAtColumn,
+    UpdatedAtColumn,
+    ForeignKeyColumn,
+    PrimaryKeyColumn,
+)
 from orm.model.statements import Statements
 from orm.exceptions import *
 import inspect
@@ -30,7 +36,7 @@ class Model:
         pk = None
         pk_type = "BIGSERIAL"
         for name, field in inspect.getmembers(cls):
-            if isinstance(field, Column) and field.primary_key:
+            if isinstance(field, PrimaryKeyColumn):
                 pk = name
                 pk_type = field.sql_type
         return pk, pk_type
@@ -47,20 +53,30 @@ class Model:
         # is the primary key defined in this table?
         pks = list()
         for name, field in inspect.getmembers(cls):
-            if isinstance(field, Column):
+            if isinstance(field, PrimaryKeyColumn):
+                pks.append(f'"{name}"')
                 _values = re.sub(
                     r"\s+",
                     " ",
-                    "{_type} {primary_key} {unique} {nullable} {default} ".format(
+                    "{_type} {unique} {nullable} {default} ".format(
                         _type=field.sql_type,
-                        primary_key=field.primary_key_constraint,
+                        default=field.default_constraint,
+                        nullable=field.nullable_constraint,
+                        unique=field.unique_constraint,
+                    ).strip(),
+                )
+                user_fields.append((f'"{name}"', _values))
+            elif isinstance(field, Column):
+                _values = re.sub(
+                    r"\s+",
+                    " ",
+                    "{_type} {unique} {nullable} {default} ".format(
+                        _type=field.sql_type,
                         unique=field.unique_constraint,
                         nullable=field.nullable_constraint,
                         default=field.default_constraint,
                     ).strip(),
                 )
-                if field.primary_key:
-                    pks.append(f'"{name}"')
                 user_fields.append((f'"{name}"', _values))
             elif isinstance(field, CreatedAtColumn):
                 predefined_fields.append((f'"{name}"', field.created_at))
@@ -115,16 +131,16 @@ class Model:
         values = []
         for _name, field in inspect.getmembers(self.__class__):
             if isinstance(field, Column):
-                if not field.primary_key:
-                    fields.append(_name)
-                    value = getattr(self, _name)
-                    values.append(value)
-                    placeholders.append("%s")
+                fields.append(_name)
+                value = getattr(self, _name)
+                values.append(value)
+                placeholders.append("%s")
             elif isinstance(field, ForeignKeyColumn):
                 fields.append(_name)
                 value = getattr(self, _name)
                 values.append(value)
                 placeholders.append("%s")
+
         column_names = ", ".join([f'"{f}"' for f in fields])
         placeholder_values = ", ".join(placeholders)
         return column_names, placeholder_values, values
@@ -133,23 +149,25 @@ class Model:
         fields = []
         placeholders = []
         values = []
+        pk = None
         for _name, field in inspect.getmembers(self.__class__):
             if isinstance(field, Column):
-                if not field.primary_key:
-                    fields.append(_name)
-                    value = getattr(self, _name)
-                    values.append(value)
-                    placeholders.append("%s")
+                fields.append(_name)
+                value = getattr(self, _name)
+                values.append(value)
+                placeholders.append("%s")
             elif isinstance(field, ForeignKeyColumn):
                 fields.append(_name)
                 value = getattr(self, _name)
                 values.append(value)
                 placeholders.append("%s")
-
+            elif isinstance(field, PrimaryKeyColumn):
+                pk = f'"{_name}"'
         sql = Statements.INSERT_COMMAND_ONE.format(
             table_name=self.__class__._get_name(),
             column_name=", ".join([f'"{f}"' for f in fields]),
             placeholder_values=", ".join(placeholders),
+            pk=pk,
         )
         return sql, values
 
@@ -161,6 +179,7 @@ class Model:
                 or isinstance(field, ForeignKeyColumn)
                 or isinstance(field, UpdatedAtColumn)
                 or isinstance(field, CreatedAtColumn)
+                or isinstance(field, PrimaryKeyColumn)
             ) and name not in fields:
                 fields.append(name)
         sql = Statements.SELECT_BY_PK.format(
@@ -190,6 +209,7 @@ class Model:
                 or isinstance(field, ForeignKeyColumn)
                 or isinstance(field, UpdatedAtColumn)
                 or isinstance(field, CreatedAtColumn)
+                or isinstance(field, PrimaryKeyColumn)
             ) and name not in fields:
                 fields.append(name)
         sql = Statements.SELECT_BY_PK.format(
@@ -210,6 +230,7 @@ class Model:
                 or isinstance(field, ForeignKeyColumn)
                 or isinstance(field, UpdatedAtColumn)
                 or isinstance(field, CreatedAtColumn)
+                or isinstance(field, PrimaryKeyColumn)
             ) and name not in fields:
                 fields.append(name)
 
