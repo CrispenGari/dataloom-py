@@ -48,13 +48,15 @@ class TestDeletingOnPG:
                 User(name="Crispen", username="heyy"),
             ]
         )
-        affected_rows_1 = db.delete_one(User, {"name": "Crispen"})
-        affected_rows_2 = db.delete_one(User, {"name": "Crispen", "id": 9})
-        affected_rows_3 = db.delete_one(User, {"name": "Crispen", "id": 2})
-
-        assert affected_rows_1 == 3
-        assert affected_rows_3 == 0
-        assert affected_rows_2 == 0
+        db.delete_one(User, {"name": "Crispen"})
+        rows_1 = db.find_many(User, {"name": "Crispen"})
+        db.delete_one(User, {"name": "Crispen", "id": 9})
+        rows_2 = db.find_many(User, {"name": "Crispen"})
+        db.delete_one(User, {"name": "Crispen", "id": 2})
+        rows_3 = db.find_many(User, {"name": "Crispen"})
+        assert len(rows_1) == 2
+        assert len(rows_2) == 2
+        assert len(rows_3) == 1
         conn.close()
 
     def test_delete_bulk_fn(self):
@@ -81,11 +83,20 @@ class TestDeletingOnPG:
                 User(name="Crispen", username="heyy"),
             ]
         )
-        affected_rows_1 = db.delete_one(User, {"name": "Crispen"})
-        affected_rows_2 = db.delete_one(User, {"name": "Crispen", "id": 9})
-        affected_rows_3 = db.delete_one(User, {"name": "Crispen", "id": 2})
-
-        assert affected_rows_1 == 3
-        assert affected_rows_3 == 0
-        assert affected_rows_2 == 0
+        db.delete_bulk(User, {"name": "Crispen"})
+        rows_1 = db.find_many(User, {"name": "Crispen"})
+        db.commit_bulk(
+            [
+                User(name="Crispen", username="heyy"),
+                User(name="Crispen", username="heyy"),
+                User(name="Crispen", username="heyy"),
+            ]
+        )
+        db.delete_bulk(User, {"name": "Crispen", "id": 99})
+        rows_2 = db.find_many(User, {"name": "Crispen"})
+        db.delete_bulk(User, {"name": "Crispen", "id": 5})
+        rows_3 = db.find_many(User, {"name": "Crispen"})
+        assert len(rows_1) == 0
+        assert len(rows_2) == 3
+        assert len(rows_3) == 2
         conn.close()

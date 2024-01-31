@@ -1,7 +1,11 @@
 class Statements:
     # delete
     DELETE_BY_PK = "DELETE FROM {table_name} WHERE {pk_name} = {pk};"
-    DELETE_ONE_WHERE_COMMAND = "DELETE FROM {table_name} WHERE {filters};"
+    DELETE_ONE_WHERE_COMMAND = """
+    DELETE FROM {table_name} WHERE {pk} = (
+        SELECT {pk} FROM  {table_name} WHERE {filters} LIMIT 1
+    );
+    """
     DELETE_BULK_WHERE_COMMAND = "DELETE FROM {table_name} WHERE {filters};"
     DELETE_ALL_COMMAND = "DELETE FROM {table_name};"
     # select

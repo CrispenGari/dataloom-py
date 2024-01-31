@@ -264,7 +264,7 @@ class Model:
         return sql, fields, params
 
     @classmethod
-    def _get_delete_where_stm(cls, args: dict = {}):
+    def _get_delete_where_stm(cls, pk: str = "id", args: dict = {}):
         params = []
         filters = []
         for key, value in args.items():
@@ -276,8 +276,7 @@ class Model:
             )
         else:
             sql = Statements.DELETE_ONE_WHERE_COMMAND.format(
-                table_name=cls._get_name(),
-                filters=" AND ".join(filters),
+                table_name=cls._get_name(), filters=" AND ".join(filters), pk=pk
             )
         return sql, params
 

@@ -63,7 +63,8 @@ userId = db.commit_bulk(user)
 #     Post(userId=1, title="What are you thinking"),
 # )
 
-now = db.delete_bulk(User, {"name": "Crispen"})
+now = db.delete_one(User, {"name": "Crispen"})
+print(now)
 
 
 # print(f"now: {now}")

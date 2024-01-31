@@ -217,10 +217,12 @@ class Database:
         return affected_rows
 
     def delete_one(self, instance: Model, filters: dict = {}):
-        sql, params = instance._get_delete_where_stm(filters)
-        affected_rows = self._execute_sql(
-            sql, args=params, affected_rows=True, fetchall=True
-        )
+        pk = None
+        for name, field in inspect.getmembers(instance):
+            if isinstance(field, PrimaryKeyColumn):
+                pk = name
+        sql, params = instance._get_delete_where_stm(pk=pk, args=filters)
+        affected_rows = self._execute_sql(sql, args=params, affected_rows=True)
         return affected_rows
 
     def delete_by_pk(self, instance: Model, pk):
