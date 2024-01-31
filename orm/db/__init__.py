@@ -202,3 +202,9 @@ class Database:
         sql, _, params = instance._get_select_where_stm(fields, filters)
         row = self._execute_sql(sql, args=params, fetchone=True)
         return None if row is None else instance(**dict(zip(fields, row)))
+
+    def delete_by_pk(self, instance: Model):
+        pass
+
+    def delete_one(self, instance: Model, filters: dict = {}):
+        pass

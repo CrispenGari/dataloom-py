@@ -50,7 +50,6 @@ class Column:
     def __init__(
         self,
         type,
-        primary_key: bool = False,
         nullable: bool = True,
         unique: bool = False,
         length: int | None = None,
@@ -58,7 +57,6 @@ class Column:
         default=None,
     ):
         self.type = type
-        self.primary_key = primary_key
         self.nullable = nullable
         self.unique = unique
         self.length = length

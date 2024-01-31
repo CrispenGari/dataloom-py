@@ -72,8 +72,8 @@ print(postId)
 
 # posts = db.find_all(Post)
 # print([u.to_dict() for u in posts])
-# me = db.find_by_pk(User, 1)
-# print(me.to_dict())
+me = db.find_by_pk(User, 1)
+print(me.to_dict())
 
 # him = db.find_one(User, filters={"id": 1})
 # print(him.to_dict())
