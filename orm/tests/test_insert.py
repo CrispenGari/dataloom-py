@@ -16,7 +16,7 @@ class TestInsertingOnePG:
         db.sync([Users], drop=True, force=True)
 
         user = Users(name="Crispen", username="heyy")
-        userId = db.commit(user)
+        userId = db.add(user)
         assert userId == 1
         conn.close()
 
@@ -53,13 +53,13 @@ class TestInsertingOnePG:
 
         conn, _ = db.connect_and_sync([User, Post], drop=True, force=True)
         user = User(name="Crispen", username="heyy")
-        userId = db.commit(user)
+        userId = db.add(user)
         posts = [
             Post(userId=userId, title="What are you thinking"),
             Post(userId=userId, title="What are you doing?"),
             Post(userId=userId, title="What are we?"),
         ]
-        row_count = db.commit_bulk(posts)
+        row_count = db.add_bulk(posts)
 
         assert row_count == 3
         conn.close()
@@ -98,8 +98,8 @@ class TestInsertingOnePG:
         db = Database("hi", password="root", user="postgres")
         conn, _ = db.connect_and_sync([User, Post], drop=True, force=True)
         user = User(name="Crispen", username="heyy")
-        userId = db.commit(user)
-        postId = db.commit(
+        userId = db.add(user)
+        postId = db.add(
             Post(userId=userId, title="What are you thinking"),
         )
         now = db.find_by_pk(Post, postId)

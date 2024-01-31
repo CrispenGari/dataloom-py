@@ -55,13 +55,9 @@ db = Database("hi", password="root", user="postgres")
 conn, tables = db.connect_and_sync([User, Post], drop=True, force=True)
 user = User(name="Crispen", username="heyy")
 userId = db.commit(user)
-postId = db.commit(
-    Post(userId=1, title="What are you thinking"),
-)
-
-now = db.find_by_pk(Post, 1)
-print(now.userId)
-print(postId)
+me = db.find_by_pk(User, 1)
+# me.name = "Gari"
+print(me.name)
 
 
 # post = Post(userId=userId, title="What are you thinking")

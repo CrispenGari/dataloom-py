@@ -30,7 +30,7 @@ class TestQueryingPG:
         db.sync([User], drop=True, force=True)
 
         user = User(name="Crispen", username="heyy")
-        db.commit(user)
+        db.add(user)
         users = db.find_all(User)
         me = db.find_by_pk(User, 1).to_dict()
         her = db.find_by_pk(User, 2)

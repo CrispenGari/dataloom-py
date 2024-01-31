@@ -130,12 +130,12 @@ class Database:
         except Exception as e:
             raise Exception(e)
 
-    def commit(self, instance: Model):
+    def add(self, instance: Model):
         sql, values = instance._get_insert_one_stm()
         row = self._execute_sql(sql, args=tuple(values), fetchone=True)
         return row[0]
 
-    def commit_bulk(self, instances: list[Model]):
+    def add_bulk(self, instances: list[Model]):
         columns = None
         placeholders = None
         data = list()
@@ -163,7 +163,6 @@ class Database:
         sql, _, __ = instance._get_select_where_stm(fields)
         data = list()
         rows = self._execute_sql(sql, fetchall=True)
-        print(len(rows))
         for row in rows:
             res = dict(zip(fields, row))
             data.append(instance(**res))
@@ -197,8 +196,6 @@ class Database:
             elif isinstance(field, PrimaryKeyColumn):
                 pk_name = name
                 fields.append(name)
-
-        print(fields)
         sql, fields = instance._get_select_by_pk_stm(pk, pk_name, fields=fields)
         row = self._execute_sql(sql, fetchone=True)
         return None if row is None else instance(**dict(zip(fields, row)))
