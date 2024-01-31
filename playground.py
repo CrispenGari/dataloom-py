@@ -53,15 +53,24 @@ class Post(Model):
 
 db = Database("hi", password="root", user="postgres")
 conn, tables = db.connect_and_sync([User, Post], drop=True, force=True)
-user = User(name="Crispen", username="heyy")
-userId = db.commit(user)
-postId = db.commit(
-    Post(userId=1, title="What are you thinking"),
-)
+user = [
+    User(name="Crispen", username="heyy"),
+    User(name="Crispen", username="heyy"),
+    User(name="Crispen", username="heyy"),
+]
+userId = db.commit_bulk(user)
+# postId = db.commit(
+#     Post(userId=1, title="What are you thinking"),
+# )
 
-now = db.find_by_pk(Post, 1)
-print(now.userId)
-print(postId)
+now = db.delete_one(User, {"name": "Crispen"})
+print(now)
+
+
+# print(f"now: {now}")
+# now = db.delete_one(Post, {"id": 8})
+# print(now.userId)
+# print(postId)
 
 
 # post = Post(userId=userId, title="What are you thinking")
@@ -70,8 +79,8 @@ print(postId)
 
 # posts = db.find_all(Post)
 # print([u.to_dict() for u in posts])
-# me = db.find_by_pk(User, 1)
-# print(me.to_dict())
+me = db.find_by_pk(User, 1)
+print(me.to_dict())
 
 # him = db.find_one(User, filters={"id": 1})
 # print(him.to_dict())

@@ -10,7 +10,6 @@ from orm.model.column import (
     CreatedAtColumn,
     ForeignKeyColumn,
 )
-from functools import partial
 
 
 class Database:
@@ -49,6 +48,7 @@ class Database:
         fetchall=False,
         mutation=True,
         bulk: bool = False,
+        affected_rows: bool = False,
     ):
         # do we need to log the executed SQL?
         if self.logs:
@@ -62,7 +62,7 @@ class Database:
                     sql, vars=args
                 )
             # options
-            if bulk:
+            if bulk or affected_rows:
                 result = cursor.rowcount
             else:
                 if fetchmany:
@@ -163,7 +163,6 @@ class Database:
         sql, _, __ = instance._get_select_where_stm(fields)
         data = list()
         rows = self._execute_sql(sql, fetchall=True)
-        print(len(rows))
         for row in rows:
             res = dict(zip(fields, row))
             data.append(instance(**res))
@@ -197,8 +196,6 @@ class Database:
             elif isinstance(field, PrimaryKeyColumn):
                 pk_name = name
                 fields.append(name)
-
-        print(fields)
         sql, fields = instance._get_select_by_pk_stm(pk, pk_name, fields=fields)
         row = self._execute_sql(sql, fetchone=True)
         return None if row is None else instance(**dict(zip(fields, row)))
@@ -212,24 +209,31 @@ class Database:
         row = self._execute_sql(sql, args=params, fetchone=True)
         return None if row is None else instance(**dict(zip(fields, row)))
 
+    def delete_bulk(self, instance: Model, filters: dict = {}):
+        sql, params = instance._get_delete_bulk_where_stm(filters)
+        affected_rows = self._execute_sql(
+            sql, args=params, affected_rows=True, fetchall=True
+        )
+        return affected_rows
+
     def delete_one(self, instance: Model, filters: dict = {}):
-        fields = list()
+        pk = None
         for name, field in inspect.getmembers(instance):
-            if isinstance(field, Column):
-                fields.append(name)
-        sql, _, params = instance._get_select_where_stm(fields, filters)
-        row = self._execute_sql(sql, args=params, fetchone=True)
-        return None if row is None else instance(**dict(zip(fields, row)))
+            if isinstance(field, PrimaryKeyColumn):
+                pk = name
+        sql, params = instance._get_delete_where_stm(pk=pk, args=filters)
+        affected_rows = self._execute_sql(sql, args=params, affected_rows=True)
+        return affected_rows
 
     def delete_by_pk(self, instance: Model, pk):
         # what is the name of the primary key column?
         pk_name = "id"
-        fields = list()
         for name, field in inspect.getmembers(instance):
-            if isinstance(field, Column):
-                if field.primary_key:
-                    pk_name = name
-                fields.append(name)
-        sql, fields = instance._get_select_by_pk_stm(pk, pk_name, fields=fields)
-        row = self._execute_sql(sql, fetchone=True)
-        return None if row is None else instance(**dict(zip(fields, row)))
+            if isinstance(field, PrimaryKeyColumn):
+                pk_name = name
+
+        sql, pk = instance._get_delete_by_pk_stm(pk, pk_name)
+        affected_rows = self._execute_sql(
+            sql, args=(pk,), affected_rows=True, fetchall=True
+        )
+        return affected_rows

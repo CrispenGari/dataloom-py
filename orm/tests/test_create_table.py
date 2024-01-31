@@ -9,14 +9,15 @@ class TestCreatingTablePG:
         db = Database(database, password=password, user=user)
         conn = db.connect()
 
-        class Users(Model):
+        class User(Model):
+            __tablename__ = "users"
             _id = PrimaryKeyColumn(type="bigint", auto_increment=True)
             id = PrimaryKeyColumn(type="bigint", auto_increment=True)
             username = Column(type="text", nullable=False, default="Hello there!!")
             name = Column(type="varchar", unique=True, length=255)
 
         with pytest.raises(Exception) as exc_info:
-            db.sync([Users], drop=True, force=True)
+            db.sync([User], drop=True, force=True)
 
         assert (
             str(exc_info.value)
@@ -34,12 +35,13 @@ class TestCreatingTablePG:
         db = Database(database, password=password, user=user)
         conn = db.connect()
 
-        class Users(Model):
+        class User(Model):
+            __tablename__ = "users"
             username = Column(type="text", nullable=False, default="Hello there!!")
             name = Column(type="varchar", unique=True, length=255)
 
         with pytest.raises(Exception) as exc_info:
-            db.sync([Users], drop=True, force=True)
+            db.sync([User], drop=True, force=True)
 
         assert str(exc_info.value) == "Your table does not have a primary key column."
         conn.close()
@@ -63,8 +65,8 @@ class TestCreatingTablePG:
             username = Column(type="text", nullable=False, default="Hello there!!")
             name = Column(type="varchar", unique=True, length=255)
 
-        assert User._get_name() == "users"
-        assert Todos._get_name() == "todos"
+        assert User._get_name() == '"users"'
+        assert Todos._get_name() == '"todos"'
         conn.close()
 
     def test_connect_sync(self):
@@ -90,7 +92,7 @@ class TestCreatingTablePG:
 
         assert len(tables) == 2
         assert conn.status == 1
-        assert tables == ["users", "posts"]
+        assert sorted(tables) == sorted(["users", "posts"])
 
         conn.close()
 
