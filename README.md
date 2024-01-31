@@ -235,7 +235,7 @@ When a column is marked as `UpdatedAtColumn` it's value will automatically get g
 ### Syncing Tables
 
 This is the process of creating tables from models and save them to a database.
-After defining your tables you will need to `sync` your database tables. To Sync a database you call the method called `sync`. This method allows you to create and commit tables into the database. Let's say we have two models `User` and `Post` and you want to create commit them to the database you can do it as follows:
+After defining your tables you will need to `sync` your database tables. To Sync a database you call the method called `sync`. This method allows you to create and save tables into the database. Let's say we have two models `User` and `Post` and you want to them to the database you can do it as follows:
 
 ```py
 tables = db.sync([User, Post], drop=True, force=True)
@@ -281,15 +281,15 @@ Returns a `conn` and `tablenames` that are in the database. The method accepts t
 
 1. Creating a Record
 
-The `commit` method let you create save a single row in a particular table. When you save this will return the `id` of the inserted document
+The `create` method let you create save a single row in a particular table. When you save this will return the `id` of the inserted document
 
 ```py
 user = User(name="Crispen", username="heyy")
-userId = db.commit(user)
+userId = db.create(user)
 print(userId)
 ```
 
-Using the `commit_bulk` you will be able to save in bulk as the method explains itself. The following is an example showing how we can add `3` post to the database table at the same time.
+Using the `create_bulk` you will be able to save in bulk as the method explains itself. The following is an example showing how we can add `3` post to the database table at the same time.
 
 ```py
 posts = [
@@ -297,10 +297,10 @@ posts = [
     Post(userId=userId, title="What are you doing?"),
     Post(userId=userId, title="What are we?"),
 ]
-row_count = db.commit_bulk(posts)
+row_count = db.create_bulk(posts)
 ```
 
-> Unlike the `commit`, `commit_bulk` method returns the row count of the inserted documents rather that individual `id` of those document.
+> Unlike the `create`, `create_bulk` method returns the row count of the inserted documents rather that individual `id` of those document.
 
 2. Getting records
 
@@ -411,14 +411,14 @@ So to insert a single post you first need to have a user that will create a post
 
 ```py
 user = User(name="Crispen", username="heyy")
-userId = db.commit(user)
+userId = db.create(user)
 
 post = Post(userId=userId, title="What are you thinking")
-db.commit(post)
+db.create(post)
 post = Post(userId=userId, title="What are you thinking")
-db.commit(post)
+db.create(post)
 post = Post(userId=userId, title="What are we?")
-db.commit(post)
+db.create(post)
 ```
 
 > We have created `3` posts that belongs to `Crispen`.

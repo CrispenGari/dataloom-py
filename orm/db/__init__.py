@@ -130,12 +130,12 @@ class Database:
         except Exception as e:
             raise Exception(e)
 
-    def commit(self, instance: Model):
+    def create(self, instance: Model):
         sql, values = instance._get_insert_one_stm()
         row = self._execute_sql(sql, args=tuple(values), fetchone=True)
         return row[0]
 
-    def commit_bulk(self, instances: list[Model]):
+    def create_bulk(self, instances: list[Model]):
         columns = None
         placeholders = None
         data = list()

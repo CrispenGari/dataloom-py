@@ -1,3 +1,4 @@
+from typing import Any
 from orm.model.column import (
     Column,
     CreatedAtColumn,
@@ -13,7 +14,7 @@ import re
 
 class Model:
     def __init__(self, **args) -> None:
-        self._data = {id: None}
+        self._data = {}
         for k, v in args.items():
             self._data[k] = v
 
@@ -22,6 +23,10 @@ class Model:
         if key in _data:
             return _data[key]
         return object.__getattribute__(self, key)
+
+    # def __setattr__(self, __name: str, __value: Any) -> None:
+    #     if __name in self._data:
+    #         self._data[__name] = __value
 
     @classmethod
     def _get_name(cls):
