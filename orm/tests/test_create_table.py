@@ -1,7 +1,7 @@
 class TestCreatingTablePG:
     def test_2_pk_error(self):
         from orm.db import Database
-        from orm.model.column import Column
+        from orm.model.column import Column, PrimaryKeyColumn
         from orm.model.model import Model
         from orm.keys import password, database, user
         import pytest
@@ -10,12 +10,8 @@ class TestCreatingTablePG:
         conn = db.connect()
 
         class Users(Model):
-            _id = Column(
-                type="bigint", primary_key=True, nullable=False, auto_increment=True
-            )
-            id = Column(
-                type="bigint", primary_key=True, nullable=False, auto_increment=True
-            )
+            _id = PrimaryKeyColumn(type="bigint", auto_increment=True)
+            id = PrimaryKeyColumn(type="bigint", auto_increment=True)
             username = Column(type="text", nullable=False, default="Hello there!!")
             name = Column(type="varchar", unique=True, length=255)
 
@@ -50,7 +46,7 @@ class TestCreatingTablePG:
 
     def test_table_name(self):
         from orm.db import Database
-        from orm.model.column import Column
+        from orm.model.column import Column, PrimaryKeyColumn
         from orm.model.model import Model
         from orm.keys import database, password, user
 
@@ -58,9 +54,7 @@ class TestCreatingTablePG:
         conn = db.connect()
 
         class Todos(Model):
-            id = Column(
-                type="bigint", primary_key=True, nullable=False, auto_increment=True
-            )
+            id = PrimaryKeyColumn(type="bigint", auto_increment=True)
             completed = Column(type="boolean", default=False)
             title = Column(type="varchar", length=255, nullable=False)
 
@@ -77,22 +71,18 @@ class TestCreatingTablePG:
         from orm.db import Database
         from orm.keys import password, database, user
         from orm.model.model import Model
-        from orm.model.column import Column
+        from orm.model.column import Column, PrimaryKeyColumn
 
         class User(Model):
             __tablename__ = "users"
-            id = Column(
-                type="bigint", primary_key=True, nullable=False, auto_increment=True
-            )
+            id = PrimaryKeyColumn(type="bigint", nullable=False, auto_increment=True)
             username = Column(type="text", nullable=False)
             name = Column(type="varchar", unique=False, length=255)
 
         class Post(Model):
             __tablename__ = "posts"
 
-            id = Column(
-                type="bigint", primary_key=True, nullable=False, auto_increment=True
-            )
+            id = PrimaryKeyColumn(type="bigint", nullable=False, auto_increment=True)
             title = Column(type="text", nullable=False, default="Hello there!!")
 
         db = Database(database, password=password, user=user)
@@ -108,22 +98,18 @@ class TestCreatingTablePG:
         from orm.db import Database
         from orm.keys import password, database, user
         from orm.model.model import Model
-        from orm.model.column import Column
+        from orm.model.column import Column, PrimaryKeyColumn
 
         class User(Model):
             __tablename__ = "users"
-            id = Column(
-                type="bigint", primary_key=True, nullable=False, auto_increment=True
-            )
+            id = PrimaryKeyColumn(type="bigint", nullable=False, auto_increment=True)
             username = Column(type="text", nullable=False)
             name = Column(type="varchar", unique=False, length=255)
 
         class Post(Model):
             __tablename__ = "posts"
 
-            id = Column(
-                type="bigint", primary_key=True, nullable=False, auto_increment=True
-            )
+            id = PrimaryKeyColumn(type="bigint", nullable=False, auto_increment=True)
             title = Column(type="text", nullable=False, default="Hello there!!")
 
         db = Database(database, password=password, user=user)

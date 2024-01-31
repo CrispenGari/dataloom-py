@@ -2,16 +2,14 @@ class TestInsertingOnePG:
     def test_insetting_single_document(self):
         from orm.db import Database
         from orm.model.column import Column
-        from orm.model.model import Model
+        from orm.model.model import Model, PrimaryKeyColumn
         from orm.keys import password, database, user
 
         db = Database(database, password=password, user=user)
         conn = db.connect()
 
         class Users(Model):
-            id = Column(
-                type="bigint", primary_key=True, nullable=False, auto_increment=True
-            )
+            id = PrimaryKeyColumn(type="bigint", auto_increment=True)
             username = Column(type="text", nullable=False, default="Hello there!!")
             name = Column(type="varchar", unique=True, length=255)
 
@@ -30,6 +28,7 @@ class TestInsertingOnePG:
             CreatedAtColumn,
             UpdatedAtColumn,
             ForeignKeyColumn,
+            PrimaryKeyColumn,
         )
         from orm.keys import password, database, user
 
@@ -37,9 +36,7 @@ class TestInsertingOnePG:
 
         class User(Model):
             __tablename__ = "users"
-            id = Column(
-                type="bigint", primary_key=True, nullable=False, auto_increment=True
-            )
+            id = PrimaryKeyColumn(type="bigint", nullable=False, auto_increment=True)
             username = Column(type="text", nullable=False)
             name = Column(type="varchar", unique=False, length=255)
             createAt = CreatedAtColumn()
@@ -48,9 +45,7 @@ class TestInsertingOnePG:
         class Post(Model):
             __tablename__ = "posts"
 
-            id = Column(
-                type="bigint", primary_key=True, nullable=False, auto_increment=True
-            )
+            id = PrimaryKeyColumn(type="bigint", nullable=False, auto_increment=True)
             title = Column(type="text", nullable=False, default="Hello there!!")
             createAt = CreatedAtColumn()
             updatedAt = UpdatedAtColumn()
@@ -77,6 +72,7 @@ class TestInsertingOnePG:
             CreatedAtColumn,
             UpdatedAtColumn,
             ForeignKeyColumn,
+            PrimaryKeyColumn,
         )
         from orm.keys import password, database, user
 
@@ -84,9 +80,7 @@ class TestInsertingOnePG:
 
         class User(Model):
             __tablename__ = "users"
-            id = Column(
-                type="bigint", primary_key=True, nullable=False, auto_increment=True
-            )
+            id = PrimaryKeyColumn(type="bigint", auto_increment=True)
             username = Column(type="text", nullable=False)
             name = Column(type="varchar", unique=False, length=255)
             createAt = CreatedAtColumn()
@@ -95,9 +89,7 @@ class TestInsertingOnePG:
         class Post(Model):
             __tablename__ = "posts"
 
-            id = Column(
-                type="bigint", primary_key=True, nullable=False, auto_increment=True
-            )
+            id = PrimaryKeyColumn(type="bigint", auto_increment=True)
             title = Column(type="text", nullable=False, default="Hello there!!")
             createAt = CreatedAtColumn()
             updatedAt = UpdatedAtColumn()

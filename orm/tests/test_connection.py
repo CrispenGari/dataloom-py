@@ -12,22 +12,18 @@ class TestConnectionPG:
         from orm.db import Database
         from orm.keys import password, database, user
         from orm.model.model import Model
-        from orm.model.column import Column
+        from orm.model.column import Column, PrimaryKeyColumn
 
         class User(Model):
             __tablename__ = "users"
-            id = Column(
-                type="bigint", primary_key=True, nullable=False, auto_increment=True
-            )
+            id = PrimaryKeyColumn(type="bigint", auto_increment=True)
             username = Column(type="text", nullable=False)
             name = Column(type="varchar", unique=False, length=255)
 
         class Post(Model):
             __tablename__ = "posts"
 
-            id = Column(
-                type="bigint", primary_key=True, nullable=False, auto_increment=True
-            )
+            id = PrimaryKeyColumn(type="bigint", auto_increment=True)
             title = Column(type="text", nullable=False, default="Hello there!!")
 
         db = Database(database, password=password, user=user)

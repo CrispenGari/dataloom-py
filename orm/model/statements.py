@@ -4,7 +4,7 @@ class Statements:
     SELECT_BY_PK = "SELECT {column_names} FROM {table_name} WHERE {pk_name}={pk};"
     SELECT_WHERE_COMMAND = "SELECT {column_names} FROM {table_name} WHERE {filters};"
     # insert
-    INSERT_COMMAND_ONE = "INSERT INTO {table_name} ({column_name}) VALUES ({placeholder_values}) RETURNING *;"
+    INSERT_COMMAND_ONE = "INSERT INTO {table_name} ({column_name}) VALUES ({placeholder_values}) RETURNING {pk};"
     INSERT_COMMAND_MANY = "INSERT INTO {table_name} ({column_names}) VALUES ({placeholder_values}) RETURNING *;"
 
     # creating table

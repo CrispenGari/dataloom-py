@@ -61,7 +61,7 @@ A model is just a top level class that allows you to build some complicated SQL 
 ```py
 class User(Model):
     __tablename__ = "users"
-    id = Column(type="bigint", primary_key=True, nullable=False, auto_increment=True)
+    id = PrimaryKeyColumn(type="bigint", auto_increment=True)
     username = Column(type="text", nullable=False, default="Hello there!!")
     name = Column(type="varchar", unique=True, length=255)
 
@@ -83,7 +83,7 @@ class User(Model):
 Every table has a column. Each property that is set to column in a model is considered 1. Let's have a look at how we can define a column in a table.
 
 ```py
-id = Column(type="bigint", primary_key=True, nullable=False, auto_increment=True)
+username = Column(type="text", nullable=False, default="Hello there!!")
 ```
 
 We are defining a column that is called `id`. And we are specifying the type of this column and some other options. Here are some other options that can be passed to the
@@ -98,10 +98,6 @@ We are defining a column that is called `id`. And we are specifying the type of 
     <tr>
       <td>type</td><td>Required datatype of a column</td>
       <td>any datatype supported</td><td></td>
-    </tr>
-    <tr>
-      <td>primary_key</td><td>Optional to specify if the column is a primary key or not.</td>
-      <td>bool</td><td>False</td>
     </tr>
     <tr>
       <td>nullable</td><td>Optional to specify if the column will allow null values or not.</td>
@@ -119,10 +115,65 @@ We are defining a column that is called `id`. And we are specifying the type of 
       <td>default</td><td>Optional to specify if the default value in a column.</td>
       <td>any</td><td>None</td>
     </tr>
+     <tr>
+      <td>unique</td><td>Optional to specify if the column will contain unique values or not.</td>
+      <td>bool</td><td>False</td>
+    </tr>
   </tbody>
 </table>
 
-> Note: Every table is required to have a primary key column and this column should be 1.
+> Note: Every table is required to have a primary key column and this column should be 1. Let's talk about the `PrimaryKeyColumn`
+
+### `PrimaryKeyColumn` Class
+
+This create a unique index in every table that you create. Every table that you create and that inherits from the `Model` class is required to have exactly 1 `PrimaryKeyColumn`. Here is how you can create a `id` column as a primary key in your table:
+
+```py
+class Post(Model):
+    __tablename__ = "posts"
+    id = PrimaryKeyColumn(type="bigint", auto_increment=True)
+    #...rest of your tables
+```
+
+The `PrimaryKeyColumn` takes the following arguments:
+
+<table border="1">
+  <thead>
+    <tr><th>Argument</th><th>Description</th>
+      <th>Type</th><th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>type</td><td>The datatype of your primary key.</td>
+      <td>str</td><td>"bigserial"</td>
+    </tr>
+     <tr>
+      <td>type</td><td>The datatype of your primary key.</td>
+      <td>str</td><td>"bigserial"</td>
+    </tr>
+    <tr>
+      <td>length</td><td>Optional to specify if the length of the type that. eg if this argument is passed as <b>N</b> with a <b>T</b> type, this will yield an sql statement with type <b>T(N)</b>.</td>
+      <td>int|None</td><td>None</td>
+    </tr>
+      <tr>
+      <td>auto_increment</td><td>Optional to specify if the column will automatically increment or not.</td>
+      <td>bool</td><td>False</td>
+    </tr>
+       <tr>
+      <td>default</td><td>Optional to specify if the default value in a column.</td>
+      <td>any</td><td>None</td>
+    </tr>
+     <tr>
+      <td>nullable</td><td>Optional to specify if the column will allow null values or not.</td>
+      <td>bool</td><td>False</td>
+    </tr>
+     <tr>
+      <td>unique</td><td>Optional to specify if the column will contain unique values or not.</td>
+      <td>bool</td><td>True</td>
+    </tr>
+  </tbody>
+</table>
 
 ### `ForeignKeyColumn` Class
 
@@ -132,7 +183,7 @@ This Column is used when we are telling `dataloom` that the column has a relatio
 class Post(Model):
     __tablename__ = "posts"
 
-    id = Column(type="bigint", primary_key=True, nullable=False, auto_increment=True)
+    id = PrimaryKeyColumn(type="bigint", auto_increment=True)
     title = Column(type="text", nullable=False, default="Hello there!!")
     createAt = CreatedAtColumn()
     updatedAt = UpdatedAtColumn()
@@ -299,7 +350,7 @@ from dataloom import Column, CreatedAtColumn, UpdatedAtColumn, ForeignKeyColumn
 
 class User(Model):
     __tablename__ = "users"
-    id = Column(type="bigint", primary_key=True, nullable=False, auto_increment=True)
+    id = PrimaryKeyColumn(type="bigint", auto_increment=True)
     username = Column(type="text", nullable=False)
     name = Column(type="varchar", unique=False, length=255)
     createAt = CreatedAtColumn()
@@ -323,8 +374,7 @@ class User(Model):
 
 class Post(Model):
     __tablename__ = "posts"
-
-    id = Column(type="bigint", primary_key=True, nullable=False, auto_increment=True)
+    id = PrimaryKeyColumn(type="bigint", auto_increment=True)
     title = Column(type="text", nullable=False, default="Hello there!!")
     createAt = CreatedAtColumn()
     updatedAt = UpdatedAtColumn()
