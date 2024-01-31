@@ -54,7 +54,7 @@ The database class takes in the following options:
   </tbody>
 </table>
 
-### Model Class
+### `Model` Class
 
 A model is just a top level class that allows you to build some complicated SQL tables from regular python classes. You can define a table `User` as an class that inherits from `Model` class as follows:
 
@@ -78,7 +78,7 @@ class User(Model):
 
 - We are defining a model called `User` and we are specifying the table name using the property `__tablename__` to `"users"`. This will tell `dataloom` that don't infer the table name from the class use the one that I have provided. If you don't pass the `__tablename__` then the class name will be used as your table name upon syncing tables.
 
-### Column Class
+### `Column` Class
 
 Every table has a column. Each property that is set to column in a model is considered 1. Let's have a look at how we can define a column in a table.
 
@@ -124,7 +124,7 @@ We are defining a column that is called `id`. And we are specifying the type of 
 
 > Note: Every table is required to have a primary key column and this column should be 1.
 
-### ForeignKeyColumn Class
+### `ForeignKeyColumn` Class
 
 This Column is used when we are telling `dataloom` that the column has a relationship with a primary key in another table. Let's consider the following model definition of a `Post`:
 
@@ -177,11 +177,11 @@ It is very important to specify the actions on `onDelete` and `onUpdate` so that
 2. `"SET NULL"` - Meaning if you `delete` or `update` the parent table, then in the child table the value will be set to `null`
 3. `"CASCADE"` - Meaning if you `delete` or `update` the table also the same action will happen on the child table.
 
-### CreatedAtColumn Class
+### `CreatedAtColumn` Class
 
 When a column is marked as `CreatedAtColumn` it's value will automatically get generated every time when you `create` a new record in a database as a timestamp.
 
-### UpdatedAtColumn Class
+### `UpdatedAtColumn` Class
 
 When a column is marked as `UpdatedAtColumn` it's value will automatically get generated every time when you `create` a new record or `update` an existing record in a database table as a timestamp.
 
