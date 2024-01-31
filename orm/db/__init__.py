@@ -237,3 +237,33 @@ class Database:
             sql, args=(pk,), affected_rows=True, fetchall=True
         )
         return affected_rows
+
+    def update_by_pk(self, instance: Model, pk, values: dict = {}):
+        pk_name = "id"
+        for name, field in inspect.getmembers(instance):
+            if isinstance(field, PrimaryKeyColumn):
+                pk_name = name
+        sql, values = instance._get_update_by_pk_stm(pk_name, values)
+        values.append(pk)
+        affected_rows = self._execute_sql(sql, args=values, affected_rows=True)
+        return affected_rows
+
+    def update_one(self, instance: Model, filters: dict = {}, values: dict = {}):
+        pk_name = "id"
+        for name, field in inspect.getmembers(instance):
+            if isinstance(field, PrimaryKeyColumn):
+                pk_name = name
+        sql, new_values, filter_values = instance._get_update_one_stm(
+            pk_name, filters, values
+        )
+        args = [*new_values, *filter_values]
+        affected_rows = self._execute_sql(sql, args=args, affected_rows=True)
+        return affected_rows
+
+    def update_bulk(self, instance: Model, filters: dict = {}, values: dict = {}):
+        sql, new_values, filter_values = instance._get_update_bulk_where_stm(
+            filters, values
+        )
+        args = [*new_values, *filter_values]
+        affected_rows = self._execute_sql(sql, args=args, affected_rows=True)
+        return affected_rows

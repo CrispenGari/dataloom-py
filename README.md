@@ -356,6 +356,26 @@ You can also the `delete_bulk` which delete a lot of records that matches a filt
 affected_rows = db.delete_bulk(User, {"name": "Crispen"})
 ```
 
+5. Updating a record
+
+You can update a record in a database table using the methods, `update_by_pk` , `update_one` and `update_bulk`. The `update_pk` can be used as follows:
+
+```py
+affected_rows = db.update_by_pk(User, 1, {"name": "Gari"})
+```
+
+This is how you can use the `update_one`
+
+```py
+affected_rows = db.update_one(User, {"name": "Crispen"}, {"name": "Gari"})
+```
+
+The update bulk updates all teh records that matches a filter in a database table:
+
+```py
+affected_rows = db.update_bulk(User, {"name": "Crispen"}, {"name": "Tinashe Gari"})
+```
+
 ### Associations
 
 With `dataloom` you can define models that have relationships. Let's say we have a model called `Post` and every post should belong to a single `User`. Here is how you can define model mappings between a `Post` and a `User` using the `ForeignKeyColumn()`

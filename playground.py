@@ -14,7 +14,7 @@ class User(Model):
     id = PrimaryKeyColumn(type="bigint", auto_increment=True)
     username = Column(type="text", nullable=False)
     name = Column(type="varchar", unique=False, length=255)
-    createAt = CreatedAtColumn()
+    createdAt = CreatedAtColumn()
     updatedAt = UpdatedAtColumn()
 
     def __str__(self) -> str:
@@ -37,7 +37,7 @@ class Post(Model):
     __tablename__ = "posts"
     id = PrimaryKeyColumn(type="bigint", auto_increment=True)
     title = Column(type="text", nullable=False, default="Hello there!!")
-    createAt = CreatedAtColumn()
+    createdAt = CreatedAtColumn()
     updatedAt = UpdatedAtColumn()
     userId = ForeignKeyColumn(User, onDelete="CASCADE", onUpdate="CASCADE")
 
@@ -46,7 +46,7 @@ class Post(Model):
             "id": self.id,
             "title": self.title,
             "userId": self.userId,
-            "createdAt": self.createAt,
+            "createdAt": self.createdAt,
             "updatedAt": self.updatedAt,
         }
 
@@ -54,27 +54,11 @@ class Post(Model):
 db = Database("hi", password="root", user="postgres")
 conn, tables = db.connect_and_sync([User, Post], drop=True, force=True)
 user = User(name="Crispen", username="heyy")
-userId = db.commit(user)
+userId = db.create_bulk([user for i in range(3)])
 me = db.find_by_pk(User, 1)
-# me.name = "Gari"
-print(me.name)
+affected_rows = db.update_bulk(User, {"name": "Crispen"}, {"name": "Gari"})
 
 
-# post = Post(userId=userId, title="What are you thinking")
-# db.commit(post)
-
-
-# posts = db.find_all(Post)
-# print([u.to_dict() for u in posts])
-me = db.find_by_pk(User, 1)
-print(me.to_dict())
-
-# him = db.find_one(User, filters={"id": 1})
-# print(him.to_dict())
-
-# many = db.find_many(User, {"id": 5})
-# print([u.to_dict() for u in many])
-
-
+print(affected_rows)
 if __name__ == "__main__":
     conn.close()

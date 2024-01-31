@@ -17,7 +17,7 @@ class TestDeletingOnPG:
         db.sync([User], drop=True, force=True)
 
         user = User(name="Crispen", username="heyy")
-        userId = db.commit(user)
+        userId = db.create(user)
         affected_rows_1 = db.delete_by_pk(User, userId)
         affected_rows_2 = db.delete_by_pk(User, 89)
         assert affected_rows_1 == 1
@@ -41,7 +41,7 @@ class TestDeletingOnPG:
 
         db.sync([User], drop=True, force=True)
 
-        db.commit_bulk(
+        db.create_bulk(
             [
                 User(name="Crispen", username="heyy"),
                 User(name="Crispen", username="heyy"),
@@ -76,7 +76,7 @@ class TestDeletingOnPG:
 
         db.sync([User], drop=True, force=True)
 
-        db.commit_bulk(
+        db.create_bulk(
             [
                 User(name="Crispen", username="heyy"),
                 User(name="Crispen", username="heyy"),
@@ -85,7 +85,7 @@ class TestDeletingOnPG:
         )
         db.delete_bulk(User, {"name": "Crispen"})
         rows_1 = db.find_many(User, {"name": "Crispen"})
-        db.commit_bulk(
+        db.create_bulk(
             [
                 User(name="Crispen", username="heyy"),
                 User(name="Crispen", username="heyy"),

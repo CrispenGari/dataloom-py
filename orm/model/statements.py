@@ -1,9 +1,21 @@
 class Statements:
+    # updates
+    UPDATE_BY_PK_COMMAND = (
+        "UPDATE {table_name} SET {placeholder_values} WHERE {pk_name} = {pk};"
+    )
+    UPDATE_BY_ONE_COMMAND = """
+        UPDATE {table_name} SET {placeholder_values} WHERE {pk_name} = (
+            SELECT {pk_name} FROM  {table_name} WHERE {placeholder_filters} LIMIT 1
+        );
+        """
+    UPDATE_BULK_WHERE_COMMAND = (
+        "UPDATE {table_name} SET {placeholder_values} WHERE {placeholder_filters};"
+    )
     # delete
     DELETE_BY_PK = "DELETE FROM {table_name} WHERE {pk_name} = {pk};"
     DELETE_ONE_WHERE_COMMAND = """
-    DELETE FROM {table_name} WHERE {pk} = (
-        SELECT {pk} FROM  {table_name} WHERE {filters} LIMIT 1
+    DELETE FROM {table_name} WHERE {pk_name} = (
+        SELECT {pk_name} FROM  {table_name} WHERE {filters} LIMIT 1
     );
     """
     DELETE_BULK_WHERE_COMMAND = "DELETE FROM {table_name} WHERE {filters};"
