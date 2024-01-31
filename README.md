@@ -54,7 +54,7 @@ The database class takes in the following options:
   </tbody>
 </table>
 
-### Model
+### Model Class
 
 A model is just a top level class that allows you to build some complicated SQL tables from regular python classes. You can define a table `User` as an class that inherits from `Model` class as follows:
 
@@ -76,7 +76,119 @@ class User(Model):
 
 ```
 
-You will need to `sync` your database tables. To Sync a database you call the method called `sync`. This method allows you to create and commit tables into the database. Let's say we have two models `User` and `Post` and you want to create commit them to the database you can do it as follows:
+- We are defining a model called `User` and we are specifying the table name using the property `__tablename__` to `"users"`. This will tell `dataloom` that don't infer the table name from the class use the one that I have provided. If you don't pass the `__tablename__` then the class name will be used as your table name upon syncing tables.
+
+### Column Class
+
+Every table has a column. Each property that is set to column in a model is considered 1. Let's have a look at how we can define a column in a table.
+
+```py
+id = Column(type="bigint", primary_key=True, nullable=False, auto_increment=True)
+```
+
+We are defining a column that is called `id`. And we are specifying the type of this column and some other options. Here are some other options that can be passed to the
+
+<table border="1">
+  <thead>
+    <tr><th>Argument</th><th>Description</th>
+      <th>Type</th><th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>type</td><td>Required datatype of a column</td>
+      <td>any datatype supported</td><td></td>
+    </tr>
+    <tr>
+      <td>primary_key</td><td>Optional to specify if the column is a primary key or not.</td>
+      <td>bool</td><td>False</td>
+    </tr>
+    <tr>
+      <td>nullable</td><td>Optional to specify if the column will allow null values or not.</td>
+      <td>bool</td><td>False</td>
+    </tr>
+    <tr>
+      <td>length</td><td>Optional to specify if the length of the type that. eg if this argument is passed as <b>N</b> with a <b>T</b> type, this will yield an sql statement with type <b>T(N)</b>.</td>
+      <td>int|None</td><td>None</td>
+    </tr>
+      <tr>
+      <td>auto_increment</td><td>Optional to specify if the column will automatically increment or not.</td>
+      <td>bool</td><td>False</td>
+    </tr>
+       <tr>
+      <td>default</td><td>Optional to specify if the default value in a column.</td>
+      <td>any</td><td>None</td>
+    </tr>
+  </tbody>
+</table>
+
+> Note: Every table is required to have a primary key column and this column should be 1.
+
+### ForeignKeyColumn Class
+
+This Column is used when we are telling `dataloom` that the column has a relationship with a primary key in another table. Let's consider the following model definition of a `Post`:
+
+```py
+class Post(Model):
+    __tablename__ = "posts"
+
+    id = Column(type="bigint", primary_key=True, nullable=False, auto_increment=True)
+    title = Column(type="text", nullable=False, default="Hello there!!")
+    createAt = CreatedAtColumn()
+    updatedAt = UpdatedAtColumn()
+    userId = ForeignKeyColumn(User, onDelete="CASCADE", onUpdate="CASCADE")
+```
+
+- `userId` is a foreign key in the table `posts` which means it has a relationship with a primary key in the `users` table. This column takes in some arguments which are:
+
+<table border="1">
+  <thead>
+    <tr><th>Argument</th><th>Description</th>
+      <th>Type</th><th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>table</td><td>Required, this is the table that the current model reference as it's parent. In our toy example this is called `User`.</td>
+      <td>Model</td><td></td>
+    </tr>
+     <tr>
+      <td>type</td><td>You can specify the type of the foreign key, which is optional as dataloom can infer it from the parent table.</td>
+      <td>str|None</td><td>None</td>
+    </tr>
+     <tr>
+      <td>required</td><td>Specifying if the foreign key is required or not.</td>
+      <td>bool</td><td>False</td>
+    </tr>
+    <tr>
+      <td>onDelete</td><td>Specifying the action that will be performed when the parent table is deleted</td>
+      <td>str ["NO ACTION", "SET NULL", "CASCADE"]</td><td>"NO ACTION"</td>
+    </tr>
+    <tr>
+      <td>onDelete</td><td>Specifying the action that will be performed when the parent table is updated</td>
+      <td>str ["NO ACTION", "SET NULL", "CASCADE"]</td><td>"NO ACTION"</td>
+    </tr>
+  </tbody>
+</table>
+
+It is very important to specify the actions on `onDelete` and `onUpdate` so that `dataloom` will take care of your models relationships actions as. The actions that are available are:
+
+1. `"NO ACTION"` - Meaning if you `delete` or `update` the parent table nothing will happen to the child table.
+2. `"SET NULL"` - Meaning if you `delete` or `update` the parent table, then in the child table the value will be set to `null`
+3. `"CASCADE"` - Meaning if you `delete` or `update` the table also the same action will happen on the child table.
+
+### CreatedAtColumn Class
+
+When a column is marked as `CreatedAtColumn` it's value will automatically get generated every time when you `create` a new record in a database as a timestamp.
+
+### UpdatedAtColumn Class
+
+When a column is marked as `UpdatedAtColumn` it's value will automatically get generated every time when you `create` a new record or `update` an existing record in a database table as a timestamp.
+
+### Syncing Tables
+
+This is the process of creating tables from models and save them to a database.
+After defining your tables you will need to `sync` your database tables. To Sync a database you call the method called `sync`. This method allows you to create and commit tables into the database. Let's say we have two models `User` and `Post` and you want to create commit them to the database you can do it as follows:
 
 ```py
 tables = db.sync([User, Post], drop=True, force=True)
@@ -244,3 +356,17 @@ db.commit(post)
 ```
 
 > We have created `3` posts that belongs to `Crispen`.
+
+<table border="1">
+  <thead>
+    <tr><th>Argument</th><th>Description</th>
+      <th>Type</th><th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td></td><td></td>
+      <td></td><td></td>
+    </tr>
+  </tbody>
+</table>
