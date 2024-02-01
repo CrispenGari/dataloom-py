@@ -54,11 +54,7 @@ class Post(Model):
 db = Database("hi", password="root", user="postgres")
 conn, tables = db.connect_and_sync([User, Post], drop=True, force=True)
 user = User(name="Crispen", username="heyy")
-userId = db.create_bulk([user for i in range(3)])
-me = db.find_by_pk(User, 1)
-affected_rows = db.update_bulk(User, {"name": "Crispen"}, {"name": "Gari"})
-
-
-print(affected_rows)
+userId = db.create(user)
+posts = db.create_bulk([Post(userId=userId, title=f"Post {i}") for i in range(2)])
 if __name__ == "__main__":
     conn.close()

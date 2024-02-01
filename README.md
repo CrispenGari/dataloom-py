@@ -126,13 +126,13 @@ We are defining a column that is called `id`. And we are specifying the type of 
 
 ### `PrimaryKeyColumn` Class
 
-This create a unique index in every table that you create. Every table that you create and that inherits from the `Model` class is required to have exactly 1 `PrimaryKeyColumn`. Here is how you can create a `id` column as a primary key in your table:
+This create a unique index in every table that you create. Every table that you create and that inherits from the `Model` class is required to have exactly 1 `PrimaryKeyColumn`. Here is how you can create a `id` column as a primary key in your table named `Post`:
 
 ```py
 class Post(Model):
     __tablename__ = "posts"
     id = PrimaryKeyColumn(type="bigint", auto_increment=True)
-    #...rest of your tables
+    #...rest of your columns
 ```
 
 The `PrimaryKeyColumn` takes the following arguments:

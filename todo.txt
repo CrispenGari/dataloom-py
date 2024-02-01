@@ -4,5 +4,11 @@
 4. foreign key and primary key  ✅
 5. Foreign key Column ✅
 6. Delete table data ✅
+7. querying data in relational tables
+8. increment and decrement function (that increments) updated
+10. querying with operations like (OR LIKE > < etc)
+11. limit and pagination
+12. in & not in 
+13. grouping data
 
 
