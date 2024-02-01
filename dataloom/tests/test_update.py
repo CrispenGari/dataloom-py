@@ -1,14 +1,14 @@
 class TestDeletingOnPG:
     def test_update_by_pk_single_fn(self):
-        from orm.db import Database
-        from orm.model.column import Column
-        from orm.model.model import (
+        from dataloom.db import Database
+        from dataloom.model.column import Column
+        from dataloom.model.model import (
             Model,
             PrimaryKeyColumn,
             CreatedAtColumn,
             UpdatedAtColumn,
         )
-        from orm.keys import password, database, user
+        from dataloom.keys import password, database, user
         import time, pytest
 
         db = Database(database, password=password, user=user)
@@ -38,15 +38,15 @@ class TestDeletingOnPG:
         assert exc_info.value.pgcode == "25P02"
 
     def test_update_one_fn(self):
-        from orm.db import Database
-        from orm.model.column import Column
-        from orm.model.model import (
+        from dataloom.db import Database
+        from dataloom.model.column import Column
+        from dataloom.model.model import (
             Model,
             PrimaryKeyColumn,
             CreatedAtColumn,
             UpdatedAtColumn,
         )
-        from orm.keys import password, database, user
+        from dataloom.keys import password, database, user
         import time, pytest
 
         db = Database(database, password=password, user=user)
@@ -76,15 +76,15 @@ class TestDeletingOnPG:
         assert exc_info.value.pgcode == "25P02"
 
     def test_update_bulk_fn(self):
-        from orm.db import Database
-        from orm.model.column import Column
-        from orm.model.model import (
+        from dataloom.db import Database
+        from dataloom.model.column import Column
+        from dataloom.model.model import (
             Model,
             PrimaryKeyColumn,
             CreatedAtColumn,
             UpdatedAtColumn,
         )
-        from orm.keys import password, database, user
+        from dataloom.keys import password, database, user
         import time, pytest
 
         db = Database(database, password=password, user=user)

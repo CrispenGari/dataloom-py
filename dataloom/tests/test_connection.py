@@ -1,7 +1,7 @@
 class TestConnectionPG:
     def test_connect(self):
-        from orm.db import Database
-        from orm.keys import password, database, user
+        from dataloom.db import Database
+        from dataloom.keys import password, database, user
 
         db = Database(database, password=password, user=user)
         conn = db.connect()
@@ -9,10 +9,10 @@ class TestConnectionPG:
         conn.close()
 
     def test_connect_sync(self):
-        from orm.db import Database
-        from orm.keys import password, database, user
-        from orm.model.model import Model
-        from orm.model.column import Column, PrimaryKeyColumn
+        from dataloom.db import Database
+        from dataloom.keys import password, database, user
+        from dataloom.model.model import Model
+        from dataloom.model.column import Column, PrimaryKeyColumn
 
         class User(Model):
             __tablename__ = "users"

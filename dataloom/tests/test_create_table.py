@@ -1,9 +1,9 @@
 class TestCreatingTablePG:
     def test_2_pk_error(self):
-        from orm.db import Database
-        from orm.model.column import Column, PrimaryKeyColumn
-        from orm.model.model import Model
-        from orm.keys import password, database, user
+        from dataloom.db import Database
+        from dataloom.model.column import Column, PrimaryKeyColumn
+        from dataloom.model.model import Model
+        from dataloom.keys import password, database, user
         import pytest
 
         db = Database(database, password=password, user=user)
@@ -26,10 +26,10 @@ class TestCreatingTablePG:
         conn.close()
 
     def test_no_pk_error(self):
-        from orm.db import Database
-        from orm.model.column import Column
-        from orm.model.model import Model
-        from orm.keys import password, database, user
+        from dataloom.db import Database
+        from dataloom.model.column import Column
+        from dataloom.model.model import Model
+        from dataloom.keys import password, database, user
         import pytest
 
         db = Database(database, password=password, user=user)
@@ -47,10 +47,10 @@ class TestCreatingTablePG:
         conn.close()
 
     def test_table_name(self):
-        from orm.db import Database
-        from orm.model.column import Column, PrimaryKeyColumn
-        from orm.model.model import Model
-        from orm.keys import database, password, user
+        from dataloom.db import Database
+        from dataloom.model.column import Column, PrimaryKeyColumn
+        from dataloom.model.model import Model
+        from dataloom.keys import database, password, user
 
         db = Database(database, password=password, user=user)
         conn = db.connect()
@@ -70,10 +70,10 @@ class TestCreatingTablePG:
         conn.close()
 
     def test_connect_sync(self):
-        from orm.db import Database
-        from orm.keys import password, database, user
-        from orm.model.model import Model
-        from orm.model.column import Column, PrimaryKeyColumn
+        from dataloom.db import Database
+        from dataloom.keys import password, database, user
+        from dataloom.model.model import Model
+        from dataloom.model.column import Column, PrimaryKeyColumn
 
         class User(Model):
             __tablename__ = "users"
@@ -97,10 +97,10 @@ class TestCreatingTablePG:
         conn.close()
 
     def test_syncing_tables(self):
-        from orm.db import Database
-        from orm.keys import password, database, user
-        from orm.model.model import Model
-        from orm.model.column import Column, PrimaryKeyColumn
+        from dataloom.db import Database
+        from dataloom.keys import password, database, user
+        from dataloom.model.model import Model
+        from dataloom.model.column import Column, PrimaryKeyColumn
 
         class User(Model):
             __tablename__ = "users"

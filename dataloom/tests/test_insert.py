@@ -1,9 +1,9 @@
 class TestInsertingOnPG:
     def test_insetting_single_document(self):
-        from orm.db import Database
-        from orm.model.column import Column
-        from orm.model.model import Model, PrimaryKeyColumn
-        from orm.keys import password, database, user
+        from dataloom.db import Database
+        from dataloom.model.column import Column
+        from dataloom.model.model import Model, PrimaryKeyColumn
+        from dataloom.keys import password, database, user
 
         db = Database(database, password=password, user=user)
         conn = db.connect()
@@ -21,16 +21,16 @@ class TestInsertingOnPG:
         conn.close()
 
     def test_insetting_multiple_document(self):
-        from orm.db import Database
-        from orm.model.column import Column
-        from orm.model.model import (
+        from dataloom.db import Database
+        from dataloom.model.column import Column
+        from dataloom.model.model import (
             Model,
             CreatedAtColumn,
             UpdatedAtColumn,
             ForeignKeyColumn,
             PrimaryKeyColumn,
         )
-        from orm.keys import password, database, user
+        from dataloom.keys import password, database, user
 
         db = Database(database, password=password, user=user)
 
@@ -65,16 +65,16 @@ class TestInsertingOnPG:
         conn.close()
 
     def test_relational_instances(self):
-        from orm.db import Database
-        from orm.model.column import Column
-        from orm.model.model import (
+        from dataloom.db import Database
+        from dataloom.model.column import Column
+        from dataloom.model.model import (
             Model,
             CreatedAtColumn,
             UpdatedAtColumn,
             ForeignKeyColumn,
             PrimaryKeyColumn,
         )
-        from orm.keys import password, database, user
+        from dataloom.keys import password, database, user
 
         db = Database(database, password=password, user=user)
 

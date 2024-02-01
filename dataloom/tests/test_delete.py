@@ -1,9 +1,9 @@
 class TestDeletingOnPG:
     def test_delete_by_pk_single_fn(self):
-        from orm.db import Database
-        from orm.model.column import Column
-        from orm.model.model import Model, PrimaryKeyColumn
-        from orm.keys import password, database, user
+        from dataloom.db import Database
+        from dataloom.model.column import Column
+        from dataloom.model.model import Model, PrimaryKeyColumn
+        from dataloom.keys import password, database, user
 
         db = Database(database, password=password, user=user)
         conn = db.connect()
@@ -25,10 +25,10 @@ class TestDeletingOnPG:
         conn.close()
 
     def test_delete_one_fn(self):
-        from orm.db import Database
-        from orm.model.column import Column
-        from orm.model.model import Model, PrimaryKeyColumn
-        from orm.keys import password, database, user
+        from dataloom.db import Database
+        from dataloom.model.column import Column
+        from dataloom.model.model import Model, PrimaryKeyColumn
+        from dataloom.keys import password, database, user
 
         db = Database(database, password=password, user=user)
         conn = db.connect()
@@ -60,10 +60,10 @@ class TestDeletingOnPG:
         conn.close()
 
     def test_delete_bulk_fn(self):
-        from orm.db import Database
-        from orm.model.column import Column
-        from orm.model.model import Model, PrimaryKeyColumn
-        from orm.keys import password, database, user
+        from dataloom.db import Database
+        from dataloom.model.column import Column
+        from dataloom.model.model import Model, PrimaryKeyColumn
+        from dataloom.keys import password, database, user
 
         db = Database(database, password=password, user=user)
         conn = db.connect()

@@ -1,13 +1,13 @@
 from typing import Any
-from orm.model.column import (
+from dataloom.model.column import (
     Column,
     CreatedAtColumn,
     UpdatedAtColumn,
     ForeignKeyColumn,
     PrimaryKeyColumn,
 )
-from orm.model.statements import Statements
-from orm.exceptions import *
+from dataloom.model.statements import Statements
+from dataloom.exceptions import *
 import inspect
 from datetime import datetime
 import re
@@ -387,7 +387,6 @@ class Model:
         if updatedAtColumName is not None:
             placeholder_values.append(f'"{updatedAtColumName}" = %s')
             values.append(current_time_stamp)
-
 
         sql = Statements.UPDATE_BULK_WHERE_COMMAND.format(
             table_name=cls._get_name(),

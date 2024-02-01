@@ -12,3 +12,11 @@
 13. grouping data
 
 
+--------- conn
+
+1. create 3 connections for:
+    * postgres
+    * mysql
+    * sqlite3
+
+

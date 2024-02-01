@@ -1,15 +1,45 @@
 import psycopg2
+from mysql import connector
+import sqlite3
 import inspect
-from orm.constants import instances
-from orm.model.statements import Statements
-from orm.model.model import Model
-from orm.model.column import (
+from dataloom.constants import instances
+from dataloom.model.statements import Statements
+from dataloom.exceptions import UnsupportedDialect
+from dataloom.model.model import Model
+from dataloom.conn import ConnectionOptionsFactory
+from dataloom.model.column import (
     Column,
     UpdatedAtColumn,
     PrimaryKeyColumn,
     CreatedAtColumn,
     ForeignKeyColumn,
 )
+
+
+class Dataloom:
+    conn = None
+
+    def connect(self, dialect, **kwargs):
+        if dialect == "postgres":
+            options = ConnectionOptionsFactory.get_connection_options(dialect, **kwargs)
+            self.conn = psycopg2.connect(**options)
+            return self.conn
+        elif dialect == "mysql":
+            options = ConnectionOptionsFactory.get_connection_options(dialect, **kwargs)
+            self.conn = connector.connect(**options)
+            return self.conn
+        elif dialect == "sqlite":
+            options = ConnectionOptionsFactory.get_connection_options(dialect, **kwargs)
+            self.conn = (
+                sqlite3.connect(options.get("database"))
+                if "database" in options
+                else sqlite3.connect(**options)
+            )
+            return self.conn
+        else:
+            raise UnsupportedDialect(
+                "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
+            )
 
 
 class Database:

@@ -1,4 +1,4 @@
-from orm.types import POSTGRES_SQL_TYPES
+from dataloom.types import POSTGRES_SQL_TYPES
 
 
 class CreatedAtColumn:

@@ -1,9 +1,9 @@
 class TestQueryingPG:
     def test_querying_data(self):
-        from orm.db import Database
-        from orm.model.column import Column, PrimaryKeyColumn
-        from orm.model.model import Model
-        from orm.keys import password, database, user
+        from dataloom.db import Database
+        from dataloom.model.column import Column, PrimaryKeyColumn
+        from dataloom.model.model import Model
+        from dataloom.keys import password, database, user
 
         db = Database(database, password=password, user=user)
         conn = db.connect()

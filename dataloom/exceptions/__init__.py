@@ -4,3 +4,7 @@ class PkNotDefinedException(Exception):
 
 class TooManyPkException(Exception):
     pass
+
+
+class UnsupportedDialect(ValueError):
+    pass
