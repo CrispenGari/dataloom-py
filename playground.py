@@ -56,5 +56,9 @@ conn, tables = db.connect_and_sync([User, Post], drop=True, force=True)
 user = User(name="Crispen", username="heyy")
 userId = db.create(user)
 posts = db.create_bulk([Post(userId=userId, title=f"Post {i}") for i in range(2)])
+
+post = db.find_by_pk(Post, 1, options={"include": [User]})
+
+print(post.to_dict())
 if __name__ == "__main__":
     conn.close()

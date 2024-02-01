@@ -181,8 +181,22 @@ class Database:
             data.append(instance(**res))
         return data
 
-    def find_by_pk(self, instance: Model, pk):
+    def find_by_pk(self, instance: Model, pk, options: dict = {}):
         # what is the name of the primary key column?
+        """
+        SELECT
+            posts.post_id,
+            posts.content,
+            posts.created_at,
+            users.user_id,
+            users.username
+        FROM
+            posts
+        JOIN
+            users ON posts.user_id = users.user_id
+        WHERE
+            posts.post_id = 1;  -- Replace 1 with the specific post_id you are interested in
+        """
         pk_name = "id"
         fields = list()
         for name, field in inspect.getmembers(instance):
