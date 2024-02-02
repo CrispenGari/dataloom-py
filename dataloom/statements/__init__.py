@@ -101,21 +101,26 @@ class GetStatement[T]():
                     # 1. what is the pk in the parent table?
                     # 2. what is the type of the parent table pk?
                     # 3. what is the name of the parent table?
-                    pk, pk_type = field.table._get_pk_attributes()
-                    parent_table_name = "field.table._get_name()"
-                    predefined_fields.append(
-                        (
-                            f'"{name}"',
-                            '{pk_type} {nullable} REFERENCES {parent_table_name}("{pk}") ON DELETE {onDelete} ON UPDATE {onUpdate}'.format(
-                                onDelete=field.onDelete,
-                                onUpdate=field.onUpdate,
-                                pk_type=pk_type,
-                                parent_table_name=f'"{parent_table_name}"',
-                                pk=pk,
-                                nullable="NOT NULL" if field.required else "NULL",
-                            ),
+                    pk, pk_type = field.table._get_pk_attributes(dialect=self.dialect)
+                    parent_table_name = field.table._get_table_name()
+
+                    value = (
+                        '{pk_type} {nullable} REFERENCES {parent_table_name}("{pk}") ON DELETE {onDelete} ON UPDATE {onUpdate}'.format(
+                            onDelete=field.onDelete,
+                            onUpdate=field.onUpdate,
+                            pk_type=pk_type,
+                            parent_table_name=f'"{parent_table_name}"',
+                            pk=pk,
+                            nullable="NOT NULL",
+                        )
+                        if field.required
+                        else '{pk_type} REFERENCES {parent_table_name}("{pk}") ON DELETE SET NULL'.format(
+                            pk_type=pk_type,
+                            parent_table_name=f'"{parent_table_name}"',
+                            pk=pk,
                         )
                     )
+                    predefined_fields.append((f'"{name}"', value))
 
             # do we have a single primary key or not?
             if len(pks) == 0:
@@ -177,8 +182,8 @@ class GetStatement[T]():
                     # 1. what is the pk in the parent table?
                     # 2. what is the type of the parent table pk?
                     # 3. what is the name of the parent table?
-                    pk, pk_type = field.table._get_pk_attributes()
-                    parent_table_name = field.table._get_name()
+                    pk, pk_type = field.table._get_pk_attributes(dialect=self.dialect)
+                    parent_table_name = field.table._get_table_name()
                     predefined_fields.append(
                         (
                             f"`{name}`",
@@ -254,8 +259,8 @@ class GetStatement[T]():
                     # 1. what is the pk in the parent table?
                     # 2. what is the type of the parent table pk?
                     # 3. what is the name of the parent table?
-                    pk, pk_type = field.table._get_pk_attributes()
-                    parent_table_name = field.table._get_name()
+                    pk, pk_type = field.table._get_pk_attributes(dialect=self.dialect)
+                    parent_table_name = field.table._get_table_name()
                     predefined_fields.append(
                         (
                             f"`{name}`",

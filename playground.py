@@ -7,30 +7,38 @@ from dataloom.model.column import (
     CreatedAtColumn,
     UpdatedAtColumn,
     TableColumn,
+    ForeignKeyColumn,
 )
 
 from typing import Optional
 
 
-pg_loom = Dataloom(dialect="postgres", database="hi", password="root", user="postgres")
+pg_loom = Dataloom(
+    dialect="postgres", database="hi", password="root", user="postgres", logging=True
+)
 mysql_loom = Dataloom(dialect="mysql", database="hi", password="root", user="root")
 sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
-
-
-class Post(Model):
-    __tablename__: Optional[TableColumn] = TableColumn(name="posts")
-    id: Optional[PrimaryKeyColumn] = PrimaryKeyColumn(type="int", auto_increment=True)
-    title = Column(type="text")
-    createdAt = CreatedAtColumn()
-    updatedAt = UpdatedAtColumn()
 
 
 class User(Model):
     __tablename__: Optional[TableColumn] = TableColumn(name="users")
     id: Optional[PrimaryKeyColumn] = PrimaryKeyColumn(type="int", auto_increment=True)
-    title = Column(type="text")
+    username = Column(type="text", unique=True)
+
     createdAt = CreatedAtColumn()
     updatedAt = UpdatedAtColumn()
+
+
+class Post(Model):
+    __tablename__: Optional[TableColumn] = TableColumn(name="posts")
+    id: Optional[PrimaryKeyColumn] = PrimaryKeyColumn(type="int", auto_increment=True)
+    title = Column(type="text", nullable=False)
+
+    createdAt = CreatedAtColumn()
+    updatedAt = UpdatedAtColumn()
+    userId: ForeignKeyColumn = ForeignKeyColumn(
+        User, onDelete="CASCADE", onUpdate="CASCADE", required=False
+    )
 
 
 conn = sqlite_loom.connect()

@@ -61,6 +61,8 @@ class ForeignKeyColumn:
 
         elif dialect == "mysql":
             if self.type in MYSQL_SQL_TYPES:
+                if self.unique and self.type == "text":
+                    return f"{MYSQL_SQL_TYPES['varchar']}({self.length if self.length is not None else 255})"
                 return (
                     f"{MYSQL_SQL_TYPES[self.type]}({self.length})"
                     if self.length
@@ -73,7 +75,13 @@ class ForeignKeyColumn:
                 )
         elif dialect == "sqlite":
             if self.type in SQLITE3_SQL_TYPES:
-                return SQLITE3_SQL_TYPES[self.type]
+                if self.length and self.type == "text":
+                    return f"{SQLITE3_SQL_TYPES['varchar']}({self.length})"
+                return (
+                    f"{SQLITE3_SQL_TYPES[self.type]}({self.length})"
+                    if self.length
+                    else SQLITE3_SQL_TYPES[self.type]
+                )
             else:
                 types = SQLITE3_SQL_TYPES.keys()
                 raise UnsupportedTypeException(
@@ -114,7 +122,7 @@ class PrimaryKeyColumn:
 
     @property
     def nullable_constraint(self):
-        return "NOT NULL" if not self.nullable else ""
+        return "NOT NULL" if not self.nullable else "NULL"
 
     def sql_type(self, dialect: str):
         if dialect == "postgres":
@@ -134,6 +142,8 @@ class PrimaryKeyColumn:
 
         elif dialect == "mysql":
             if self.type in MYSQL_SQL_TYPES:
+                if self.unique and self.type == "text":
+                    return f"{MYSQL_SQL_TYPES['varchar']}({self.length if self.length is not None else 255})"
                 return (
                     f"{MYSQL_SQL_TYPES[self.type]}({self.length})"
                     if self.length
@@ -207,6 +217,8 @@ class Column:
 
         elif dialect == "mysql":
             if self.type in MYSQL_SQL_TYPES:
+                if self.unique and self.type == "text":
+                    return f"{MYSQL_SQL_TYPES['varchar']}({self.length if self.length is not None else 255})"
                 return (
                     f"{MYSQL_SQL_TYPES[self.type]}({self.length})"
                     if self.length

@@ -1,20 +1,13 @@
 import psycopg2
 from mysql import connector
 import sqlite3
-import inspect
 from dataloom.constants import instances
-from dataloom.model.statements import PgStatements
+
 from dataloom.exceptions import UnsupportedDialectException
 from dataloom.model import Model
 from dataloom.statements import GetStatement
 from dataloom.conn import ConnectionOptionsFactory
-from dataloom.model.column import (
-    Column,
-    UpdatedAtColumn,
-    PrimaryKeyColumn,
-    CreatedAtColumn,
-    ForeignKeyColumn,
-)
+from dataloom.utils import logger_function
 from typing import Optional
 
 
@@ -28,11 +21,13 @@ class Dataloom:
         port: Optional[int] = None,
         password: Optional[str] = None,
         logging: bool = True,
+        logs_filename: Optional[str] = "dataloom.sql",
     ) -> None:
         self.database = database
         self.conn = None
         self.logging = logging
         self.dialect = dialect
+        self.logs_filename = logs_filename
         try:
             config = instances[dialect]
         except KeyError:
@@ -77,6 +72,12 @@ class Dataloom:
         # do we need to log the executed SQL?
         if self.logging:
             print(sql)
+            if self.logs_filename is not None:
+                logger_function(
+                    dialect=self.dialect,
+                    file_name=self.logs_filename,
+                    sql_statement=sql,
+                )
         if self.dialect == "postgres":
             with self.conn.cursor() as cursor:
                 if args is None:

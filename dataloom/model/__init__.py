@@ -39,7 +39,7 @@ class Model:
     @classmethod
     def _get_pk_attributes(cls, dialect: str):
         pk = None
-        pk_type = "BIGSERIAL"
+        pk_type = "BIGSERIAL" if dialect == "postgres" else "INT"
         for name, field in inspect.getmembers(cls):
             if isinstance(field, PrimaryKeyColumn):
                 pk = name
