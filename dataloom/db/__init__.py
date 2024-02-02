@@ -88,8 +88,10 @@ class Database:
             if args is None:
                 cursor.execute(sql)
             else:
-                cursor.executemany(sql, vars_list=args) if bulk else cursor.execute(
-                    sql, vars=args
+                (
+                    cursor.executemany(sql, vars_list=args)
+                    if bulk
+                    else cursor.execute(sql, vars=args)
                 )
             # options
             if bulk or affected_rows:
