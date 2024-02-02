@@ -61,7 +61,7 @@ class ForeignKeyColumn:
 
         elif dialect == "mysql":
             if self.type in MYSQL_SQL_TYPES:
-                if self.unique and self.type == "text":
+                if (self.unique or self.default) and self.type == "text":
                     return f"{MYSQL_SQL_TYPES['varchar']}({self.length if self.length is not None else 255})"
                 return (
                     f"{MYSQL_SQL_TYPES[self.type]}({self.length})"
@@ -142,7 +142,7 @@ class PrimaryKeyColumn:
 
         elif dialect == "mysql":
             if self.type in MYSQL_SQL_TYPES:
-                if self.unique and self.type == "text":
+                if (self.unique or self.default) and self.type == "text":
                     return f"{MYSQL_SQL_TYPES['varchar']}({self.length if self.length is not None else 255})"
                 return (
                     f"{MYSQL_SQL_TYPES[self.type]}({self.length})"
@@ -217,7 +217,7 @@ class Column:
 
         elif dialect == "mysql":
             if self.type in MYSQL_SQL_TYPES:
-                if self.unique and self.type == "text":
+                if (self.unique or self.default) and self.type == "text":
                     return f"{MYSQL_SQL_TYPES['varchar']}({self.length if self.length is not None else 255})"
                 return (
                     f"{MYSQL_SQL_TYPES[self.type]}({self.length})"

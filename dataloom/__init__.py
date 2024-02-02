@@ -7,6 +7,7 @@ from dataloom.model.column import (
     ForeignKeyColumn,
     UpdatedAtColumn,
     Column,
+    TableColumn,
 )
 
 Dataloom = Dataloom

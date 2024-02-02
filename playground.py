@@ -1,7 +1,6 @@
-from dataloom import Dataloom
-
-from dataloom.model import Model
-from dataloom.model.column import (
+from dataloom import (
+    Dataloom,
+    Model,
     PrimaryKeyColumn,
     Column,
     CreatedAtColumn,
@@ -9,15 +8,19 @@ from dataloom.model.column import (
     TableColumn,
     ForeignKeyColumn,
 )
-
 from typing import Optional
-
 
 pg_loom = Dataloom(
     dialect="postgres", database="hi", password="root", user="postgres", logging=True
 )
 mysql_loom = Dataloom(dialect="mysql", database="hi", password="root", user="root")
 sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
+
+conn = sqlite_loom.connect()
+
+
+if __name__ == "main":
+    conn.close()
 
 
 class User(Model):

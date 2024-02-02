@@ -1,6 +1,18 @@
 ### dataloom
 
-An `orm` for python.
+**`dataloom`** is a lightweight and versatile Object-Relational Mapping (ORM) library for Python. With support for `PostgreSQL`, `MySQL`, and `SQLite3` databases, `dataloom` simplifies database interactions, providing a seamless experience for developers.
+
+### Key Features:
+
+- **Lightweight**: `dataloom` is designed to be minimalistic and easy to use, ensuring a streamlined `ORM` experience without unnecessary complexities.
+
+- **Database Support**: `dataloom` supports popular relational databases such as `PostgreSQL`, `MySQL`, and `SQLite3`, making it suitable for a variety of projects.
+
+- **Simplified Querying**: The `ORM` simplifies the process of database querying, allowing developers to interact with the database using Python classes and methods rather than raw SQL queries.
+
+- **Intuitive Syntax**: `dataloom`'s syntax is intuitive and `Pythonic`, making it accessible for developers familiar with the Python language.
+
+- **Flexible Data Types**: The `ORM` seamlessly handles various data types, offering flexibility in designing database schemas.
 
 ### Usage
 
@@ -11,13 +23,23 @@ In this section we are going to go through how you can use our `orm` package in 
 A database connection is required. In this example a connection will be set on a `postgres` database instance that have a database name `hi.
 
 ```py
-from dataloom import Database, Model, Column
+from dataloom import (
+    Dataloom
+)
+from typing import Optional
 
-db = Database("hi", password="root", user="postgres")
-conn = db.connect()
+pg_loom = Dataloom(
+    dialect="postgres", database="hi", password="root", user="postgres", logging=True
+)
+mysql_loom = Dataloom(dialect="mysql", database="hi", password="root", user="root")
+sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
 
-if __name__ == "__main__":
+conn = pg_loom.connect()
+
+
+if __name__ == "main":
     conn.close()
+
 ```
 
 The database class takes in the following options:

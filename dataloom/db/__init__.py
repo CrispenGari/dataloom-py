@@ -169,6 +169,50 @@ class Dataloom:
             )
         return self.conn
 
+    def connect_and_sync(
+        self, models: list[Model], drop=False, force=False, alter=False
+    ):
+        try:
+            if self.dialect == "postgres":
+                options = ConnectionOptionsFactory.get_connection_options(
+                    **self.connection_options
+                )
+                with psycopg2.connect(**options) as conn:
+                    self.conn = conn
+            elif self.dialect == "mysql":
+                options = ConnectionOptionsFactory.get_connection_options(
+                    **self.connection_options
+                )
+                self.conn = connector.connect(**options)
+
+            elif self.dialect == "sqlite":
+                options = ConnectionOptionsFactory.get_connection_options(
+                    **self.connection_options
+                )
+                if "database" in options:
+                    with sqlite3.connect(options.get("database")) as conn:
+                        self.conn = conn
+                else:
+                    with sqlite3.connect(**options) as conn:
+                        self.conn = conn
+            else:
+                raise UnsupportedDialectException(
+                    "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
+                )
+            for model in models:
+                if drop or force:
+                    self._execute_sql(model._drop_sql(dialect=self.dialect))
+                    self._execute_sql(model._create_sql(dialect=self.dialect))
+                elif alter:
+                    pass
+                else:
+                    self._execute_sql(
+                        model._create_sql(dialect=self.dialect, ignore_exists=True)
+                    )
+            return self.conn, self.tables
+        except Exception as e:
+            raise Exception(e)
+
     def sync(self, models: list[Model], drop=False, force=False, alter=False):
         try:
             for model in models:
@@ -267,29 +311,6 @@ class Dataloom:
 #         except Exception as e:
 #             raise Exception(e)
 
-#     def connect_and_sync(
-#         self, models: list[Model], drop=False, force=False, alter=False
-#     ):
-#         try:
-#             self.conn = psycopg2.connect(
-#                 host=self.host,
-#                 database=self.database,
-#                 user=self.user,
-#                 password=self.password,
-#                 port=self.port,
-#             )
-#             for model in models:
-#                 if drop or force:
-#                     self._execute_sql(model._drop_sql())
-#                     self._execute_sql(model._create_sql())
-#                 elif alter:
-#                     pass
-#                 else:
-#                     self._execute_sql(model._create_sql(ignore_exists=True))
-#             return self.conn, self.tables
-
-#         except Exception as e:
-#             raise Exception(e)
 
 #     def sync(self, models: list[Model], drop=False, force=False, alter=False):
 #         try:

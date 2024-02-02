@@ -1,13 +1,11 @@
-class TestCreatingTableMysql:
+class TestCreatingTableSQlite:
     def test_2_pk_error(self):
         from dataloom import Column, PrimaryKeyColumn, Dataloom, TableColumn, Model
         import pytest
         from typing import Optional
 
-        mysql_loom = Dataloom(
-            dialect="mysql", database="hi", password="root", user="root"
-        )
-        conn = mysql_loom.connect()
+        sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
+        conn = sqlite_loom.connect()
 
         class User(Model):
             __tablename__: Optional[TableColumn] = TableColumn(name="users")
@@ -17,7 +15,7 @@ class TestCreatingTableMysql:
             name = Column(type="varchar", unique=True, length=255)
 
         with pytest.raises(Exception) as exc_info:
-            tables = mysql_loom.sync([User], drop=True, force=True)
+            tables = sqlite_loom.sync([User], drop=True, force=True)
         assert (
             str(exc_info.value)
             == "You have defined many field as primary keys which is not allowed. Fields (`_id`, `id`) are primary keys."
@@ -29,10 +27,8 @@ class TestCreatingTableMysql:
         from dataloom import Model, Dataloom, Column, TableColumn
         from typing import Optional
 
-        mysql_loom = Dataloom(
-            dialect="mysql", database="hi", password="root", user="root"
-        )
-        conn = mysql_loom.connect()
+        sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
+        conn = sqlite_loom.connect()
 
         class User(Model):
             __tablename__: Optional[TableColumn] = TableColumn(name="users")
@@ -40,7 +36,7 @@ class TestCreatingTableMysql:
             name = Column(type="varchar", unique=True, length=255)
 
         with pytest.raises(Exception) as exc_info:
-            tables = mysql_loom.sync([User], drop=True, force=True)
+            tables = sqlite_loom.sync([User], drop=True, force=True)
         assert str(exc_info.value) == "Your table does not have a primary key column."
         conn.close()
 
@@ -48,10 +44,8 @@ class TestCreatingTableMysql:
         from dataloom import Model, Dataloom, Column, PrimaryKeyColumn, TableColumn
         from typing import Optional
 
-        mysql_loom = Dataloom(
-            dialect="mysql", database="hi", password="root", user="root"
-        )
-        conn = mysql_loom.connect()
+        sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
+        conn = sqlite_loom.connect()
 
         class Posts(Model):
             id = PrimaryKeyColumn(type="int", auto_increment=True)
@@ -83,10 +77,8 @@ class TestCreatingTableMysql:
             id = PrimaryKeyColumn(type="int", nullable=False, auto_increment=True)
             title = Column(type="text", nullable=False)
 
-        mysql_loom = Dataloom(
-            dialect="mysql", database="hi", password="root", user="root"
-        )
-        conn, tables = mysql_loom.connect_and_sync([User, Post], drop=True, force=True)
+        sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
+        conn, tables = sqlite_loom.connect_and_sync([User, Post], drop=True, force=True)
         assert len(tables) == 2
         assert sorted(tables) == sorted(["users", "posts"])
 
@@ -96,10 +88,8 @@ class TestCreatingTableMysql:
         from dataloom import Model, Dataloom, Column, PrimaryKeyColumn, TableColumn
         from typing import Optional
 
-        mysql_loom = Dataloom(
-            dialect="mysql", database="hi", password="root", user="root"
-        )
-        conn = mysql_loom.connect()
+        sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
+        conn = sqlite_loom.connect()
 
         class Post(Model):
             __tablename__: Optional[TableColumn] = TableColumn(name="posts")
@@ -113,7 +103,7 @@ class TestCreatingTableMysql:
             username = Column(type="text", nullable=False, default="Hello there!!")
             name = Column(type="varchar", unique=True, length=255)
 
-        tables = mysql_loom.sync([User, Post], drop=True, force=True)
+        tables = sqlite_loom.sync([User, Post], drop=True, force=True)
         assert len(tables) == 2
         assert sorted(tables) == sorted(["users", "posts"])
         conn.close()
