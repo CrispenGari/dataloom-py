@@ -1,13 +1,56 @@
-from dataloom import dataloom
+from dataloom import Dataloom
 
-# conn = dataloom.connect("postgres", database="hi", password="root", user="postgres")
-# conn = dataloom.connect("mysql", database="hi", password="root", user="root")
-conn = dataloom.connect("sqlite", database="hi.db")
+from dataloom.model import Model
+from dataloom.model.column import (
+    PrimaryKeyColumn,
+    Column,
+    CreatedAtColumn,
+    UpdatedAtColumn,
+    TableColumn,
+)
 
-print(dir(conn))
-if __name__ == "__main__":
-    conn.close()
-    pass
+from typing import Optional
+
+
+pg_loom = Dataloom(dialect="postgres", database="hi", password="root", user="postgres")
+mysql_loom = Dataloom(dialect="mysql", database="hi", password="root", user="root")
+sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
+
+
+class Post(Model):
+    __tablename__: Optional[TableColumn] = TableColumn(name="posts")
+    id: Optional[PrimaryKeyColumn] = PrimaryKeyColumn(type="int", auto_increment=True)
+    title = Column(type="text")
+    createdAt = CreatedAtColumn()
+    updatedAt = UpdatedAtColumn()
+
+
+class User(Model):
+    __tablename__: Optional[TableColumn] = TableColumn(name="users")
+    id: Optional[PrimaryKeyColumn] = PrimaryKeyColumn(type="int", auto_increment=True)
+    title = Column(type="text")
+    createdAt = CreatedAtColumn()
+    updatedAt = UpdatedAtColumn()
+
+
+conn = sqlite_loom.connect()
+
+tables = sqlite_loom.sync([Post, User], drop=True, force=True)
+print(tables)
+
+post = Post(
+    id=2,
+)
+
+
+# instance = [*db, dataloom.logging]
+
+# Post = Model[TypePost](TypePost, instance=instance)
+# Post.create(TypePost(title="Hi"))
+
+
+# dataloom.connect("mysql", database="hi", password="root", user="root")
+# dataloom.connect("sqlite", database="hi.db")
 
 
 # from dataloom.db import Database

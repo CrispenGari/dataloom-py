@@ -1,4 +1,6 @@
-from dataloom.types import POSTGRES_SQL_TYPES
+from dataloom.types import POSTGRES_SQL_TYPES, MYSQL_SQL_TYPES, SQLITE3_SQL_TYPES
+from dataclasses import dataclass
+from dataloom.exceptions import UnsupportedTypeException, UnsupportedDialectException
 
 
 class CreatedAtColumn:
@@ -23,6 +25,11 @@ class UpdatedAtColumn:
         )
 
 
+@dataclass
+class TableColumn:
+    name: str
+
+
 class ForeignKeyColumn:
     def __init__(
         self,
@@ -38,18 +45,50 @@ class ForeignKeyColumn:
         self.onUpdate = onUpdate
         self.type = type
 
-    @property
-    def sql_type(self):
-        if self.type in POSTGRES_SQL_TYPES:
-            return POSTGRES_SQL_TYPES[self.type]
+    def sql_type(self, dialect: str):
+        if dialect == "postgres":
+            if self.type in POSTGRES_SQL_TYPES:
+                return (
+                    f"{POSTGRES_SQL_TYPES[self.type]}({self.length})"
+                    if self.length
+                    else POSTGRES_SQL_TYPES[self.type]
+                )
+            else:
+                types = POSTGRES_SQL_TYPES.keys()
+            raise UnsupportedTypeException(
+                f"Unsupported column type: {self.type} for dialect '{dialect}' supported types are ({', '.join(types)})"
+            )
+
+        elif dialect == "mysql":
+            if self.type in MYSQL_SQL_TYPES:
+                return (
+                    f"{MYSQL_SQL_TYPES[self.type]}({self.length})"
+                    if self.length
+                    else MYSQL_SQL_TYPES[self.type]
+                )
+            else:
+                types = MYSQL_SQL_TYPES.keys()
+                raise UnsupportedTypeException(
+                    f"Unsupported column type: {self.type} for dialect '{dialect}' supported types are ({', '.join(types)})"
+                )
+        elif dialect == "sqlite":
+            if self.type in SQLITE3_SQL_TYPES:
+                return SQLITE3_SQL_TYPES[self.type]
+            else:
+                types = SQLITE3_SQL_TYPES.keys()
+                raise UnsupportedTypeException(
+                    f"Unsupported column type: {self.type} for dialect '{dialect}' supported types are ({', '.join(types)})"
+                )
         else:
-            raise ValueError(f"Unsupported column type: {self.type}")
+            raise UnsupportedDialectException(
+                "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
+            )
 
 
 class PrimaryKeyColumn:
     def __init__(
         self,
-        type: str = "bigserial",
+        type: str,
         length: int | None = None,
         auto_increment: bool = False,
         nullable: bool = False,
@@ -77,18 +116,46 @@ class PrimaryKeyColumn:
     def nullable_constraint(self):
         return "NOT NULL" if not self.nullable else ""
 
-    @property
-    def sql_type(self):
-        if self.type in POSTGRES_SQL_TYPES:
-            if self.auto_increment:
-                return "BIGSERIAL"
-            return (
-                f"{POSTGRES_SQL_TYPES[self.type]}({self.length})"
-                if self.length
-                else POSTGRES_SQL_TYPES[self.type]
+    def sql_type(self, dialect: str):
+        if dialect == "postgres":
+            if self.type in POSTGRES_SQL_TYPES:
+                if self.auto_increment:
+                    return "BIGSERIAL"
+                return (
+                    f"{POSTGRES_SQL_TYPES[self.type]}({self.length})"
+                    if self.length
+                    else POSTGRES_SQL_TYPES[self.type]
+                )
+            else:
+                types = POSTGRES_SQL_TYPES.keys()
+            raise UnsupportedTypeException(
+                f"Unsupported column type: {self.type} for dialect '{dialect}' supported types are ({', '.join(types)})"
             )
+
+        elif dialect == "mysql":
+            if self.type in MYSQL_SQL_TYPES:
+                return (
+                    f"{MYSQL_SQL_TYPES[self.type]}({self.length})"
+                    if self.length
+                    else MYSQL_SQL_TYPES[self.type]
+                )
+            else:
+                types = MYSQL_SQL_TYPES.keys()
+                raise UnsupportedTypeException(
+                    f"Unsupported column type: {self.type} for dialect '{dialect}' supported types are ({', '.join(types)})"
+                )
+        elif dialect == "sqlite":
+            if self.type in SQLITE3_SQL_TYPES:
+                return SQLITE3_SQL_TYPES[self.type]
+            else:
+                types = SQLITE3_SQL_TYPES.keys()
+                raise UnsupportedTypeException(
+                    f"Unsupported column type: {self.type} for dialect '{dialect}' supported types are ({', '.join(types)})"
+                )
         else:
-            raise ValueError(f"Unsupported column type: {self.type}")
+            raise UnsupportedDialectException(
+                "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
+            )
 
 
 class Column:
@@ -124,13 +191,41 @@ class Column:
             "DEFAULT '{default}'".format(default=self.default) if self.default else ""
         )
 
-    @property
-    def sql_type(self):
-        if self.type in POSTGRES_SQL_TYPES:
-            return (
-                f"{POSTGRES_SQL_TYPES[self.type]}({self.length})"
-                if self.length
-                else POSTGRES_SQL_TYPES[self.type]
+    def sql_type(self, dialect: str):
+        if dialect == "postgres":
+            if self.type in POSTGRES_SQL_TYPES:
+                return (
+                    f"{POSTGRES_SQL_TYPES[self.type]}({self.length})"
+                    if self.length
+                    else POSTGRES_SQL_TYPES[self.type]
+                )
+            else:
+                types = POSTGRES_SQL_TYPES.keys()
+            raise UnsupportedTypeException(
+                f"Unsupported column type: {self.type} for dialect '{dialect}' supported types are ({', '.join(types)})"
             )
+
+        elif dialect == "mysql":
+            if self.type in MYSQL_SQL_TYPES:
+                return (
+                    f"{MYSQL_SQL_TYPES[self.type]}({self.length})"
+                    if self.length
+                    else MYSQL_SQL_TYPES[self.type]
+                )
+            else:
+                types = MYSQL_SQL_TYPES.keys()
+                raise UnsupportedTypeException(
+                    f"Unsupported column type: {self.type} for dialect '{dialect}' supported types are ({', '.join(types)})"
+                )
+        elif dialect == "sqlite":
+            if self.type in SQLITE3_SQL_TYPES:
+                return SQLITE3_SQL_TYPES[self.type]
+            else:
+                types = SQLITE3_SQL_TYPES.keys()
+                raise UnsupportedTypeException(
+                    f"Unsupported column type: {self.type} for dialect '{dialect}' supported types are ({', '.join(types)})"
+                )
         else:
-            raise ValueError(f"Unsupported column type: {self.type}")
+            raise UnsupportedDialectException(
+                "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
+            )

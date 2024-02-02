@@ -6,7 +6,7 @@ from dataloom.model.column import (
     ForeignKeyColumn,
     PrimaryKeyColumn,
 )
-from dataloom.model.statements import Statements
+from dataloom.model.statements import PgStatements
 from dataloom.exceptions import *
 import inspect
 from datetime import datetime
@@ -29,10 +29,6 @@ class Model:
         if key in _data:
             return _data[key]
         return object.__getattribute__(self, key)
-
-    # def __setattr__(self, __name: str, __value: Any) -> None:
-    #     if __name in self._data:
-    #         self._data[__name] = __value
 
     @classmethod
     def _get_name(cls):
@@ -58,7 +54,7 @@ class Model:
 
     @classmethod
     def _drop_sql(cls):
-        sql = Statements.DROP_TABLE.format(table_name=cls._get_name())
+        sql = PgStatements.DROP_TABLE.format(table_name=cls._get_name())
         return sql
 
     @classmethod
@@ -130,11 +126,11 @@ class Model:
         fields = [*user_fields, *predefined_fields]
         fields_name = ", ".join(f for f in [" ".join(field) for field in fields])
         sql = (
-            Statements.CREATE_NEW_TABLE.format(
+            PgStatements.CREATE_NEW_TABLE.format(
                 table_name=cls._get_name(), fields_name=fields_name
             )
             if not ignore_exists
-            else Statements.CREATE_NEW_TABLE_IF_NOT_EXITS.format(
+            else PgStatements.CREATE_NEW_TABLE_IF_NOT_EXITS.format(
                 table_name=cls._get_name(), fields_name=fields_name
             )
         )
@@ -178,7 +174,7 @@ class Model:
                 placeholders.append("%s")
             elif isinstance(field, PrimaryKeyColumn):
                 pk = f'"{_name}"'
-        sql = Statements.INSERT_COMMAND_ONE.format(
+        sql = PgStatements.INSERT_COMMAND_ONE.format(
             table_name=self.__class__._get_name(),
             column_name=", ".join([f'"{f}"' for f in fields]),
             placeholder_values=", ".join(placeholders),
@@ -197,7 +193,7 @@ class Model:
                 or isinstance(field, PrimaryKeyColumn)
             ) and name not in fields:
                 fields.append(name)
-        sql = Statements.SELECT_BY_PK.format(
+        sql = PgStatements.SELECT_BY_PK.format(
             column_names=", ".join([f'"{f}"' for f in fields]),
             table_name=cls._get_name(),
             pk=pk,
@@ -207,7 +203,7 @@ class Model:
 
     @classmethod
     def _get_delete_by_pk_stm(cls, pk, pk_name: str = "id"):
-        sql = Statements.DELETE_BY_PK.format(
+        sql = PgStatements.DELETE_BY_PK.format(
             table_name=cls._get_name(),
             pk="%s",  # mask it to avoid SQL Injection
             pk_name=pk_name,
@@ -218,7 +214,7 @@ class Model:
     def _get_insert_bulk_smt(cls, placeholders, columns, data):
         column_names = columns
         placeholders = placeholders
-        sql = Statements.INSERT_COMMAND_MANY.format(
+        sql = PgStatements.INSERT_COMMAND_MANY.format(
             column_names=column_names,
             table_name=cls._get_name(),
             placeholder_values=placeholders,
@@ -236,7 +232,7 @@ class Model:
                 or isinstance(field, PrimaryKeyColumn)
             ) and name not in fields:
                 fields.append(name)
-        sql = Statements.SELECT_BY_PK.format(
+        sql = PgStatements.SELECT_BY_PK.format(
             column_names=", ".join([f'"{f}"' for f in fields]),
             table_name=cls._get_name(),
             pk=pk,
@@ -262,12 +258,12 @@ class Model:
             filters.append(f"{key} = %s")
             params.append(value)
         if len(filters) == 0:
-            sql = Statements.SELECT_COMMAND.format(
+            sql = PgStatements.SELECT_COMMAND.format(
                 column_names=", ".join([f'"{f}"' for f in fields]),
                 table_name=cls._get_name(),
             )
         else:
-            sql = Statements.SELECT_WHERE_COMMAND.format(
+            sql = PgStatements.SELECT_WHERE_COMMAND.format(
                 column_names=", ".join([f'"{f}"' for f in fields]),
                 table_name=cls._get_name(),
                 filters=" AND ".join(filters),
@@ -282,11 +278,11 @@ class Model:
             filters.append(f"{key} = %s")
             params.append(value)
         if len(filters) == 0:
-            sql = Statements.DELETE_ALL_COMMAND.format(
+            sql = PgStatements.DELETE_ALL_COMMAND.format(
                 table_name=cls._get_name(),
             )
         else:
-            sql = Statements.DELETE_ONE_WHERE_COMMAND.format(
+            sql = PgStatements.DELETE_ONE_WHERE_COMMAND.format(
                 table_name=cls._get_name(), filters=" AND ".join(filters), pk_name=pk
             )
         return sql, params
@@ -299,11 +295,11 @@ class Model:
             filters.append(f"{key} = %s")
             params.append(value)
         if len(filters) == 0:
-            sql = Statements.DELETE_ALL_COMMAND.format(
+            sql = PgStatements.DELETE_ALL_COMMAND.format(
                 table_name=cls._get_name(),
             )
         else:
-            sql = Statements.DELETE_BULK_WHERE_COMMAND.format(
+            sql = PgStatements.DELETE_BULK_WHERE_COMMAND.format(
                 table_name=cls._get_name(),
                 filters=" AND ".join(filters),
             )
@@ -326,7 +322,7 @@ class Model:
             placeholders.append(f'"{updatedAtColumName}" = %s')
             values.append(current_time_stamp)
 
-        sql = Statements.UPDATE_BY_PK_COMMAND.format(
+        sql = PgStatements.UPDATE_BY_PK_COMMAND.format(
             table_name=cls._get_name(),
             pk="%s",
             pk_name=pk_name,
@@ -358,7 +354,7 @@ class Model:
             placeholder_values.append(f'"{updatedAtColumName}" = %s')
             values.append(current_time_stamp)
 
-        sql = Statements.UPDATE_BY_ONE_COMMAND.format(
+        sql = PgStatements.UPDATE_BY_ONE_COMMAND.format(
             table_name=cls._get_name(),
             pk_name=pk_name,
             placeholder_values=", ".join(placeholder_values),
@@ -388,7 +384,7 @@ class Model:
             placeholder_values.append(f'"{updatedAtColumName}" = %s')
             values.append(current_time_stamp)
 
-        sql = Statements.UPDATE_BULK_WHERE_COMMAND.format(
+        sql = PgStatements.UPDATE_BULK_WHERE_COMMAND.format(
             table_name=cls._get_name(),
             placeholder_values=", ".join(placeholder_values),
             placeholder_filters=", ".join([i[0] for i in placeholder_filters]),

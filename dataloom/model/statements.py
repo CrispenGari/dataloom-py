@@ -1,4 +1,31 @@
-class Statements:
+class MySqlStatements:
+
+    # dropping table
+    DROP_TABLE = "DROP TABLE IF EXISTS {table_name};"
+    # getting tables
+    GET_TABLES = "SHOW TABLES;"
+
+    # creating table
+    CREATE_NEW_TABLE = "CREATE TABLE {table_name} ({fields_name});"
+    CREATE_NEW_TABLE_IF_NOT_EXITS = (
+        "CREATE TABLE IF NOT EXISTS {table_name} ({fields_name});"
+    )
+
+
+class Sqlite3Statements:
+    # dropping table
+    DROP_TABLE = "DROP TABLE IF EXISTS {table_name};"
+    # getting tables
+    GET_TABLES = "SELECT name FROM sqlite_master WHERE type='{type}';"
+
+    # creating table
+    CREATE_NEW_TABLE = "CREATE TABLE {table_name} ({fields_name});"
+    CREATE_NEW_TABLE_IF_NOT_EXITS = (
+        "CREATE TABLE IF NOT EXISTS {table_name} ({fields_name});"
+    )
+
+
+class PgStatements:
     # updates
     UPDATE_BY_PK_COMMAND = (
         "UPDATE {table_name} SET {placeholder_values} WHERE {pk_name} = {pk};"

@@ -34,3 +34,40 @@ POSTGRES_SQL_TYPES = {
     "circle": "CIRCLE",
     "hstore": "HSTORE",
 }
+
+
+MYSQL_SQL_TYPES = {
+    "int": "INT",
+    "smallint": "SMALLINT",
+    "bigint": "BIGINT",
+    "float": "FLOAT",
+    "double": "DOUBLE",
+    "numeric": "DECIMAL",
+    "text": "TEXT",
+    "varchar": "VARCHAR",
+    "char": "CHAR",
+    "boolean": "BOOLEAN",
+    "date": "DATE",
+    "time": "TIME",
+    "timestamp": "TIMESTAMP",
+    "json": "JSON",
+    "blob": "BLOB",
+}
+
+SQLITE3_SQL_TYPES = {
+    "int": "INTEGER",
+    "smallint": "SMALLINT",
+    "bigint": "BIGINT",
+    "float": "REAL",
+    "double precision": "DOUBLE",
+    "numeric": "NUMERIC",
+    "text": "TEXT",
+    "varchar": "VARCHAR",
+    "char": "CHAR",
+    "boolean": "BOOLEAN",
+    "date": "DATE",
+    "time": "TIME",
+    "timestamp": "TIMESTAMP",
+    "json": "JSON",
+    "blob": "BLOB",
+}

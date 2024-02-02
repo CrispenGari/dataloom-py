@@ -1,8 +1,12 @@
 from dataclasses import dataclass, field
-from dataloom.exceptions import UnsupportedDialect
+from dataloom.exceptions import UnsupportedDialectException
 from sqlite3.dbapi2 import Connection
 from os import PathLike
 from typing_extensions import TypeAlias
+from typing import Optional
+
+from dataloom.constants import instances
+
 
 StrOrBytesPath: TypeAlias = str | bytes | PathLike[str] | PathLike[bytes]
 
@@ -16,12 +20,12 @@ class Dialect:
 @dataclass(kw_only=True)
 class PostgresDialect(Dialect):
     # "postgres://postgres:postgres@localhost:5432/db"
-    connection_string: str | None = field(default=None)
+    connection_string: Optional[str] = field(default=None)
     database: str
-    user: str | None = field(default="postgres")
-    host: str | None = field(default="localhost")
-    port: int | None = field(default=5432)
-    password: str | None = field(default="postgres")
+    user: Optional[str] = field(default=instances["postgres"].get("user"))
+    host: Optional[str] = field(default=instances["postgres"].get("host"))
+    port: Optional[int] = field(default=instances["postgres"].get("port"))
+    password: Optional[str] = field(default=instances["postgres"].get("user"))
 
     def connection_options[T](self) -> T:
         return (
@@ -31,12 +35,12 @@ class PostgresDialect(Dialect):
 
 @dataclass(kw_only=True)
 class MySQLDialect(Dialect):
-    connection_string: str | None = field(default=None)
+    connection_string: Optional[str] = field(default=None)
     database: str
-    user: str | None = field(default="root")
-    host: str | None = field(default="localhost")
-    port: int | None = field(default=3306)
-    password: str | None = field(default="root")
+    user: Optional[str] = field(default=instances["mysql"].get("user"))
+    host: Optional[str] = field(default=instances["mysql"].get("host"))
+    port: Optional[int] = field(default=instances["mysql"].get("port"))
+    password: Optional[str] = field(default=instances["mysql"].get("password"))
 
     def connection_options[T](self) -> T:
         return (
@@ -46,14 +50,14 @@ class MySQLDialect(Dialect):
 
 @dataclass(kw_only=True)
 class SQLiteDialect(Dialect):
-    database: StrOrBytesPath = field(default="users.db")
-    timeout: float | None = field(default=None)
-    detect_types: int | None = field(default=None)
-    isolation_level: str | None = field(default=None)
+    database: StrOrBytesPath = field(default=instances["sqlite"].get("database"))
+    timeout: Optional[float] = field(default=None)
+    detect_types: Optional[int] = field(default=None)
+    isolation_level: Optional[str] = field(default=None)
     check_same_thread: bool = field(default=None)
     factory: type[Connection] | None = field(default=None)
-    cached_statements: int | None = field(default=None)
-    uri: bool | None = field(default=None)
+    cached_statements: Optional[int] = field(default=None)
+    uri: Optional[bool] = field(default=None)
 
     def connection_options[T](self) -> T:
         return vars(self)
@@ -62,7 +66,9 @@ class SQLiteDialect(Dialect):
 @dataclass
 class ConnectionOptionsFactory:
     @staticmethod
-    def get_connection_options(dialect, **kwargs):
+    def get_connection_options(**kwargs):
+        dialect = kwargs.get("dialect")
+        kwargs = {k: v for k, v in kwargs.items() if k != "dialect"}
         if dialect == "postgres":
             return {
                 k: v
@@ -78,6 +84,6 @@ class ConnectionOptionsFactory:
                 if v is not None
             }
         else:
-            raise UnsupportedDialect(
+            raise UnsupportedDialectException(
                 "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
             )

@@ -6,5 +6,9 @@ class TooManyPkException(Exception):
     pass
 
 
-class UnsupportedDialect(ValueError):
+class UnsupportedDialectException(ValueError):
+    pass
+
+
+class UnsupportedTypeException(ValueError):
     pass
