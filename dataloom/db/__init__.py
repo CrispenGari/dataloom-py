@@ -134,7 +134,7 @@ class Dataloom:
                 cursor.execute(sql)
             else:
                 if bulk:
-                    cursor.executemany(sql, __parameters=args)
+                    cursor.executemany(sql, args)
                 else:
                     cursor.execute(sql, args)
             # options
@@ -260,97 +260,85 @@ class Dataloom:
         )
         return row[0] if type(row) in [list, tuple] else row
 
+    def insert_bulk(self, instances: list[Model]):
+        columns = None
+        placeholders = None
+        data = list()
+        for instance in instances:
+            (
+                column_names,
+                placeholder_values,
+                _values,
+            ) = instance._get_insert_bulk_attrs(dialect=self.dialect)
+            if columns is None:
+                columns = column_names
+            if placeholders is None:
+                placeholders = placeholder_values
 
-# class Database:
+            data.append(_values)
+        sql, values = instance._get_insert_bulk_smt(
+            dialect=self.dialect,
+            placeholders=placeholder_values,
+            columns=columns,
+            data=data,
+        )
+        row_count = self._execute_sql(sql, args=tuple(values), fetchall=True, bulk=True)
+        return row_count
+
+    def find_many[T](self, instance: Model, filters: dict = {}) -> list[T]:
+        sql, fields, params = instance._get_select_where_stm(
+            dialect=self.dialect, args=filters
+        )
+        data = list()
+        rows = self._execute_sql(sql, fetchall=True, args=params)
+        for row in rows:
+            res = dict(zip(fields, row))
+            data.append(instance(**res))
+        return data
+
+    def find_all[T](self, instance: Model) -> list[T]:
+        sql, fields, params = instance._get_select_where_stm(dialect=self.dialect)
+        data = list()
+        rows = self._execute_sql(sql, fetchall=True)
+        for row in rows:
+            res = dict(zip(fields, row))
+            data.append(instance(**res))
+        return data
+
+    def find_by_pk(self, instance: Model, pk, options: dict = {}):
+        # what is the name of the primary key column? well we will find out
+        sql, fields = instance._get_select_by_pk_stm(dialect=self.dialect)
+        row = self._execute_sql(sql, args=(pk,), fetchone=True)
+        return None if row is None else instance(**dict(zip(fields, row)))
+
+    def find_one(self, instance: Model, filters: dict = {}):
+        sql, fields, params = instance._get_select_where_stm(
+            dialect=self.dialect, args=filters
+        )
+        print(params)
+        row = self._execute_sql(sql, args=params, fetchone=True)
+        return None if row is None else instance(**dict(zip(fields, row)))
 
 
-#     def create_bulk(self, instances: list[Model]):
-#         columns = None
-#         placeholders = None
-#         data = list()
-#         for instance in instances:
-#             (
-#                 column_names,
-#                 placeholder_values,
-#                 _values,
-#             ) = instance._get_insert_bulk_attrs()
-#             if columns is None:
-#                 columns = column_names
-#             if placeholders is None:
-#                 placeholders = placeholder_values
-
-#             data.append(_values)
-#         sql, values = instance._get_insert_bulk_smt(placeholders, columns, data)
-#         row_count = self._execute_sql(sql, args=tuple(values), fetchall=True, bulk=True)
-#         return row_count
-
-#     def find_all(self, instance: Model):
+#    """
+#     SELECT
+#         posts.post_id,
+#         posts.content,
+#         posts.created_at,
+#         users.user_id,
+#         users.username
+#     FROM
+#         posts
+#     JOIN
+#         users ON posts.user_id = users.user_id
+#     WHERE
+#         posts.post_id = 1;  -- Replace 1 with the specific post_id you are interested in
+#     """
 #         fields = list()
 #         for name, field in inspect.getmembers(instance):
 #             if isinstance(field, Column):
 #                 fields.append(name)
-#         sql, _, __ = instance._get_select_where_stm(fields)
-#         data = list()
-#         rows = self._execute_sql(sql, fetchall=True)
-#         for row in rows:
-#             res = dict(zip(fields, row))
-#             data.append(instance(**res))
-#         return data
 
-#     def find_many(self, instance: Model, filters: dict = {}):
-#         fields = list()
-#         for name, field in inspect.getmembers(instance):
-#             if isinstance(field, Column):
-#                 fields.append(name)
-#         sql, _, params = instance._get_select_where_stm(fields, filters)
-#         data = list()
-#         rows = self._execute_sql(sql, args=params, fetchall=True)
-#         for row in rows:
-#             res = dict(zip(fields, row))
-#             data.append(instance(**res))
-#         return data
-
-#     def find_by_pk(self, instance: Model, pk, options: dict = {}):
-#         # what is the name of the primary key column?
-#         """
-#         SELECT
-#             posts.post_id,
-#             posts.content,
-#             posts.created_at,
-#             users.user_id,
-#             users.username
-#         FROM
-#             posts
-#         JOIN
-#             users ON posts.user_id = users.user_id
-#         WHERE
-#             posts.post_id = 1;  -- Replace 1 with the specific post_id you are interested in
-#         """
-#         pk_name = "id"
-#         fields = list()
-#         for name, field in inspect.getmembers(instance):
-#             if (
-#                 isinstance(field, Column)
-#                 or isinstance(field, ForeignKeyColumn)
-#                 or isinstance(field, CreatedAtColumn)
-#                 or isinstance(field, UpdatedAtColumn)
-#             ):
-#                 fields.append(name)
-#             elif isinstance(field, PrimaryKeyColumn):
-#                 pk_name = name
-#                 fields.append(name)
-#         sql, fields = instance._get_select_by_pk_stm(pk, pk_name, fields=fields)
-#         row = self._execute_sql(sql, fetchone=True)
-#         return None if row is None else instance(**dict(zip(fields, row)))
-
-#     def find_one(self, instance: Model, filters: dict = {}):
-#         fields = list()
-#         for name, field in inspect.getmembers(instance):
-#             if isinstance(field, Column):
-#                 fields.append(name)
-#         sql, _, params = instance._get_select_where_stm(fields, filters)
-#         row = self._execute_sql(sql, args=params, fetchone=True)
-#         return None if row is None else instance(**dict(zip(fields, row)))
 
 #     def delete_bulk(self, instance: Model, filters: dict = {}):
 #         sql, params = instance._get_delete_bulk_where_stm(filters)

@@ -6,6 +6,8 @@ from dataloom.model.column import (
     TableColumn,
     ForeignKeyColumn,
     Column,
+    CreatedAtColumn,
+    UpdatedAtColumn,
 )
 
 
@@ -97,6 +99,153 @@ class Model:
                 "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
             )
         return values
+
+    def _get_insert_bulk_attrs(self, dialect: str):
+        cls = self.__class__
+        fields = []
+        placeholders = []
+        values = []
+        for _name, field in inspect.getmembers(cls):
+            if isinstance(field, Column):
+                value = getattr(self, _name)
+                if not isinstance(value, Column):
+                    fields.append(_name)
+                    values.append(value)
+                    placeholders.append("?" if dialect == "sqlite" else "%s")
+            elif isinstance(field, ForeignKeyColumn):
+                value = getattr(self, _name)
+                if not isinstance(value, ForeignKeyColumn):
+                    fields.append(_name)
+                    values.append(value)
+                    placeholders.append("?" if dialect == "sqlite" else "%s")
+            elif isinstance(field, PrimaryKeyColumn):
+                value = getattr(self, _name)
+                if not isinstance(value, PrimaryKeyColumn):
+                    fields.append(_name)
+                    values.append(value)
+                    placeholders.append("?" if dialect == "sqlite" else "%s")
+        column_names = ", ".join(
+            [f'"{f}"' if dialect == "postgres" else f"`{f}`" for f in fields]
+        )
+        placeholder_values = ", ".join(placeholders)
+        return column_names, placeholder_values, values
+
+    @classmethod
+    def _get_insert_bulk_smt(cls, dialect: str, placeholders, columns, data):
+        if dialect == "postgres" or "mysql" or "sqlite":
+            sql, values = GetStatement(
+                dialect=dialect, model=cls, table_name=cls._get_table_name()
+            )._get_insert_bulk_command(data=(placeholders, columns, data))
+        else:
+            raise UnsupportedDialectException(
+                "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
+            )
+        return sql, values
+
+    @classmethod
+    def _get_select_where_stm(cls, dialect: str, args: dict = {}):
+        fields = []
+        filters = []
+        params = []
+        for name, field in inspect.getmembers(cls):
+            if isinstance(field, Column):
+                fields.append(name)
+            elif isinstance(field, ForeignKeyColumn):
+                fields.append(name)
+            elif isinstance(field, PrimaryKeyColumn):
+                fields.append(name)
+            elif isinstance(field, CreatedAtColumn):
+                fields.append(name)
+            elif isinstance(field, UpdatedAtColumn):
+                fields.append(name)
+        for key, value in args.items():
+            filters.append(
+                f'"{key}" = %s'
+                if dialect == "postgres"
+                else f"`{key}` = {'%s' if dialect == 'mysql' else '?'}"
+            )
+            params.append(value)
+
+        if dialect == "postgres" or "mysql" or "sqlite":
+            if len(filters) == 0:
+                sql = GetStatement(
+                    dialect=dialect, model=cls, table_name=cls._get_table_name()
+                )._get_select_command(fields=fields)
+            else:
+                sql = GetStatement(
+                    dialect=dialect, model=cls, table_name=cls._get_table_name()
+                )._get_select_where_command(filters=filters, fields=fields)
+        else:
+            raise UnsupportedDialectException(
+                "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
+            )
+        return sql, params, fields
+
+    @classmethod
+    def _get_select_by_pk_stm(cls, dialect: str):
+        fields = []
+        pk_name = None
+        # what is the pk name?
+        for name, field in inspect.getmembers(cls):
+            if isinstance(field, Column):
+                fields.append(name)
+            elif isinstance(field, ForeignKeyColumn):
+                fields.append(name)
+            elif isinstance(field, PrimaryKeyColumn):
+                fields.append(name)
+                pk_name = f'"{name}"' if dialect == "postgres" else f"`{name}`"
+            elif isinstance(field, CreatedAtColumn):
+                fields.append(name)
+            elif isinstance(field, UpdatedAtColumn):
+                fields.append(name)
+        if dialect == "postgres" or "mysql" or "sqlite":
+            sql = GetStatement(
+                dialect=dialect, model=cls, table_name=cls._get_table_name()
+            )._get_select_by_pk_command(fields=fields, pk_name=pk_name)
+        else:
+            raise UnsupportedDialectException(
+                "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
+            )
+        return sql, fields
+
+    @classmethod
+    def _get_select_where_stm(cls, dialect: str, args: dict = {}):
+        fields = []
+        filters = []
+        params = []
+        for name, field in inspect.getmembers(cls):
+            if isinstance(field, Column):
+                fields.append(name)
+            elif isinstance(field, ForeignKeyColumn):
+                fields.append(name)
+            elif isinstance(field, PrimaryKeyColumn):
+                fields.append(name)
+            elif isinstance(field, CreatedAtColumn):
+                fields.append(name)
+            elif isinstance(field, UpdatedAtColumn):
+                fields.append(name)
+        for key, value in args.items():
+            filters.append(
+                f'"{key}" = %s'
+                if dialect == "postgres"
+                else f"`{key}` = {'%s' if dialect == 'mysql' else '?'}"
+            )
+            params.append(value)
+
+        if dialect == "postgres" or "mysql" or "sqlite":
+            if len(filters) == 0:
+                sql = GetStatement(
+                    dialect=dialect, model=cls, table_name=cls._get_table_name()
+                )._get_select_command(fields=fields)
+            else:
+                sql = GetStatement(
+                    dialect=dialect, model=cls, table_name=cls._get_table_name()
+                )._get_select_where_command(filters=filters, fields=fields)
+        else:
+            raise UnsupportedDialectException(
+                "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
+            )
+        return sql, fields, params
 
 
 # class IModel[T](ABC):

@@ -58,6 +58,32 @@ class GetStatement[T]():
             )
         return sql, values
 
+    def _get_insert_bulk_command(self, data) -> tuple[Optional[str], list]:
+        placeholder_values, column_names, values = data
+        if self.dialect == "postgres":
+            sql = PgStatements.INSERT_COMMAND_MANY.format(
+                table_name=f'"{self.table_name}"',
+                column_names=column_names,
+                placeholder_values=placeholder_values,
+            )
+        elif self.dialect == "mysql":
+            sql = MySqlStatements.INSERT_COMMAND_MANY.format(
+                table_name=f"`{self.table_name}`",
+                column_names=column_names,
+                placeholder_values=placeholder_values,
+            )
+        elif self.dialect == "sqlite":
+            sql = Sqlite3Statements.INSERT_COMMAND_MANY.format(
+                table_name=f"`{self.table_name}`",
+                column_names=column_names,
+                placeholder_values=placeholder_values,
+            )
+        else:
+            raise UnsupportedDialectException(
+                "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
+            )
+        return sql, values
+
     @property
     def _get_drop_table_command(self) -> Optional[str]:
         if self.dialect == "postgres":
@@ -327,3 +353,78 @@ class GetStatement[T]():
             raise UnsupportedDialectException(
                 "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
             )
+
+    def _get_select_where_command(self, filters: list = [], fields: list = []):
+        if self.dialect == "postgres":
+            sql = PgStatements.SELECT_WHERE_COMMAND.format(
+                column_names=", ".join([f'"{f}"' for f in fields]),
+                table_name=f'"{self.table_name}"',
+                filters=" AND ".join(filters),
+            )
+        elif self.dialect == "mysql":
+            sql = MySqlStatements.SELECT_WHERE_COMMAND.format(
+                column_names=", ".join([f"`{name}`" for name in fields]),
+                table_name=f"`{self.table_name}`",
+                filters=" AND ".join(filters),
+            )
+        elif self.dialect == "sqlite":
+            sql = Sqlite3Statements.SELECT_WHERE_COMMAND.format(
+                column_names=", ".join([f"`{name}`" for name in fields]),
+                table_name=f"`{self.table_name}`",
+                filters=" AND ".join(filters),
+            )
+        else:
+            raise UnsupportedDialectException(
+                "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
+            )
+        return sql
+
+    def _get_select_command(self, fields: list = []):
+        if self.dialect == "postgres":
+            sql = PgStatements.SELECT_COMMAND.format(
+                column_names=", ".join([f'"{name}"' for name in fields]),
+                table_name=f'"{self.table_name}"',
+            )
+        elif self.dialect == "mysql":
+            sql = MySqlStatements.SELECT_COMMAND.format(
+                column_names=", ".join([f"`{name}`" for name in fields]),
+                table_name=f"`{self.table_name}`",
+            )
+        elif self.dialect == "sqlite":
+            sql = Sqlite3Statements.SELECT_COMMAND.format(
+                column_names=", ".join([f"`{name}`" for name in fields]),
+                table_name=f"`{self.table_name}`",
+            )
+        else:
+            raise UnsupportedDialectException(
+                "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
+            )
+        return sql
+
+    def _get_select_by_pk_command(self, pk_name: str, fields: list = []):
+        if self.dialect == "postgres":
+            sql = PgStatements.SELECT_BY_PK.format(
+                column_names=", ".join([f'"{name}"' for name in fields]),
+                table_name=f'"{self.table_name}"',
+                pk_name=pk_name,
+                pk="%s",
+            )
+        elif self.dialect == "mysql":
+            sql = MySqlStatements.SELECT_BY_PK.format(
+                column_names=", ".join([f"`{name}`" for name in fields]),
+                table_name=f"`{self.table_name}`",
+                pk_name=pk_name,
+                pk="%s",
+            )
+        elif self.dialect == "sqlite":
+            sql = Sqlite3Statements.SELECT_BY_PK.format(
+                column_names=", ".join([f"`{name}`" for name in fields]),
+                table_name=f"`{self.table_name}`",
+                pk_name=pk_name,
+                pk="?",
+            )
+        else:
+            raise UnsupportedDialectException(
+                "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
+            )
+        return sql

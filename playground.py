@@ -35,18 +35,12 @@ class User(Model):
     name = Column(type="text", nullable=False, default="Bob")
     username = Column(type="varchar", unique=True, length=255)
 
-    # timestamps
-    createdAt = CreatedAtColumn()
-    updatedAt = UpdatedAtColumn()
-
     @property
     def to_dict(self):
         return {
             "id": self.id,
             "name": self.name,
             "username": self.username,
-            "createdAt": self.createdAt,
-            "updatedAt": self.updatedAt,
         }
 
 
@@ -75,14 +69,20 @@ class Post(Model):
         }
 
 
-conn, tables = sqlite_loom.connect_and_sync([Post, User], drop=True, force=True)
+conn, tables = pg_loom.connect_and_sync([Post, User], drop=True, force=True)
 print(tables)
 
 
 user = User(username="@miller")
-userId = sqlite_loom.insert_one(user)
+userId = pg_loom.insert_one(user)
 post = Post(title="What are you doing?", userId=userId)
-post_id = sqlite_loom.insert_one(post)
+post_id = pg_loom.insert_bulk([post for i in range(5)])
+
+posts = pg_loom.find_all(Post)
+
+print(user.to_dict)
+
+print([p.to_dict for p in posts])
 
 
 if __name__ == "__main__":

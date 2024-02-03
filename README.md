@@ -2,6 +2,35 @@
 
 **`dataloom`** is a lightweight and versatile Object-Relational Mapping (ORM) library for Python. With support for `PostgreSQL`, `MySQL`, and `SQLite3` databases, `dataloom` simplifies database interactions, providing a seamless experience for developers.
 
+<p align="center">
+<img src="/dataloom.png" alt="dataloom" width="200">
+</p>
+
+### Table of Contents
+
+- [dataloom](#dataloom)
+- [Table of Contents](#table-of-contents)
+- [Key Features:](#key-features)
+- [Installation](#installation)
+- [Python Version Compatibility](#python-version-compatibility)
+- [Usage](#usage)
+- [Connection](#connection)
+- [Dataloom Classes](#dataloom-classes)
+  - [`Model` Class](#model-class)
+  - [`Column` Class](#column-class)
+  - [`PrimaryKeyColumn` Class](#primarykeycolumn-class)
+  - [`ForeignKeyColumn` Class](#foreignkeycolumn-class)
+  - [`CreatedAtColumn` Class](#createdatcolumn-class)
+  - [`UpdatedAtColumn` Class](#updatedatcolumn-class)
+- [Syncing Tables](#syncing-tables)
+- [CRUD Operations with Dataloom](#crud-operations-with-dataloom)
+  - [1. Creating a Record](#1-creating-a-record)
+  - [2. Getting records](#2-getting-records)
+  - [3. Getting a single record](#3-getting-a-single-record)
+  - [4. Deleting a record](#4-deleting-a-record)
+  - [5. Updating a record](#5-updating-a-record)
+- [Associations](#associations)
+
 ### Key Features:
 
 - **Lightweight**: `dataloom` is designed to be minimalistic and easy to use, ensuring a streamlined `ORM` experience without unnecessary complexities.
@@ -13,6 +42,24 @@
 - **Intuitive Syntax**: `dataloom`'s syntax is intuitive and `Pythonic`, making it accessible for developers familiar with the Python language.
 
 - **Flexible Data Types**: The `ORM` seamlessly handles various data types, offering flexibility in designing database schemas.
+
+### Installation
+
+To install `dataloom`, you just need to run the following command using `pip`:
+
+```bash
+pip install dataloom
+```
+
+### Python Version Compatibility
+
+`dataloom` supports **`Python`** version **`3.12`** and above. Ensure that you are using a compatible version of **`Python`** before installing or using `dataloom`.
+
+You can check your **`Python`** version by running:
+
+```bash
+python --version
+```
 
 ### Usage
 
@@ -105,7 +152,9 @@ The `Dataloom` class takes in the following options:
 | `logs_filename` | Filename for the query logs | `str` or `None` | `dataloom.sql` | `No` |
 | `port` | Port number for the database connection (only for `mysql` and `postgres`) | `int` or `None` | `None` | `No` |
 
-### `Model` Class
+### Dataloom Classes
+
+#### `Model` Class
 
 A model in Dataloom is a top-level class that facilitates the creation of complex SQL tables using regular Python classes. This example demonstrates how to define two tables, `User` and `Post`, by creating classes that inherit from the `Model` class.
 
@@ -181,7 +230,7 @@ class Post(Model):
 - The `ForeignKeyColumn` establishes a relationship between the current (child) table and a referenced (parent) table.
 - A `to_dict` property has been created, providing a convenient way to retrieve the data in the form of a Python dictionary when invoked.
 
-### `Column` Class
+#### `Column` Class
 
 In the context of a database table, each property marked as a column in a model is treated as an individual attribute. Here's an example of how to define a column in a table using the `Column` class:
 
@@ -275,7 +324,7 @@ Here are some other options that you can pass to the `Column`:
 
 > Note: Every table is required to have a primary key column and this column should be 1. Let's talk about the `PrimaryKeyColumn`
 
-### `PrimaryKeyColumn` Class
+#### `PrimaryKeyColumn` Class
 
 This class is used to create a unique index in every table you create. In the context of a table that inherits from the `Model` class, exactly one `PrimaryKeyColumn` is required. Below is an example of creating an `id` column as a primary key in a table named `Post`:
 
@@ -297,7 +346,7 @@ The following are the arguments that the `PrimaryKeyColumn` class accepts.
 |`nullable` | Optional to specify if the column will allow null values or not. |`bool` |`False` |
 |`unique` | Optional to specify if the column will contain unique values or not. |`bool` |`True` |
 
-### `ForeignKeyColumn` Class
+#### `ForeignKeyColumn` Class
 
 This class is utilized when informing `dataloom` that a column has a relationship with a primary key in another table. Consider the following model definition of a `Post`:
 
@@ -334,11 +383,11 @@ It is crucial to specify the actions for `onDelete` and `onUpdate` to ensure tha
 2. `"SET NULL"` - If you delete or update the parent table, the corresponding value in the child table will be set to `null`.
 3. `"CASCADE"` - If you delete or update the table, the same action will also be applied to the child table.
 
-### `CreatedAtColumn` Class
+#### `CreatedAtColumn` Class
 
 When a column is designated as `CreatedAtColumn`, its value will be automatically generated each time you create a new record in a database, serving as a timestamp.
 
-### `UpdatedAtColumn` Class
+#### `UpdatedAtColumn` Class
 
 When a column is designated as `UpdatedAtColumn`, its value will be automatically generated each time you create a new record or update an existing record in a database table, acting as a timestamp.
 
@@ -377,22 +426,24 @@ if __name__ == "__main__":
 
 Returns a `conn` and the list of `tablenames` that exist in the database. The method accepts the same arguments as the `sync` method.
 
-### CRUD operations
+### CRUD Operations with Dataloom
 
-In this section of the docs we are going to demonstrate how to perform some `CRUD` operations using `dataloom` on simple `Models`. Note that in these small code snippets i will be using `sqlite_loom` not that you can use any `loom` that you have to follow along.
+In this section of the documentation, we will illustrate how to perform basic `CRUD` operations using `dataloom` on simple `Models`. Please note that in the following code snippets, I will be utilizing `sqlite_loom`. However, it's important to highlight that you can use any `loom` of your choice to follow along.
 
-1. Creating a Record
+#### 1. Creating a Record
 
-The `insert_one` method let you insert save a single row in a particular table. When you save this will return the `pk` value of the inserted document
+The `insert_one` method allows you to save a single row in a specific table. Upon saving, it will return the primary key (`pk`) value of the inserted document.
 
-```py
+```python
+# Example: Creating a user record
 user = User(username="@miller")
-userId = sqlite_loom.insert_one(user)
+user_id = sqlite_loom.insert_one(user)
 ```
 
-Using the `insert_bulk` you will be able to save in bulk as the method explains itself. The following is an example showing how we can add `3` post to the database table at the same time.
+The `insert_bulk` method facilitates the bulk insertion of records, as its name suggests. The following example illustrates how you can add `3` posts to the database table simultaneously.
 
-```py
+```python
+# Example: Inserting multiple posts
 posts = [
     Post(userId=userId, title="What are you thinking"),
     Post(userId=userId, title="What are you doing?"),
@@ -401,27 +452,29 @@ posts = [
 row_count = sqlite_loom.insert_bulk(posts)
 ```
 
-> Unlike the `insert_one`, `insert_bulk` method returns the row count of the inserted documents rather that individual `pks` of those documents.
+> In contrast to the `insert_one` method, the `insert_bulk` method returns the row count of the inserted documents rather than the individual primary keys (`pks`) of those documents.
 
-2. Getting records
+#### 2. Getting records
 
-To get the records in the database you use `find_all()` and `find_many()`
+To retrieve records from the database, you can utilize the `find_all()` and `find_many()` methods.
 
 ```py
 users = sqlite_loom.find_all(User)
 print([u.to_dict for u in users])
 ```
 
-Here is an example of the `find_many()` function with some filters.
+Here is an example demonstrating the usage of the `find_many()` function with specific filters.
 
 ```py
-many = sqlite_loom.find_many(User, {"id": 5})
-print([u.to_dict() for u in many])
+many = sqlite_loom.find_many(Post, {"userId": 5})
+print([u.to_dict for u in many])
 ```
 
-3. Getting a single record
+The distinction between the `find_all()` and `find_many()` methods lies in the fact that `find_many()` enables you to apply specific filters, whereas `find_all()` retrieves all the documents within the specified model.
 
-The find `find_by_pk` and the `find_one` methods are used to find a single record in the database.
+#### 3. Getting a single record
+
+The `find_by_pk()` and `find_one()` methods are employed to locate a single record in the database.
 
 ```py
 user = User(name="Crispen", username="heyy")
@@ -430,48 +483,48 @@ print(me.to_dict)
 
 ```
 
-Using the `find_one` you can specify the filters of your query as follows:
+With the `find_one()` method, you can specify the filters of your query as follows:
 
 ```py
 him = sqlite_loom.find_one(User, filters={"id": 1})
 print(him.to_dict)
 ```
 
-4. Deleting a record
+#### 4. Deleting a record
 
-With the `delete_by_pk` method you can delete a record in a database based on the primary-key value:
+Using the `delete_by_pk()` method, you can delete a record in a database based on the primary-key value.
 
 ```py
 affected_rows = sqlite_loom.delete_by_pk(User, userId)
 ```
 
-You cal also use `filters` to delete a record in a database. The `delete_one` function allows you to delete a single record in a database that matches a filter.
+You can also use `filters` to delete a record in a database. The `delete_one()` function enables you to delete a single record in a database that matches a filter.
 
 ```py
 affected_rows = sqlite_loom.delete_one(User, {"name": "Crispen"})
 ```
 
-You can also the `delete_bulk` which delete a lot of records that matches a filter:
+You can also use the `delete_bulk()` method to delete a multitude of records that match a given filter:
 
 ```py
 affected_rows = sqlite_loom.delete_bulk(User, {"name": "Crispen"})
 ```
 
-5. Updating a record
+#### 5. Updating a record
 
-You can update a record in a database table using the methods, `update_by_pk` , `update_one` and `update_bulk`. The `update_pk` can be used as follows:
+To update a record in a database table, you can utilize the methods `update_by_pk()`, `update_one()`, and `update_bulk()`. The `update_pk()` method can be used as follows:
 
 ```py
 affected_rows = sqlite_loom.update_by_pk(User, 1, {"name": "Gari"})
 ```
 
-This is how you can use the `update_one`
+Here is an example illustrating how to use the `update_one()` method:
 
 ```py
 affected_rows = sqlite_loom.update_one(User, {"name": "Crispen"}, {"name": "Gari"})
 ```
 
-The update bulk updates all teh records that matches a filter in a database table:
+The `update_bulk()` method updates all records that match a filter in a database table.
 
 ```py
 affected_rows = sqlite_loom.update_bulk(User, {"name": "Crispen"}, {"name": "Tinashe Gari"})

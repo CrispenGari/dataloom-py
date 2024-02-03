@@ -14,9 +14,23 @@ class MySqlStatements:
     INSERT_COMMAND_ONE = (
         "INSERT INTO {table_name} ({column_names}) VALUES ({placeholder_values});"
     )
+    INSERT_COMMAND_MANY = (
+        "INSERT INTO {table_name} ({column_names}) VALUES ({placeholder_values});"
+    )
+
+    # selecting data
+    SELECT_COMMAND = "SELECT {column_names} FROM {table_name};"
+    SELECT_BY_PK = "SELECT {column_names} FROM {table_name} WHERE {pk_name} = {pk};"
+    SELECT_WHERE_COMMAND = "SELECT {column_names} FROM {table_name} WHERE {filters};"
 
 
 class Sqlite3Statements:
+
+    # selecting data
+    SELECT_COMMAND = "SELECT {column_names} FROM {table_name};"
+    SELECT_BY_PK = "SELECT {column_names} FROM {table_name} WHERE {pk_name} = {pk};"
+    SELECT_WHERE_COMMAND = "SELECT {column_names} FROM {table_name} WHERE {filters};"
+
     # dropping table
     DROP_TABLE = "DROP TABLE IF EXISTS {table_name};"
     # getting tables
@@ -27,7 +41,11 @@ class Sqlite3Statements:
     CREATE_NEW_TABLE_IF_NOT_EXITS = (
         "CREATE TABLE IF NOT EXISTS {table_name} ({fields_name});"
     )
+    # insterting
     INSERT_COMMAND_ONE = (
+        "INSERT INTO {table_name} ({column_names}) VALUES ({placeholder_values});"
+    )
+    INSERT_COMMAND_MANY = (
         "INSERT INTO {table_name} ({column_names}) VALUES ({placeholder_values});"
     )
 
@@ -56,7 +74,7 @@ class PgStatements:
     DELETE_ALL_COMMAND = "DELETE FROM {table_name};"
     # select
     SELECT_COMMAND = "SELECT {column_names} FROM {table_name};"
-    SELECT_BY_PK = "SELECT {column_names} FROM {table_name} WHERE {pk_name}={pk};"
+    SELECT_BY_PK = "SELECT {column_names} FROM {table_name} WHERE {pk_name} = {pk};"
     SELECT_WHERE_COMMAND = "SELECT {column_names} FROM {table_name} WHERE {filters};"
     # insert
     INSERT_COMMAND_ONE = "INSERT INTO {table_name} ({column_names}) VALUES ({placeholder_values}) RETURNING {pk};"
