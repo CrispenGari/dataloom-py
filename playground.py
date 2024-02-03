@@ -8,6 +8,8 @@ from dataloom import (
     TableColumn,
     ForeignKeyColumn,
 )
+from typing import Optional
+
 
 pg_loom = Dataloom(
     dialect="postgres", database="hi", password="root", user="postgres", logging=True
@@ -25,10 +27,6 @@ mysql_loom = Dataloom(
 sqlite_loom = Dataloom(
     dialect="sqlite", database="hi.db", logs_filename="sqlite-logs.sql", logging=True
 )
-from typing import Optional
-from dataclasses import dataclass
-
-conn = sqlite_loom.connect()
 
 
 class User(Model):
@@ -80,6 +78,15 @@ class Post(Model):
 conn, tables = sqlite_loom.connect_and_sync([Post, User], drop=True, force=True)
 print(tables)
 
+
+user = User(username="@miller")
+userId = sqlite_loom.insert_one(user)
+post = Post(title="What are you doing?", userId=userId)
+post_id = sqlite_loom.insert_one(post)
+
+
+if __name__ == "__main__":
+    conn.close()
 
 # instance = [*db, dataloom.logging]
 

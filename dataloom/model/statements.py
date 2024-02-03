@@ -10,6 +10,10 @@ class MySqlStatements:
     CREATE_NEW_TABLE_IF_NOT_EXITS = (
         "CREATE TABLE IF NOT EXISTS {table_name} ({fields_name});"
     )
+    # insert
+    INSERT_COMMAND_ONE = (
+        "INSERT INTO {table_name} ({column_names}) VALUES ({placeholder_values});"
+    )
 
 
 class Sqlite3Statements:
@@ -22,6 +26,9 @@ class Sqlite3Statements:
     CREATE_NEW_TABLE = "CREATE TABLE {table_name} ({fields_name});"
     CREATE_NEW_TABLE_IF_NOT_EXITS = (
         "CREATE TABLE IF NOT EXISTS {table_name} ({fields_name});"
+    )
+    INSERT_COMMAND_ONE = (
+        "INSERT INTO {table_name} ({column_names}) VALUES ({placeholder_values});"
     )
 
 
@@ -52,7 +59,7 @@ class PgStatements:
     SELECT_BY_PK = "SELECT {column_names} FROM {table_name} WHERE {pk_name}={pk};"
     SELECT_WHERE_COMMAND = "SELECT {column_names} FROM {table_name} WHERE {filters};"
     # insert
-    INSERT_COMMAND_ONE = "INSERT INTO {table_name} ({column_name}) VALUES ({placeholder_values}) RETURNING {pk};"
+    INSERT_COMMAND_ONE = "INSERT INTO {table_name} ({column_names}) VALUES ({placeholder_values}) RETURNING {pk};"
     INSERT_COMMAND_MANY = "INSERT INTO {table_name} ({column_names}) VALUES ({placeholder_values}) RETURNING *;"
 
     # creating table

@@ -15,8 +15,8 @@
 --------- conn
 
 1. create 3 connections for:
-    * postgres
-    * mysql
-    * sqlite3
+    * postgres ✅
+    * mysql ✅
+    * sqlite3 ✅
 
 

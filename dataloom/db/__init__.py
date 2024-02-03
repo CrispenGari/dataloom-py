@@ -68,6 +68,7 @@ class Dataloom:
         mutation=True,
         bulk: bool = False,
         affected_rows: bool = False,
+        operation: Optional[str] = None,
     ):
         # do we need to log the executed SQL?
         if self.logging:
@@ -103,23 +104,40 @@ class Dataloom:
                     self.conn.commit()
         elif self.dialect == "mysql":
             with self.conn.cursor(buffered=True) as cursor:
-                cursor.execute(sql)
-            if bulk or affected_rows:
-                result = cursor.rowcount
-            else:
-                if fetchmany:
-                    result = cursor.fetchmany()
-                elif fetchall:
-                    result = cursor.fetchall()
-                elif fetchone:
-                    result = cursor.fetchone()
+                if args is None:
+                    cursor.execute(sql)
                 else:
-                    result = None
-            if mutation:
-                self.conn.commit()
+                    if bulk:
+                        cursor.executemany(sql, args)
+                    else:
+                        cursor.execute(sql, args)
+                # options
+                if bulk or affected_rows:
+                    result = cursor.rowcount
+                else:
+                    if fetchmany:
+                        result = cursor.fetchmany()
+                    elif fetchall:
+                        result = cursor.fetchall()
+                    elif fetchone:
+                        result = cursor.fetchone()
+                    else:
+                        result = None
+                if mutation:
+                    self.conn.commit()
+
+                if operation is not None:
+                    result = cursor.lastrowid
         elif self.dialect == "sqlite":
             cursor = self.conn.cursor()
-            cursor.execute(sql)
+            if args is None:
+                cursor.execute(sql)
+            else:
+                if bulk:
+                    cursor.executemany(sql, __parameters=args)
+                else:
+                    cursor.execute(sql, args)
+            # options
             if bulk or affected_rows:
                 result = cursor.rowcount
             else:
@@ -133,6 +151,8 @@ class Dataloom:
                     result = None
             if mutation:
                 self.conn.commit()
+            if operation is not None:
+                result = cursor.lastrowid
         else:
             raise UnsupportedDialectException(
                 "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
@@ -160,6 +180,7 @@ class Dataloom:
             if "database" in options:
                 with sqlite3.connect(options.get("database")) as conn:
                     self.conn = conn
+
             else:
                 with sqlite3.connect(**options) as conn:
                     self.conn = conn
@@ -229,108 +250,19 @@ class Dataloom:
         except Exception as e:
             raise Exception(e)
 
+    def insert_one(self, instance: Model):
+        sql, values = instance._get_insert_one_stm(dialect=self.dialect)
+        row = self._execute_sql(
+            sql,
+            args=tuple(values),
+            fetchone=self.dialect == "postgres",
+            operation="insert",
+        )
+        return row[0] if type(row) in [list, tuple] else row
+
 
 # class Database:
-#     def __init__(
-#         self,
-#         database: str,
-#         dialect: str = "postgres",
-#         user: str | None = None,
-#         host: str | None = None,
-#         port: int | None = None,
-#         password: str | None = None,
-#         logs: bool = True,
-#     ) -> None:
-#         config = instances[dialect]
-#         self.user = user if user else config["user"]
-#         self.password = password if password else config["password"]
-#         self.port = port if port else config["port"]
-#         self.host = host if host else config["host"]
-#         self.database = database
-#         self.conn = None
-#         self.logs = logs
 
-#     @property
-#     def tables(self):
-#         res = self._execute_sql(
-#             PgStatements.GET_TABLES.format(schema_name="public"), fetchall=True
-#         )
-#         return [t[0] for t in res]
-
-#     def _execute_sql(
-#         self,
-#         sql,
-#         args=None,
-#         fetchone=False,
-#         fetchmany=False,
-#         fetchall=False,
-#         mutation=True,
-#         bulk: bool = False,
-#         affected_rows: bool = False,
-#     ):
-#         # do we need to log the executed SQL?
-#         if self.logs:
-#             print(sql)
-
-#         with self.conn.cursor() as cursor:
-#             if args is None:
-#                 cursor.execute(sql)
-#             else:
-#                 (
-#                     cursor.executemany(sql, vars_list=args)
-#                     if bulk
-#                     else cursor.execute(sql, vars=args)
-#                 )
-#             # options
-#             if bulk or affected_rows:
-#                 result = cursor.rowcount
-#             else:
-#                 if fetchmany:
-#                     result = cursor.fetchmany()
-#                 elif fetchall:
-#                     result = cursor.fetchall()
-#                 elif fetchone:
-#                     result = cursor.fetchone()
-#                 else:
-#                     result = None
-#             if mutation:
-#                 self.conn.commit()
-
-#         return result
-
-#     def connect(self):
-#         try:
-#             self.conn = psycopg2.connect(
-#                 host=self.host,
-#                 database=self.database,
-#                 user=self.user,
-#                 password=self.password,
-#                 port=self.port,
-#             )
-#             return self.conn
-#         except Exception as e:
-#             raise Exception(e)
-
-
-#     def sync(self, models: list[Model], drop=False, force=False, alter=False):
-#         try:
-#             for model in models:
-#                 if drop or force:
-#                     self._execute_sql(model._drop_sql())
-#                     self._execute_sql(model._create_sql())
-#                 elif alter:
-#                     pass
-#                 else:
-#                     self._execute_sql(model._create_sql(ignore_exists=True))
-
-#             return self.tables
-#         except Exception as e:
-#             raise Exception(e)
-
-#     def create(self, instance: Model):
-#         sql, values = instance._get_insert_one_stm()
-#         row = self._execute_sql(sql, args=tuple(values), fetchone=True)
-#         return row[0]
 
 #     def create_bulk(self, instances: list[Model]):
 #         columns = None

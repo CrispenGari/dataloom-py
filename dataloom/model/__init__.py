@@ -4,6 +4,8 @@ import inspect
 from dataloom.model.column import (
     PrimaryKeyColumn,
     TableColumn,
+    ForeignKeyColumn,
+    Column,
 )
 
 
@@ -58,6 +60,43 @@ class Model:
                 "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
             )
         return sql
+
+    def _get_insert_one_stm(self, dialect: str):
+        cls = self.__class__
+        fields = []
+        placeholders = []
+        values = []
+        pk = None
+        for _name, field in inspect.getmembers(cls):
+            if isinstance(field, Column):
+                value = getattr(self, _name)
+                if not isinstance(value, Column):
+                    fields.append(_name)
+                    values.append(value)
+                    placeholders.append("?" if dialect == "sqlite" else "%s")
+            elif isinstance(field, ForeignKeyColumn):
+                value = getattr(self, _name)
+                if not isinstance(value, ForeignKeyColumn):
+                    fields.append(_name)
+                    values.append(value)
+                    placeholders.append("?" if dialect == "sqlite" else "%s")
+            elif isinstance(field, PrimaryKeyColumn):
+                pk = f'"{_name}"'
+                value = getattr(self, _name)
+                if not isinstance(value, PrimaryKeyColumn):
+                    fields.append(_name)
+                    values.append(value)
+                    placeholders.append("?" if dialect == "sqlite" else "%s")
+        data = (values, placeholders, fields)
+        if dialect == "postgres" or "mysql" or "sqlite":
+            values = GetStatement(
+                dialect=dialect, model=cls, table_name=self._get_table_name()
+            )._get_insert_one_command(data=data, pk=pk)
+        else:
+            raise UnsupportedDialectException(
+                "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
+            )
+        return values
 
 
 # class IModel[T](ABC):

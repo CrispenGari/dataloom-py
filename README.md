@@ -377,17 +377,20 @@ if __name__ == "__main__":
 
 Returns a `conn` and the list of `tablenames` that exist in the database. The method accepts the same arguments as the `sync` method.
 
+### CRUD operations
+
+In this section of the docs we are going to demonstrate how to perform some `CRUD` operations using `dataloom` on simple `Models`. Note that in these small code snippets i will be using `sqlite_loom` not that you can use any `loom` that you have to follow along.
+
 1. Creating a Record
 
-The `create` method let you create save a single row in a particular table. When you save this will return the `id` of the inserted document
+The `insert_one` method let you insert save a single row in a particular table. When you save this will return the `pk` value of the inserted document
 
 ```py
-user = User(name="Crispen", username="heyy")
-userId = db.create(user)
-print(userId)
+user = User(username="@miller")
+userId = sqlite_loom.insert_one(user)
 ```
 
-Using the `create_bulk` you will be able to save in bulk as the method explains itself. The following is an example showing how we can add `3` post to the database table at the same time.
+Using the `insert_bulk` you will be able to save in bulk as the method explains itself. The following is an example showing how we can add `3` post to the database table at the same time.
 
 ```py
 posts = [
@@ -395,24 +398,24 @@ posts = [
     Post(userId=userId, title="What are you doing?"),
     Post(userId=userId, title="What are we?"),
 ]
-row_count = db.create_bulk(posts)
+row_count = sqlite_loom.insert_bulk(posts)
 ```
 
-> Unlike the `create`, `create_bulk` method returns the row count of the inserted documents rather that individual `id` of those document.
+> Unlike the `insert_one`, `insert_bulk` method returns the row count of the inserted documents rather that individual `pks` of those documents.
 
 2. Getting records
 
 To get the records in the database you use `find_all()` and `find_many()`
 
 ```py
-users = db.find_all(User)
-print([u.to_dict() for u in users])
+users = sqlite_loom.find_all(User)
+print([u.to_dict for u in users])
 ```
 
 Here is an example of the `find_many()` function with some filters.
 
 ```py
-many = db.find_many(User, {"id": 5})
+many = sqlite_loom.find_many(User, {"id": 5})
 print([u.to_dict() for u in many])
 ```
 
@@ -422,16 +425,16 @@ The find `find_by_pk` and the `find_one` methods are used to find a single recor
 
 ```py
 user = User(name="Crispen", username="heyy")
-me = db.find_by_pk(User, 1)
-print(me.to_dict())
+me = sqlite_loom.find_by_pk(User, 1)
+print(me.to_dict)
 
 ```
 
 Using the `find_one` you can specify the filters of your query as follows:
 
 ```py
-him = db.find_one(User, filters={"id": 1})
-print(him.to_dict())
+him = sqlite_loom.find_one(User, filters={"id": 1})
+print(him.to_dict)
 ```
 
 4. Deleting a record
@@ -439,19 +442,19 @@ print(him.to_dict())
 With the `delete_by_pk` method you can delete a record in a database based on the primary-key value:
 
 ```py
-affected_rows = db.delete_by_pk(User, userId)
+affected_rows = sqlite_loom.delete_by_pk(User, userId)
 ```
 
 You cal also use `filters` to delete a record in a database. The `delete_one` function allows you to delete a single record in a database that matches a filter.
 
 ```py
-affected_rows = db.delete_one(User, {"name": "Crispen"})
+affected_rows = sqlite_loom.delete_one(User, {"name": "Crispen"})
 ```
 
 You can also the `delete_bulk` which delete a lot of records that matches a filter:
 
 ```py
-affected_rows = db.delete_bulk(User, {"name": "Crispen"})
+affected_rows = sqlite_loom.delete_bulk(User, {"name": "Crispen"})
 ```
 
 5. Updating a record
@@ -459,19 +462,19 @@ affected_rows = db.delete_bulk(User, {"name": "Crispen"})
 You can update a record in a database table using the methods, `update_by_pk` , `update_one` and `update_bulk`. The `update_pk` can be used as follows:
 
 ```py
-affected_rows = db.update_by_pk(User, 1, {"name": "Gari"})
+affected_rows = sqlite_loom.update_by_pk(User, 1, {"name": "Gari"})
 ```
 
 This is how you can use the `update_one`
 
 ```py
-affected_rows = db.update_one(User, {"name": "Crispen"}, {"name": "Gari"})
+affected_rows = sqlite_loom.update_one(User, {"name": "Crispen"}, {"name": "Gari"})
 ```
 
 The update bulk updates all teh records that matches a filter in a database table:
 
 ```py
-affected_rows = db.update_bulk(User, {"name": "Crispen"}, {"name": "Tinashe Gari"})
+affected_rows = sqlite_loom.update_bulk(User, {"name": "Crispen"}, {"name": "Tinashe Gari"})
 ```
 
 ### Associations

@@ -113,7 +113,15 @@ class PrimaryKeyColumn:
     @property
     def default_constraint(self):
         return (
-            "DEFAULT '{default}'".format(default=self.default) if self.default else ""
+            "DEFAULT {default}".format(
+                default=(
+                    self.default
+                    if type(self.default) == type(True)
+                    else f"'{self.default}'"
+                )
+            )
+            if self.default is not None
+            else ""
         )
 
     @property
@@ -198,7 +206,15 @@ class Column:
     @property
     def default_constraint(self):
         return (
-            "DEFAULT '{default}'".format(default=self.default) if self.default else ""
+            "DEFAULT {default}".format(
+                default=(
+                    self.default
+                    if type(self.default) == type(True)
+                    else f"'{self.default}'"
+                )
+            )
+            if self.default is not None
+            else ""
         )
 
     def sql_type(self, dialect: str):
