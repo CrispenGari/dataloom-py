@@ -3,9 +3,13 @@ class TestCreatingTableMysql:
         from dataloom import Column, PrimaryKeyColumn, Dataloom, TableColumn, Model
         import pytest
         from typing import Optional
+        from dataloom.keys import MySQLConfig
 
         mysql_loom = Dataloom(
-            dialect="mysql", database="hi", password="root", user="root"
+            dialect="mysql",
+            database=MySQLConfig.database,
+            password=MySQLConfig.password,
+            user=MySQLConfig.user,
         )
         conn = mysql_loom.connect()
 
@@ -28,9 +32,13 @@ class TestCreatingTableMysql:
         import pytest
         from dataloom import Model, Dataloom, Column, TableColumn
         from typing import Optional
+        from dataloom.keys import MySQLConfig
 
         mysql_loom = Dataloom(
-            dialect="mysql", database="hi", password="root", user="root"
+            dialect="mysql",
+            database=MySQLConfig.database,
+            password=MySQLConfig.password,
+            user=MySQLConfig.user,
         )
         conn = mysql_loom.connect()
 
@@ -47,9 +55,13 @@ class TestCreatingTableMysql:
     def test_table_name(self):
         from dataloom import Model, Dataloom, Column, PrimaryKeyColumn, TableColumn
         from typing import Optional
+        from dataloom.keys import MySQLConfig
 
         mysql_loom = Dataloom(
-            dialect="mysql", database="hi", password="root", user="root"
+            dialect="mysql",
+            database=MySQLConfig.database,
+            password=MySQLConfig.password,
+            user=MySQLConfig.user,
         )
         conn = mysql_loom.connect()
 
@@ -70,6 +82,7 @@ class TestCreatingTableMysql:
     def test_connect_sync(self):
         from dataloom import Dataloom, Model, TableColumn, Column, PrimaryKeyColumn
         from typing import Optional
+        from dataloom.keys import MySQLConfig
 
         class User(Model):
             __tablename__: Optional[TableColumn] = TableColumn(name="users")
@@ -84,7 +97,10 @@ class TestCreatingTableMysql:
             title = Column(type="text", nullable=False)
 
         mysql_loom = Dataloom(
-            dialect="mysql", database="hi", password="root", user="root"
+            dialect="mysql",
+            database=MySQLConfig.database,
+            password=MySQLConfig.password,
+            user=MySQLConfig.user,
         )
         conn, tables = mysql_loom.connect_and_sync([User, Post], drop=True, force=True)
         assert len(tables) == 2
@@ -95,9 +111,13 @@ class TestCreatingTableMysql:
     def test_syncing_tables(self):
         from dataloom import Model, Dataloom, Column, PrimaryKeyColumn, TableColumn
         from typing import Optional
+        from dataloom.keys import MySQLConfig
 
         mysql_loom = Dataloom(
-            dialect="mysql", database="hi", password="root", user="root"
+            dialect="mysql",
+            database=MySQLConfig.database,
+            password=MySQLConfig.password,
+            user=MySQLConfig.user,
         )
         conn = mysql_loom.connect()
 

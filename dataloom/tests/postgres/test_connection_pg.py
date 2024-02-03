@@ -4,9 +4,13 @@ import pytest
 class TestConnectionPG:
     def test_connect_with_non_existing_database(self):
         from dataloom import Dataloom
+        from dataloom.keys import PgConfig
 
         pg_loom = Dataloom(
-            dialect="postgres", database="mew", password="root", user="postgres"
+            dialect="postgres",
+            database="mew",
+            password=PgConfig.password,
+            user=PgConfig.user,
         )
         with pytest.raises(Exception) as exc_info:
             conn = pg_loom.connect()
@@ -18,9 +22,13 @@ class TestConnectionPG:
 
     def test_connect_with_wrong_password(self):
         from dataloom import Dataloom
+        from dataloom.keys import PgConfig
 
         pg_loom = Dataloom(
-            dialect="postgres", database="hi", password="root-", user="postgres"
+            dialect="postgres",
+            database=PgConfig.database,
+            password="root-",
+            user=PgConfig.user,
         )
         with pytest.raises(Exception) as exc_info:
             conn = pg_loom.connect()
@@ -33,9 +41,13 @@ class TestConnectionPG:
 
     def test_connect_with_wrong_user(self):
         from dataloom import Dataloom
+        from dataloom.keys import PgConfig
 
         pg_loom = Dataloom(
-            dialect="postgres", database="hi", password="root", user="postgre-u"
+            dialect="postgres",
+            database=PgConfig.database,
+            password=PgConfig.password,
+            user="postgre-u",
         )
         with pytest.raises(Exception) as exc_info:
             conn = pg_loom.connect()
@@ -48,10 +60,14 @@ class TestConnectionPG:
 
     def test_connect_with_wrong_dialect(self):
         from dataloom import Dataloom, UnsupportedDialectException
+        from dataloom.keys import PgConfig
 
         with pytest.raises(UnsupportedDialectException) as exc_info:
             pg_loom = Dataloom(
-                dialect="peew", database="hi", password="root", user="postgres"
+                dialect="peew",
+                database=PgConfig.database,
+                password=PgConfig.password,
+                user=PgConfig.user,
             )
             conn = pg_loom.connect()
             conn.close()
@@ -62,9 +78,13 @@ class TestConnectionPG:
 
     def test_connect_correct_connection(self):
         from dataloom import Dataloom
+        from dataloom.keys import PgConfig
 
         pg_loom = Dataloom(
-            dialect="postgres", database="hi", password="root", user="postgres"
+            dialect="postgres",
+            database=PgConfig.database,
+            password=PgConfig.password,
+            user=PgConfig.user,
         )
         conn = pg_loom.connect()
         conn.close()

@@ -1,14 +1,15 @@
 class TestCreatingTablePG:
     def test_2_pk_error(self):
         from dataloom import Column, PrimaryKeyColumn, Dataloom, TableColumn, Model
+        from dataloom.keys import PgConfig
         import pytest
         from typing import Optional
 
         pg_loom = Dataloom(
             dialect="postgres",
-            database="hi",
-            password="root",
-            user="postgres",
+            database=PgConfig.database,
+            password=PgConfig.password,
+            user=PgConfig.user,
             logging=True,
         )
         conn = pg_loom.connect()
@@ -31,14 +32,15 @@ class TestCreatingTablePG:
 
     def test_no_pk_error(self):
         import pytest
+        from dataloom.keys import PgConfig
         from dataloom import Model, Dataloom, Column, TableColumn
         from typing import Optional
 
         pg_loom = Dataloom(
             dialect="postgres",
-            database="hi",
-            password="root",
-            user="postgres",
+            database=PgConfig.database,
+            password=PgConfig.password,
+            user=PgConfig.user,
             logging=True,
         )
         conn = pg_loom.connect()
@@ -56,12 +58,13 @@ class TestCreatingTablePG:
     def test_table_name(self):
         from dataloom import Model, Dataloom, Column, PrimaryKeyColumn, TableColumn
         from typing import Optional
+        from dataloom.keys import PgConfig
 
         pg_loom = Dataloom(
             dialect="postgres",
-            database="hi",
-            password="root",
-            user="postgres",
+            database=PgConfig.database,
+            password=PgConfig.password,
+            user=PgConfig.user,
             logging=True,
         )
         conn = pg_loom.connect()
@@ -83,6 +86,7 @@ class TestCreatingTablePG:
     def test_connect_sync(self):
         from dataloom import Dataloom, Model, TableColumn, Column, PrimaryKeyColumn
         from typing import Optional
+        from dataloom.keys import PgConfig
 
         class User(Model):
             __tablename__: Optional[TableColumn] = TableColumn(name="users")
@@ -98,9 +102,9 @@ class TestCreatingTablePG:
 
         pg_loom = Dataloom(
             dialect="postgres",
-            database="hi",
-            password="root",
-            user="postgres",
+            database=PgConfig.database,
+            password=PgConfig.password,
+            user=PgConfig.user,
             logging=True,
         )
         conn, tables = pg_loom.connect_and_sync([User, Post], drop=True, force=True)
@@ -113,12 +117,13 @@ class TestCreatingTablePG:
     def test_syncing_tables(self):
         from dataloom import Model, Dataloom, Column, PrimaryKeyColumn, TableColumn
         from typing import Optional
+        from dataloom.keys import PgConfig
 
         pg_loom = Dataloom(
             dialect="postgres",
-            database="hi",
-            password="root",
-            user="postgres",
+            database=PgConfig.database,
+            password=PgConfig.password,
+            user=PgConfig.user,
             logging=True,
         )
         conn = pg_loom.connect()

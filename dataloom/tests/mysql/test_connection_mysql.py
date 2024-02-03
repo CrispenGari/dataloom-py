@@ -5,9 +5,13 @@ from mysql import connector
 class TestConnectionMySQL:
     def test_connect_with_non_existing_database(self):
         from dataloom import Dataloom
+        from dataloom.keys import MySQLConfig
 
         mysql_loom = Dataloom(
-            dialect="mysql", database="non-exists", password="root", user="root"
+            dialect="mysql",
+            database="non-exists",
+            password=MySQLConfig.password,
+            user=MySQLConfig.user,
         )
         with pytest.raises(connector.errors.ProgrammingError) as exc_info:
             conn = mysql_loom.connect()
@@ -17,9 +21,13 @@ class TestConnectionMySQL:
 
     def test_connect_with_wrong_password(self):
         from dataloom import Dataloom
+        from dataloom.keys import MySQLConfig
 
         mysql_loom = Dataloom(
-            dialect="mysql", database="hi", password="user", user="root"
+            dialect="mysql",
+            database=MySQLConfig.database,
+            password="user",
+            user=MySQLConfig.user,
         )
         with pytest.raises(connector.errors.ProgrammingError) as exc_info:
             conn = mysql_loom.connect()
@@ -32,9 +40,13 @@ class TestConnectionMySQL:
 
     def test_connect_with_wrong_user(self):
         from dataloom import Dataloom
+        from dataloom.keys import MySQLConfig
 
         mysql_loom = Dataloom(
-            dialect="mysql", database="hi", password="root", user="hey"
+            dialect="mysql",
+            database=MySQLConfig.database,
+            password=MySQLConfig.password,
+            user="hey",
         )
         with pytest.raises(connector.errors.ProgrammingError) as exc_info:
             conn = mysql_loom.connect()
@@ -47,10 +59,14 @@ class TestConnectionMySQL:
 
     def test_connect_with_wrong_dialect(self):
         from dataloom import Dataloom, UnsupportedDialectException
+        from dataloom.keys import MySQLConfig
 
         with pytest.raises(UnsupportedDialectException) as exc_info:
             mysql_loom = Dataloom(
-                dialect="peew", database="hi", password="user", user="root"
+                dialect="peew",
+                database=MySQLConfig.database,
+                password="user",
+                user=MySQLConfig.user,
             )
             conn = mysql_loom.connect()
             conn.close()
@@ -62,9 +78,13 @@ class TestConnectionMySQL:
 
     def test_connect_correct_connection(self):
         from dataloom import Dataloom
+        from dataloom.keys import MySQLConfig
 
         mysql_loom = Dataloom(
-            dialect="mysql", database="hi", password="root", user="root"
+            dialect="mysql",
+            database=MySQLConfig.database,
+            password=MySQLConfig.password,
+            user=MySQLConfig.user,
         )
         conn = mysql_loom.connect()
         conn.close()
