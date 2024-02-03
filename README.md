@@ -20,286 +20,362 @@ In this section we are going to go through how you can use our `orm` package in 
 
 ### Connection
 
-A database connection is required. In this example a connection will be set on a `postgres` database instance that have a database name `hi.
+To use Dataloom, you need to establish a connection with a specific database dialect. The available dialect options are `mysql`, `postgres`, and `sqlite`. In this example, we'll demonstrate how to set up a connection to a PostgreSQL database named "hi" using the `postgres` dialect. The following is an example of how you can establish a connection with postgres database.
 
-```py
-from dataloom import (
-    Dataloom
-)
-from typing import Optional
+```python
+from dataloom import Dataloom
 
+# Create a Dataloom instance with PostgreSQL configuration
 pg_loom = Dataloom(
-    dialect="postgres", database="hi", password="root", user="postgres", logging=True
+    dialect="postgres",
+    database="hi",
+    password="root",
+    user="postgres",
+    host="localhost",
+    logging=True,
+    logs_filename="logs.sql",
+    port=5432,
 )
-mysql_loom = Dataloom(dialect="mysql", database="hi", password="root", user="root")
-sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
 
+# Connect to the PostgreSQL database
 conn = pg_loom.connect()
 
 
-if __name__ == "main":
+# Close the connection when the script completes
+if __name__ == "__main__":
+    conn.close()
+```
+
+To establish a connection with a `MySQL` database using Dataloom, you can use the following example:
+
+```python
+from dataloom import Dataloom
+
+# Create a Dataloom instance with MySQL configuration
+mysql_loom = Dataloom(
+    dialect="mysql",
+    database="hi",
+    password="root",
+    user="root",
+    host="localhost",
+    logging=True,
+    logs_filename="logs.sql",
+    port=3306,
+)
+
+# Connect to the MySQL database
+conn = mysql_loom.connect()
+
+# Close the connection when the script completes
+if __name__ == "__main__":
     conn.close()
 
 ```
 
-The database class takes in the following options:
+To establish a connection with an `SQLite` database using Dataloom, you can use the following example:
 
-<table border="1">
-  <thead>
-    <tr>
-      <th>Option</th>
-      <th>Value Type</th>
-      <th>Description</th>
-      <th>Default</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr><td>database</td><td>str</td>
-      <td>This is the name of the database. It is required upon connection creation.</td>
-      <td></td>
-    </tr>
-     <tr><td>dialect</td><td>str|None</td>
-      <td>The user to connect to the database instance.</td><td>postgres</td>
-    </tr>
-    <tr><td>password</td><td>str|None</td>
-      <td>The password to connect to the database instance of the specified user.</td><td>postgres</td>
-    </tr>
-    <tr><td>host</td><td>str|None</td>
-      <td>The database host. </td><td>localhost|127.0.0.1</td>
-    </tr>
-    <tr><td>port</td><td>int|None</td>
-      <td>The database port number. </td><td>4532</td>
-    </tr>
-     <tr><td>logs</td><td>bool</td>
-      <td>Specify wether you want to see sql statements as you perform operations on the database in the logs or not.</td><td>True</td>
-    </tr>
-  </tbody>
-</table>
+```python
+from dataloom import Dataloom
+
+# Create a Dataloom instance with SQLite configuration
+sqlite_loom = Dataloom(
+    dialect="sqlite",
+    database="hi.db",
+    logs_filename="sqlite-logs.sql",
+    logging=True
+)
+
+# Connect to the SQLite database
+conn = sqlite_loom.connect()
+
+# Close the connection when the script completes
+if __name__ == "__main__":
+    conn.close()
+```
+
+The `Dataloom` class takes in the following options:
+| Parameter | Description | Value Type | Default Value | Required |
+| --------------- | --------------------------------------------------------------------------------- | --------------- | -------------- | -------- |
+| `dialect` | Dialect for the database connection. Options are `mysql`, `postgres`, or `sqlite` | `str` or `None` | `None` | `Yes` |
+| `database` | Name of the database for `mysql` and `postgres`, filename for `sqlite` | `str` or `None` | `None` | `Yes` |
+| `password` | Password for the database user (only for `mysql` and `postgres`) | `str` or `None` | `None` | `No` |
+| `user` | Database user (only for `mysql` and `postgres`) | `str` or `None` | `None` | `No` |
+| `host` | Database host (only for `mysql` and `postgres`) | `str` or `None` | `localhost` | `No` |
+| `logging` | Enable logging for the database queries | `bool` | `True` | `No` |
+| `logs_filename` | Filename for the query logs | `str` or `None` | `dataloom.sql` | `No` |
+| `port` | Port number for the database connection (only for `mysql` and `postgres`) | `int` or `None` | `None` | `No` |
 
 ### `Model` Class
 
-A model is just a top level class that allows you to build some complicated SQL tables from regular python classes. You can define a table `User` as an class that inherits from `Model` class as follows:
+A model in Dataloom is a top-level class that facilitates the creation of complex SQL tables using regular Python classes. This example demonstrates how to define two tables, `User` and `Post`, by creating classes that inherit from the `Model` class.
 
 ```py
+from dataloom import (
+    Dataloom,
+    Model,
+    PrimaryKeyColumn,
+    Column,
+    CreatedAtColumn,
+    UpdatedAtColumn,
+    TableColumn,
+    ForeignKeyColumn,
+)
+from typing import Optional
+
 class User(Model):
-    __tablename__ = "users"
-    id = PrimaryKeyColumn(type="bigint", auto_increment=True)
-    username = Column(type="text", nullable=False, default="Hello there!!")
-    name = Column(type="varchar", unique=True, length=255)
+    __tablename__: Optional[TableColumn] = TableColumn(name="users")
+    id = PrimaryKeyColumn(type="int", auto_increment=True)
+    name = Column(type="text", nullable=False, default="Bob")
+    username = Column(type="varchar", unique=True, length=255)
 
-    def __str__(self) -> str:
-        return f"User<{self.id}>"
+    # timestamps
+    createdAt = CreatedAtColumn()
+    updatedAt = UpdatedAtColumn()
 
-    def __repr__(self) -> str:
-        return f"User<{self.id}>"
-
+    @property
     def to_dict(self):
-        return {"id": self.id, "name": self.name, "username": self.username}
+        return {
+            "id": self.id,
+            "name": self.name,
+            "username": self.username,
+            "createdAt": self.createdAt,
+            "updatedAt": self.updatedAt,
+        }
+
+
+class Post(Model):
+    __tablename__: Optional[TableColumn] = TableColumn(name="posts")
+    id = PrimaryKeyColumn(type="int", auto_increment=True, nullable=False, unique=True)
+    completed = Column(type="boolean", default=False)
+    title = Column(
+        type="varchar",
+        length=255,
+        nullable=False,
+    )
+    # timestamps
+    createdAt = CreatedAtColumn()
+    updatedAt = UpdatedAtColumn()
+
+    # relations
+    userId = ForeignKeyColumn(
+        User, type="int", required=True, onDelete="CASCADE", onUpdate="CASCADE"
+    )
+
+    @property
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "completed": self.completed,
+            "title": self.title,
+            "userId": self.userId,
+            "createdAt": self.createdAt,
+            "updatedAt": self.updatedAt,
+        }
 
 ```
 
-- We are defining a model called `User` and we are specifying the table name using the property `__tablename__` to `"users"`. This will tell `dataloom` that don't infer the table name from the class use the one that I have provided. If you don't pass the `__tablename__` then the class name will be used as your table name upon syncing tables.
+- Within the `User` model definition, the table name is explicitly specified using the `__tablename__` property, set to `"users"`. This informs `dataloom` to use the provided name instead of automatically deriving it from the class name. If `__tablename__` is not specified, the class name becomes the default table name during the synchronization of tables. To achieve this, the `TableColumn` class is used, accepting the specified table name as an argument.
+- Every table must include exactly one primary key column. To define this, the `PrimaryKeyColumn` class is employed, signaling to `dataloom` that the specified field is a primary key.
+- The `Column` class represents a regular column, allowing the inclusion of various options such as type and whether it is required.
+- The `CreatedAtColumn` and `UpdatedAt` column types are automatically generated by the database as timestamps. If timestamps are unnecessary or only one of them is needed, they can be omitted.
+- The `ForeignKeyColumn` establishes a relationship between the current (child) table and a referenced (parent) table.
+- A `to_dict` property has been created, providing a convenient way to retrieve the data in the form of a Python dictionary when invoked.
 
 ### `Column` Class
 
-Every table has a column. Each property that is set to column in a model is considered 1. Let's have a look at how we can define a column in a table.
+In the context of a database table, each property marked as a column in a model is treated as an individual attribute. Here's an example of how to define a column in a table using the `Column` class:
 
-```py
+```python
 username = Column(type="text", nullable=False, default="Hello there!!")
 ```
 
-We are defining a column that is called `id`. And we are specifying the type of this column and some other options. Here are some other options that can be passed to the
+Here are some other options that you can pass to the `Column`:
+| Argument | Description | Type | Default |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------ | --------------- | ------- |
+| `type` | Required datatype of a column | any `datatype` | |
+| `nullable` | Optional to specify if the column will allow null values or not. | `bool` | `False` |
+| `length` | Optional to specify the length of the type. If passed as `N` with type `T`, it yields an SQL statement with type `T(N)`. | `int` \| `None` | `None` |
+| `auto_increment` | Optional to specify if the column will automatically increment or not. | `bool` | `False` |
+| `default` | Optional to specify the default value in a column. | `any` | `None` |
+| `unique` | Optional to specify if the column will contain unique values or not. | `bool` | `False` |
 
-<table border="1">
-  <thead>
-    <tr><th>Argument</th><th>Description</th>
-      <th>Type</th><th>Default</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>type</td><td>Required datatype of a column</td>
-      <td>any datatype supported</td><td></td>
-    </tr>
-    <tr>
-      <td>nullable</td><td>Optional to specify if the column will allow null values or not.</td>
-      <td>bool</td><td>False</td>
-    </tr>
-    <tr>
-      <td>length</td><td>Optional to specify if the length of the type that. eg if this argument is passed as <b>N</b> with a <b>T</b> type, this will yield an sql statement with type <b>T(N)</b>.</td>
-      <td>int|None</td><td>None</td>
-    </tr>
-      <tr>
-      <td>auto_increment</td><td>Optional to specify if the column will automatically increment or not.</td>
-      <td>bool</td><td>False</td>
-    </tr>
-       <tr>
-      <td>default</td><td>Optional to specify if the default value in a column.</td>
-      <td>any</td><td>None</td>
-    </tr>
-     <tr>
-      <td>unique</td><td>Optional to specify if the column will contain unique values or not.</td>
-      <td>bool</td><td>False</td>
-    </tr>
-  </tbody>
-</table>
+> Talking about data types, each `dialect` has its own accepted values. Here is a list of types supported by each and every `dialect`:
+
+1. `mysql`
+
+   - `"int"` - Integer data type.
+   - `"smallint"` - Small integer data type.
+   - `"bigint"` - Big integer data type.
+   - `"float"` - Floating-point number data type.
+   - `"double"` - Double-precision floating-point number data type.
+   - `"numeric"` - Numeric or decimal data type.
+   - `"text"` - Text data type.
+   - `"varchar"` - Variable-length character data type.
+   - `"char"` - Fixed-length character data type.
+   - `"boolean"` - Boolean data type.
+   - `"date"` - Date data type.
+   - `"time"` - Time data type.
+   - `"timestamp"` - Timestamp data type.
+   - `"json"` - JSON (JavaScript Object Notation) data type.
+   - `"blob"` - Binary Large Object (BLOB) data type.
+
+2. `postgres`
+
+   - `"int"` - Integer data type (Alias: `"INTEGER"`).
+   - `"smallint"` - Small integer data type (Alias: `"SMALLINT"`).
+   - `"bigint"` - Big integer data type (Alias: `"BIGINT"`).
+   - `"serial"` - Auto-incrementing integer data type (Alias: `"SERIAL"`).
+   - `"bigserial"` - Auto-incrementing big integer data type (Alias: `"BIGSERIAL"`).
+   - `"smallserial"` - Auto-incrementing small integer data type (Alias: `"SMALLSERIAL"`).
+   - `"float"` - Real number data type (Alias: `"REAL"`).
+   - `"double precision"` - Double-precision floating-point number data type (Alias: `"DOUBLE PRECISION"`).
+   - `"numeric"` - Numeric data type (Alias: `"NUMERIC"`).
+   - `"text"` - Text data type.
+   - `"varchar"` - Variable-length character data type.
+   - `"char"` - Fixed-length character data type.
+   - `"boolean"` - Boolean data type.
+   - `"date"` - Date data type.
+   - `"time"` - Time data type.
+   - `"timestamp"` - Timestamp data type.
+   - `"interval"` - Time interval data type.
+   - `"uuid"` - UUID (Universally Unique Identifier) data type.
+   - `"json"` - JSON (JavaScript Object Notation) data type.
+   - `"jsonb"` - Binary JSON (JavaScript Object Notation) data type.
+   - `"bytea"` - Binary data type (Array of bytes).
+   - `"array"` - Array data type.
+   - `"inet"` - IP network address data type.
+   - `"cidr"` - Classless Inter-Domain Routing (CIDR) address data type.
+   - `"macaddr"` - MAC (Media Access Control) address data type.
+   - `"tsvector"` - Text search vector data type.
+   - `"point"` - Geometric point data type.
+   - `"line"` - Geometric line data type.
+   - `"lseg"` - Geometric line segment data type.
+   - `"box"` - Geometric box data type.
+   - `"path"` - Geometric path data type.
+   - `"polygon"` - Geometric polygon data type.
+   - `"circle"` - Geometric circle data type.
+   - `"hstore"` - Key-value pair store data type.
+
+3. `sqlite`
+   - `"int"` - Integer data type (Alias: `"INTEGER"`).
+   - `"smallint"` - Small integer data type (Alias: `"SMALLINT"`).
+   - `"bigint"` - Big integer data type (Alias: `"BIGINT"`).
+   - `"float"` - Real number data type (Alias: `"REAL"`).
+   - `"double precision"` - Double-precision floating-point number data type (Alias: `"DOUBLE"`).
+   - `"numeric"` - Numeric data type (Alias: `"NUMERIC"`).
+   - `"text"` - Text data type.
+   - `"varchar"` - Variable-length character data type.
+   - `"char"` - Fixed-length character data type.
+   - `"boolean"` - Boolean data type.
+   - `"date"` - Date data type.
+   - `"time"` - Time data type.
+   - `"timestamp"` - Timestamp data type.
+   - `"json"` - JSON (JavaScript Object Notation) data type.
+   - `"blob"` - Binary Large Object (BLOB) data type.
 
 > Note: Every table is required to have a primary key column and this column should be 1. Let's talk about the `PrimaryKeyColumn`
 
 ### `PrimaryKeyColumn` Class
 
-This create a unique index in every table that you create. Every table that you create and that inherits from the `Model` class is required to have exactly 1 `PrimaryKeyColumn`. Here is how you can create a `id` column as a primary key in your table named `Post`:
+This class is used to create a unique index in every table you create. In the context of a table that inherits from the `Model` class, exactly one `PrimaryKeyColumn` is required. Below is an example of creating an `id` column as a primary key in a table named `Post`:
 
-```py
+```python
 class Post(Model):
-    __tablename__ = "posts"
-    id = PrimaryKeyColumn(type="bigint", auto_increment=True)
+    __tablename__: Optional[TableColumn] = TableColumn(name="users")
+    id = PrimaryKeyColumn(type="int", auto_increment=True)
     #...rest of your columns
+
 ```
 
-The `PrimaryKeyColumn` takes the following arguments:
-
-<table border="1">
-  <thead>
-    <tr><th>Argument</th><th>Description</th>
-      <th>Type</th><th>Default</th>
-    </tr>
-  </thead>
-  <tbody>
-     <tr>
-      <td>type</td><td>The datatype of your primary key.</td>
-      <td>str</td><td>"bigserial"</td>
-    </tr>
-    <tr>
-      <td>length</td><td>Optional to specify if the length of the type that. eg if this argument is passed as <b>N</b> with a <b>T</b> type, this will yield an sql statement with type <b>T(N)</b>.</td>
-      <td>int|None</td><td>None</td>
-    </tr>
-      <tr>
-      <td>auto_increment</td><td>Optional to specify if the column will automatically increment or not.</td>
-      <td>bool</td><td>False</td>
-    </tr>
-       <tr>
-      <td>default</td><td>Optional to specify if the default value in a column.</td>
-      <td>any</td><td>None</td>
-    </tr>
-     <tr>
-      <td>nullable</td><td>Optional to specify if the column will allow null values or not.</td>
-      <td>bool</td><td>False</td>
-    </tr>
-     <tr>
-      <td>unique</td><td>Optional to specify if the column will contain unique values or not.</td>
-      <td>bool</td><td>True</td>
-    </tr>
-  </tbody>
-</table>
+The following are the arguments that the `PrimaryKeyColumn` class accepts.
+| Argument | Description | Type | Default |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------ | --------------- | ------------- |
+| `type` | The datatype of your primary key. | `str` | `"bigserial`" |
+| `length` | Optional to specify the length of the type. If passed as `N` with type `T`, it yields an SQL statement with type `T(N)`. | `int` \| `None` | `None` |
+| `auto_increment`| Optional to specify if the column will automatically increment or not. |`bool` |`False` |
+|`default` | Optional to specify the default value in a column. |`any` |`None` |
+|`nullable` | Optional to specify if the column will allow null values or not. |`bool` |`False` |
+|`unique` | Optional to specify if the column will contain unique values or not. |`bool` |`True` |
 
 ### `ForeignKeyColumn` Class
 
-This Column is used when we are telling `dataloom` that the column has a relationship with a primary key in another table. Let's consider the following model definition of a `Post`:
+This class is utilized when informing `dataloom` that a column has a relationship with a primary key in another table. Consider the following model definition of a `Post`:
 
 ```py
 class Post(Model):
-    __tablename__ = "posts"
-
-    id = PrimaryKeyColumn(type="bigint", auto_increment=True)
-    title = Column(type="text", nullable=False, default="Hello there!!")
-    createAt = CreatedAtColumn()
+    __tablename__: Optional[TableColumn] = TableColumn(name="posts")
+    id = PrimaryKeyColumn(type="int", auto_increment=True, nullable=False, unique=True)
+    completed = Column(type="boolean", default=False)
+    title = Column(type="varchar", length=255, nullable=False)
+    # timestamps
+    createdAt = CreatedAtColumn()
     updatedAt = UpdatedAtColumn()
-    userId = ForeignKeyColumn(User, onDelete="CASCADE", onUpdate="CASCADE")
+    # relations
+    userId = ForeignKeyColumn(
+        User, type="int", required=True, onDelete="CASCADE", onUpdate="CASCADE"
+    )
+
 ```
 
-- `userId` is a foreign key in the table `posts` which means it has a relationship with a primary key in the `users` table. This column takes in some arguments which are:
+- `userId` is a foreign key in the table `posts`, indicating it has a relationship with a primary key in the `users` table.
 
-<table border="1">
-  <thead>
-    <tr><th>Argument</th><th>Description</th>
-      <th>Type</th><th>Default</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>table</td><td>Required, this is the table that the current model reference as it's parent. In our toy example this is called `User`.</td>
-      <td>Model</td><td></td>
-    </tr>
-     <tr>
-      <td>type</td><td>You can specify the type of the foreign key, which is optional as dataloom can infer it from the parent table.</td>
-      <td>str|None</td><td>None</td>
-    </tr>
-     <tr>
-      <td>required</td><td>Specifying if the foreign key is required or not.</td>
-      <td>bool</td><td>False</td>
-    </tr>
-    <tr>
-      <td>onDelete</td><td>Specifying the action that will be performed when the parent table is deleted</td>
-      <td>str ["NO ACTION", "SET NULL", "CASCADE"]</td><td>"NO ACTION"</td>
-    </tr>
-    <tr>
-      <td>onDelete</td><td>Specifying the action that will be performed when the parent table is updated</td>
-      <td>str ["NO ACTION", "SET NULL", "CASCADE"]</td><td>"NO ACTION"</td>
-    </tr>
-  </tbody>
-</table>
+This column accepts the following arguments:
+| Argument | Description | Type | Default |
+| ---------- | -------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- | ----------- |
+| `table` | Required. This is the parent table that the current model references. In our example, this is referred to as `User`. | `Model` | |
+| `type` | Optional. Specifies the data type of the foreign key. If not provided, dataloom can infer it from the parent table. | `str` \| `None` | `None` |
+| `required` | Optional. Indicates whether the foreign key is required or not. | `bool` | `False` |
+| `onDelete` | Optional. Specifies the action to be taken when the associated record in the parent table is deleted. | `str` [`"NO ACTION"`, `"SET NULL"`, `"CASCADE"`] | `"NO ACTION"` |
+| `onUpdate` | Optional. Specifies the action to be taken when the associated record in the parent table is updated. | str [`"NO ACTION"`, `"SET NULL"`, `"CASCADE"`] | `"NO ACTION"` |
 
-It is very important to specify the actions on `onDelete` and `onUpdate` so that `dataloom` will take care of your models relationships actions as. The actions that are available are:
+It is crucial to specify the actions for `onDelete` and `onUpdate` to ensure that `dataloom` manages your model's relationship actions appropriately. The available actions are:
 
-1. `"NO ACTION"` - Meaning if you `delete` or `update` the parent table nothing will happen to the child table.
-2. `"SET NULL"` - Meaning if you `delete` or `update` the parent table, then in the child table the value will be set to `null`
-3. `"CASCADE"` - Meaning if you `delete` or `update` the table also the same action will happen on the child table.
+1. `"NO ACTION"` - If you delete or update the parent table, no changes will occur in the child table.
+2. `"SET NULL"` - If you delete or update the parent table, the corresponding value in the child table will be set to `null`.
+3. `"CASCADE"` - If you delete or update the table, the same action will also be applied to the child table.
 
 ### `CreatedAtColumn` Class
 
-When a column is marked as `CreatedAtColumn` it's value will automatically get generated every time when you `create` a new record in a database as a timestamp.
+When a column is designated as `CreatedAtColumn`, its value will be automatically generated each time you create a new record in a database, serving as a timestamp.
 
 ### `UpdatedAtColumn` Class
 
-When a column is marked as `UpdatedAtColumn` it's value will automatically get generated every time when you `create` a new record or `update` an existing record in a database table as a timestamp.
+When a column is designated as `UpdatedAtColumn`, its value will be automatically generated each time you create a new record or update an existing record in a database table, acting as a timestamp.
 
 ### Syncing Tables
 
-This is the process of creating tables from models and save them to a database.
-After defining your tables you will need to `sync` your database tables. To Sync a database you call the method called `sync`. This method allows you to create and save tables into the database. Let's say we have two models `User` and `Post` and you want to them to the database you can do it as follows:
+Syncing tables involves the process of creating tables from models and saving them to a database. After defining your tables, you will need to synchronize your database tables using the `sync` method. This method enables you to create and save tables into the database. For instance, if you have two models, `User` and `Post`, and you want to synchronize them with the database, you can achieve it as follows:
 
 ```py
-tables = db.sync([User, Post], drop=True, force=True)
+tables = sqlite_loom.sync([Post, User], drop=True, force=True)
+print(tables)
 ```
 
-The method returns a list of table names that have been created or the table names that are in your database. The `sync` method accepts the following arguments:
+The method returns a list of table names that have been created or that exist in your database. The `sync` method accepts the following arguments:
 
-<table border="1">
-  <thead>
-    <tr><th>Argument</th><th>Description</th><th>Type</th><th>Default</th></tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>models</td><td>A list of your table class that are inheriting from the Model class.</td>
-      <td>list</td><td>[]</td>
-    </tr>
-     <tr>
-      <td>drop</td><td>Weather to drop tables during syncing or not.</td>
-      <td>bool</td><td>False</td>
-    </tr>
-     <tr>
-      <td>force</td><td>Force to drop tables during syncing or not.</td>
-      <td>bool</td><td>False</td>
-    </tr>
-     <tr>
-      <td>alter</td><td>Alter tables rather than dropping them during syncing or not.</td>
-      <td>bool</td><td>False</td>
-    </tr>
-  </tbody>
-</table>
+| Argument | Description                                                     | Type   | Default |
+| -------- | --------------------------------------------------------------- | ------ | ------- |
+| `models` | A list of your table classes that inherit from the Model class. | `list` | `[]`    |
+| `drop`   | Whether to drop tables during syncing or not.                   | `bool` | `False` |
+| `force`  | Forcefully drop tables during syncing or not.                   | `bool` | `False` |
+| `alter`  | Alter tables instead of dropping them during syncing or not.    | `bool` | `False` |
 
-> We have noticed that there are two steps that we are doing here to start working with our `orm`. First you need to create a connection and then `sync` the tables in another steps. The `connect_and_sync` is very handy as it does the database connection and also does the `sync` of tables. Here is an example on how you can use it:
+> We've noticed two steps involved in starting to work with our `orm`. Initially, you need to create a connection and then synchronize the tables in another step. The `connect_and_sync` function proves to be very handy as it handles both the database connection and table synchronization. Here is an example demonstrating its usage:
 
 ```py
-db = Database("hi", password="root", user="postgres")
-conn, tables = db.connect_and_sync([User, Post], drop=True, force=True)
+# ....
+
+sqlite_loom = Dataloom(
+    dialect="sqlite", database="hi.db", logs_filename="sqlite-logs.sql", logging=True
+)
+conn, tables = sqlite_loom.connect_and_sync([Post, User], drop=True, force=True)
+print(tables)
 
 if __name__ == "__main__":
     conn.close()
 ```
 
-Returns a `conn` and `tablenames` that are in the database. The method accepts the same arguments as the `sync` method.
+Returns a `conn` and the list of `tablenames` that exist in the database. The method accepts the same arguments as the `sync` method.
 
 1. Creating a Record
 

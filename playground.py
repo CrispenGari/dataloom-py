@@ -8,50 +8,77 @@ from dataloom import (
     TableColumn,
     ForeignKeyColumn,
 )
-from typing import Optional
 
 pg_loom = Dataloom(
     dialect="postgres", database="hi", password="root", user="postgres", logging=True
 )
-mysql_loom = Dataloom(dialect="mysql", database="hi", password="root", user="root")
-sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
+mysql_loom = Dataloom(
+    dialect="mysql",
+    database="hi",
+    password="root",
+    user="root",
+    host="localhost",
+    logging=True,
+    logs_filename="logs.sql",
+    port=3306,
+)
+sqlite_loom = Dataloom(
+    dialect="sqlite", database="hi.db", logs_filename="sqlite-logs.sql", logging=True
+)
+from typing import Optional
+from dataclasses import dataclass
 
 conn = sqlite_loom.connect()
-
-
-if __name__ == "main":
-    conn.close()
 
 
 class User(Model):
     __tablename__: Optional[TableColumn] = TableColumn(name="users")
-    id: Optional[PrimaryKeyColumn] = PrimaryKeyColumn(type="int", auto_increment=True)
-    username = Column(type="text", unique=True)
+    id = PrimaryKeyColumn(type="int", auto_increment=True)
+    name = Column(type="text", nullable=False, default="Bob")
+    username = Column(type="varchar", unique=True, length=255)
 
+    # timestamps
     createdAt = CreatedAtColumn()
     updatedAt = UpdatedAtColumn()
+
+    @property
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "username": self.username,
+            "createdAt": self.createdAt,
+            "updatedAt": self.updatedAt,
+        }
 
 
 class Post(Model):
     __tablename__: Optional[TableColumn] = TableColumn(name="posts")
-    id: Optional[PrimaryKeyColumn] = PrimaryKeyColumn(type="int", auto_increment=True)
-    title = Column(type="text", nullable=False)
-
+    id = PrimaryKeyColumn(type="int", auto_increment=True, nullable=False, unique=True)
+    completed = Column(type="boolean", default=False)
+    title = Column(type="varchar", length=255, nullable=False)
+    # timestamps
     createdAt = CreatedAtColumn()
     updatedAt = UpdatedAtColumn()
-    userId: ForeignKeyColumn = ForeignKeyColumn(
-        User, onDelete="CASCADE", onUpdate="CASCADE", required=False
+    # relations
+    userId = ForeignKeyColumn(
+        User, type="int", required=True, onDelete="CASCADE", onUpdate="CASCADE"
     )
 
+    @property
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "completed": self.completed,
+            "title": self.title,
+            "userId": self.userId,
+            "createdAt": self.createdAt,
+            "updatedAt": self.updatedAt,
+        }
 
-conn = sqlite_loom.connect()
 
-tables = sqlite_loom.sync([Post, User], drop=True, force=True)
+conn, tables = sqlite_loom.connect_and_sync([Post, User], drop=True, force=True)
 print(tables)
-
-post = Post(
-    id=2,
-)
 
 
 # instance = [*db, dataloom.logging]
