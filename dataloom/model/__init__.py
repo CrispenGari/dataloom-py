@@ -9,7 +9,7 @@ from dataloom.model.column import (
     CreatedAtColumn,
     UpdatedAtColumn,
 )
-from dataloom.constants import CURRENT_TIME_STAMP
+from dataloom.constants import CURRENT_TIME_STAMP, SQLITE_CURRENT_TIME_STAMP
 
 
 class Model:
@@ -280,7 +280,7 @@ class Model:
 
         if updatedAtColumName is not None:
             placeholders.append(f'{updatedAtColumName} = {'?' if dialect == 'sqlite' else '%s'}')
-            values.append(CURRENT_TIME_STAMP)
+            values.append(SQLITE_CURRENT_TIME_STAMP if dialect =='sqlite' else CURRENT_TIME_STAMP)
 
         if dialect == "postgres" or "mysql" or "sqlite":
             sql = GetStatement(
@@ -337,7 +337,7 @@ class Model:
 
         if updatedAtColumName is not None:
             placeholders_of_new_values.append(f'{updatedAtColumName} = {'?' if dialect == 'sqlite' else '%s'}')
-            new_values.append(CURRENT_TIME_STAMP)
+            new_values.append(SQLITE_CURRENT_TIME_STAMP if dialect =='sqlite' else CURRENT_TIME_STAMP)
 
         if dialect == "postgres" or "mysql" or "sqlite":
             sql = GetStatement(
@@ -392,7 +392,7 @@ class Model:
 
         if updatedAtColumName is not None:
             placeholders_of_new_values.append(f'{updatedAtColumName} = {'?' if dialect == 'sqlite' else '%s'}')
-            new_values.append(CURRENT_TIME_STAMP)
+            new_values.append(SQLITE_CURRENT_TIME_STAMP if dialect =='sqlite' else CURRENT_TIME_STAMP)
 
         if dialect == "postgres" or "mysql" or "sqlite":
             sql = GetStatement(

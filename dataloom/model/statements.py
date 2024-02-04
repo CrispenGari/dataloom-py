@@ -1,12 +1,13 @@
 class MySqlStatements:
-
     # updates
     UPDATE_BY_PK_COMMAND = (
         "UPDATE {table_name} SET {placeholder_values} WHERE {pk_name} = {pk};"
     )
     UPDATE_ONE_WHERE_COMMAND = """
-        UPDATE {table_name} SET {placeholder_values} WHERE {pk_name} = (
-            SELECT {pk_name} FROM  {table_name} WHERE {placeholder_filters} LIMIT 1
+        UPDATE {table_name} SET {placeholder_values} WHERE {pk_name} IN (
+            SELECT {pk_name} FROM  (
+                SELECT {pk_name} FROM {table_name} WHERE {placeholder_filters} LIMIT 1
+            ) AS subquery
         );
         """
     UPDATE_BULK_WHERE_COMMAND = (

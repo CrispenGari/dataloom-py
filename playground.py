@@ -69,15 +69,15 @@ class Post(Model):
         }
 
 
-conn, tables = mysql_loom.connect_and_sync([Post, User], drop=True, force=True)
+conn, tables = sqlite_loom.connect_and_sync([Post, User], drop=True, force=True)
 print(tables)
 
 
 user = User(username="@miller")
-userId = mysql_loom.insert_one(user)
+userId = sqlite_loom.insert_one(user)
 post = Post(title="What are you doing?", userId=userId)
-post_id = mysql_loom.insert_bulk([post for i in range(5)])
-posts = mysql_loom.update_one(
+post_id = sqlite_loom.insert_bulk([post for i in range(5)])
+posts = sqlite_loom.update_one(
     Post, values={"title": "Hello there users!!"}, filters={"userId": 1}
 )
 print(posts)
