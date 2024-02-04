@@ -350,18 +350,15 @@ class Dataloom:
     def delete_one(self, instance: Model, filters: dict = {}):
         sql, params = instance._get_delete_where_stm(
             dialect=self.dialect,
-            filters=filters,
+            args=filters,
         )
-
-        print(sql, params)
-
-        # affected_rows = self._execute_sql(sql, args=params, affected_rows=True)
-        # return affected_rows
+        affected_rows = self._execute_sql(sql, args=params, affected_rows=True)
+        return affected_rows
 
     def delete_bulk(self, instance: Model, filters: dict = {}):
         sql, params = instance._get_delete_bulk_where_stm(
             dialect=self.dialect,
-            filters=filters,
+            args=filters,
         )
         affected_rows = self._execute_sql(
             sql, args=params, affected_rows=True, fetchall=True

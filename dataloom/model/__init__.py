@@ -455,12 +455,14 @@ class Model:
         fields = []
         filters = []
         params = []
+        pk_name = None
         for name, field in inspect.getmembers(cls):
             if isinstance(field, Column):
                 fields.append(name)
             elif isinstance(field, ForeignKeyColumn):
                 fields.append(name)
             elif isinstance(field, PrimaryKeyColumn):
+                pk_name = f'"{name}"' if dialect == "postgres" else f"`{name}`"
                 fields.append(name)
             elif isinstance(field, CreatedAtColumn):
                 fields.append(name)
@@ -484,16 +486,63 @@ class Model:
             if len(filters) == 0:
                 sql = GetStatement(
                     dialect=dialect, model=cls, table_name=cls._get_table_name()
-                )._get_select_command(fields=fields)
+                )._get_delete_first_command(pk_name=pk_name)
             else:
                 sql = GetStatement(
                     dialect=dialect, model=cls, table_name=cls._get_table_name()
-                )._get_select_where_command(filters=filters, fields=fields)
+                )._get_delete_one_where_command(pk_name=pk_name, filters=filters)
         else:
             raise UnsupportedDialectException(
                 "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
             )
-        return sql, fields, params
+        return sql, params
+
+    @classmethod
+    def _get_delete_bulk_where_stm(cls, dialect: str, args: dict = {}):
+        fields = []
+        filters = []
+        params = []
+        pk_name = None
+        for name, field in inspect.getmembers(cls):
+            if isinstance(field, Column):
+                fields.append(name)
+            elif isinstance(field, ForeignKeyColumn):
+                fields.append(name)
+            elif isinstance(field, PrimaryKeyColumn):
+                pk_name = f'"{name}"' if dialect == "postgres" else f"`{name}`"
+                fields.append(name)
+            elif isinstance(field, CreatedAtColumn):
+                fields.append(name)
+            elif isinstance(field, UpdatedAtColumn):
+                fields.append(name)
+        for key, value in args.items():
+            _key = (
+                f'"{key}" = %s'
+                if dialect == "postgres"
+                else f"`{key}` = {'%s' if dialect == 'mysql' else '?'}"
+            )
+            if key not in fields:
+                raise UnknownColumnException(
+                    f"Table {cls._get_table_name()} does not have column '{key}'."
+                )
+            else:
+                filters.append(_key)
+                params.append(value)
+
+        if dialect == "postgres" or "mysql" or "sqlite":
+            if len(filters) == 0:
+                sql = GetStatement(
+                    dialect=dialect, model=cls, table_name=cls._get_table_name()
+                )._get_delete_all_command()
+            else:
+                sql = GetStatement(
+                    dialect=dialect, model=cls, table_name=cls._get_table_name()
+                )._get_delete_bulk_where_command(filters=filters)
+        else:
+            raise UnsupportedDialectException(
+                "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
+            )
+        return sql, params
 
 
 # class IModel[T](ABC):

@@ -5679,3 +5679,44 @@
 [2024-02-04 15:25:26.977919] : Dataloom[sqlite]: UPDATE `posts` SET `title` = ? WHERE `userId` = ?;
 [2024-02-04 15:25:27.017069] : Dataloom[sqlite]: UPDATE `posts` SET `title` = ? WHERE `userId` = ?;
 [2024-02-04 15:25:27.041145] : Dataloom[sqlite]: SELECT `completed`, `createdAt`, `id`, `title`, `userId` FROM `posts` WHERE `id` = ?;
+[2024-02-04 16:07:07.205119] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-04 16:07:07.260117] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-04 16:07:07.337120] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-04 16:07:07.374116] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-04 16:07:07.410120] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-04 16:07:07.445115] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-04 16:07:07.477665] : Dataloom[postgres]: INSERT INTO "posts" ("title", "userId") VALUES (%s, %s) RETURNING *;
+[2024-02-04 16:07:07.509663] : Dataloom[postgres]: 
+    DELETE FROM "posts" WHERE "id" = (
+        SELECT "id" FROM  "posts" WHERE "userId" = %s LIMIT 1
+    );
+    
+[2024-02-04 16:14:21.845449] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-04 16:14:21.888322] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-04 16:14:21.941440] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-04 16:14:21.977962] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-04 16:14:22.016969] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-04 16:14:22.058535] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-04 16:14:22.086475] : Dataloom[postgres]: INSERT INTO "posts" ("title", "userId") VALUES (%s, %s) RETURNING *;
+[2024-02-04 16:14:54.197594] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-04 16:14:54.236506] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-04 16:14:54.292456] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-04 16:14:54.333464] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-04 16:14:54.374028] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-04 16:14:54.412038] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-04 16:14:54.452031] : Dataloom[postgres]: INSERT INTO "posts" ("title", "userId") VALUES (%s, %s) RETURNING *;
+[2024-02-04 16:15:16.212954] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-04 16:15:16.251959] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-04 16:15:16.295608] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-04 16:15:16.332773] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-04 16:15:16.375780] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-04 16:15:16.415067] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-04 16:15:16.443101] : Dataloom[postgres]: INSERT INTO "posts" ("title", "userId") VALUES (%s, %s) RETURNING *;
+[2024-02-04 16:15:41.962916] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-04 16:15:41.999916] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-04 16:15:42.043352] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-04 16:15:42.078354] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-04 16:15:42.114348] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-04 16:15:42.152392] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-04 16:15:42.181351] : Dataloom[postgres]: INSERT INTO "posts" ("title", "userId") VALUES (%s, %s) RETURNING *;
+[2024-02-04 16:15:42.208389] : Dataloom[postgres]: DELETE FROM "posts";

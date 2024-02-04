@@ -1,26 +1,31 @@
+import inspect
+import re
 from dataclasses import dataclass
+from typing import Optional
+
+from dataloom.exceptions import (
+    InvalidColumnValuesException,
+    InvalidFiltersForTableColumnException,
+    PkNotDefinedException,
+    TooManyPkException,
+    UnsupportedDialectException,
+)
 from dataloom.model.column import (
-    PrimaryKeyColumn,
     Column,
     CreatedAtColumn,
     ForeignKeyColumn,
+    PrimaryKeyColumn,
     UpdatedAtColumn,
 )
-import inspect
-from typing import Optional
-from dataloom.model.statements import *
-import re
-from dataloom.exceptions import (
-    UnsupportedDialectException,
-    PkNotDefinedException,
-    TooManyPkException,
-    InvalidFiltersForTableColumnException,
-    InvalidColumnValuesException,
+from dataloom.statements.statements import (
+    MySqlStatements,
+    PgStatements,
+    Sqlite3Statements,
 )
 
 
 @dataclass(kw_only=True)
-class GetStatement[T]():
+class GetStatement[T]:
     def __init__(
         self,
         dialect: str,
@@ -559,6 +564,93 @@ class GetStatement[T]():
                 table_name=f"`{self.table_name}`",
                 pk_name=pk_name,
                 pk="?",
+            )
+        else:
+            raise UnsupportedDialectException(
+                "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
+            )
+        return sql
+
+    def _get_delete_one_where_command(self, pk_name: str, filters: list = []):
+        if self.dialect == "postgres":
+            sql = PgStatements.DELETE_ONE_WHERE_COMMAND.format(
+                pk_name=pk_name,
+                table_name=f'"{self.table_name}"',
+                filters=" AND ".join(filters),
+            )
+        elif self.dialect == "mysql":
+            sql = MySqlStatements.DELETE_ONE_WHERE_COMMAND.format(
+                pk_name=pk_name,
+                table_name=f"`{self.table_name}`",
+                filters=" AND ".join(filters),
+            )
+        elif self.dialect == "sqlite":
+            sql = Sqlite3Statements.DELETE_ONE_WHERE_COMMAND.format(
+                pk_name=pk_name,
+                table_name=f"`{self.table_name}`",
+                filters=" AND ".join(filters),
+            )
+        else:
+            raise UnsupportedDialectException(
+                "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
+            )
+        return sql
+
+    def _get_delete_first_command(self, pk_name: str):
+        if self.dialect == "postgres":
+            sql = PgStatements.DELETE_FIRST_COMMAND.format(
+                pk_name=pk_name,
+                table_name=f'"{self.table_name}"',
+            )
+        elif self.dialect == "mysql":
+            sql = MySqlStatements.DELETE_FIRST_COMMAND.format(
+                table_name=f"`{self.table_name}`", pk_name=pk_name
+            )
+        elif self.dialect == "sqlite":
+            sql = Sqlite3Statements.DELETE_FIRST_COMMAND.format(
+                pk_name=pk_name,
+                table_name=f"`{self.table_name}`",
+            )
+        else:
+            raise UnsupportedDialectException(
+                "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
+            )
+        return sql
+
+    def _get_delete_bulk_where_command(self, filters: list = []):
+        if self.dialect == "postgres":
+            sql = PgStatements.DELETE_BULK_WHERE_COMMAND.format(
+                table_name=f'"{self.table_name}"',
+                filters=" AND ".join(filters),
+            )
+        elif self.dialect == "mysql":
+            sql = MySqlStatements.DELETE_BULK_WHERE_COMMAND.format(
+                table_name=f"`{self.table_name}`",
+                filters=" AND ".join(filters),
+            )
+        elif self.dialect == "sqlite":
+            sql = Sqlite3Statements.DELETE_BULK_WHERE_COMMAND.format(
+                table_name=f"`{self.table_name}`",
+                filters=" AND ".join(filters),
+            )
+        else:
+            raise UnsupportedDialectException(
+                "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
+            )
+        return sql
+
+    def _get_delete_all_command(self):
+        if self.dialect == "postgres":
+            sql = PgStatements.DELETE_ALL_COMMAND.format(
+                table_name=f'"{self.table_name}"',
+            )
+        elif self.dialect == "mysql":
+            sql = MySqlStatements.DELETE_ALL_COMMAND.format(
+                table_name=f"`{self.table_name}`",
+            )
+        elif self.dialect == "sqlite":
+            sql = Sqlite3Statements.DELETE_ALL_COMMAND.format(
+                table_name=f"`{self.table_name}`",
             )
         else:
             raise UnsupportedDialectException(

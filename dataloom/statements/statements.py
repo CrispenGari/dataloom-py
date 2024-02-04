@@ -2,8 +2,17 @@ class MySqlStatements:
     # delete
     DELETE_BY_PK = "DELETE FROM {table_name} WHERE {pk_name} = {pk};"
     DELETE_ONE_WHERE_COMMAND = """
-    DELETE FROM {table_name} WHERE {pk_name} = (
-        SELECT {pk_name} FROM  {table_name} WHERE {filters} LIMIT 1
+    DELETE FROM {table_name} WHERE {pk_name} IN (
+       SELECT {pk_name} FROM  (
+                SELECT {pk_name} FROM {table_name} WHERE {filters} LIMIT 1
+        ) AS subquery
+    );
+    """
+    DELETE_FIRST_COMMAND = """
+    DELETE FROM {table_name} WHERE {pk_name} IN (
+       SELECT {pk_name} FROM  (
+                SELECT {pk_name} FROM {table_name} LIMIT 1
+        ) AS subquery
     );
     """
     DELETE_BULK_WHERE_COMMAND = "DELETE FROM {table_name} WHERE {filters};"
@@ -53,6 +62,11 @@ class Sqlite3Statements:
     DELETE_ONE_WHERE_COMMAND = """
     DELETE FROM {table_name} WHERE {pk_name} = (
         SELECT {pk_name} FROM  {table_name} WHERE {filters} LIMIT 1
+    );
+    """
+    DELETE_FIRST_COMMAND = """
+    DELETE FROM {table_name} WHERE {pk_name} = (
+        SELECT {pk_name} FROM  {table_name}LIMIT 1
     );
     """
     DELETE_BULK_WHERE_COMMAND = "DELETE FROM {table_name} WHERE {filters};"
@@ -113,6 +127,11 @@ class PgStatements:
     DELETE_ONE_WHERE_COMMAND = """
     DELETE FROM {table_name} WHERE {pk_name} = (
         SELECT {pk_name} FROM  {table_name} WHERE {filters} LIMIT 1
+    );
+    """
+    DELETE_FIRST_COMMAND = """
+    DELETE FROM {table_name} WHERE {pk_name} = (
+        SELECT {pk_name} FROM  {table_name}LIMIT 1
     );
     """
     DELETE_BULK_WHERE_COMMAND = "DELETE FROM {table_name} WHERE {filters};"

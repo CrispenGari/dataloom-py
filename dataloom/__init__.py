@@ -1,4 +1,4 @@
-from dataloom.db import Dataloom
+from dataloom.loom import Dataloom
 from dataloom.exceptions import *
 from dataloom.model import Model
 from dataloom.model.column import (
