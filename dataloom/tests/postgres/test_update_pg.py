@@ -64,7 +64,7 @@ class TestUpdateOnPG:
             pg_loom.update_by_pk(User, userId, {"id": "Gari"})
         assert exc_info.value.pgcode == "22P02"
 
-        assert me.createdAt != me.updatedAt
+        assert me["createdAt"] != me["updatedAt"]
         assert res_1 == 1
         assert res_2 == 0
         conn.close()
@@ -140,7 +140,7 @@ class TestUpdateOnPG:
             pg_loom.update_one(Post, {"userId": userId}, values={"loca": "miller"})
         assert str(exc_info.value) == "Table posts does not have column 'loca'."
 
-        assert me.createdAt != me.updatedAt
+        assert me["createdAt"] != me["updatedAt"]
         assert res_1 == 1
         assert res_2 == 0
         conn.close()

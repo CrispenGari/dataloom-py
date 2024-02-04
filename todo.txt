@@ -10,7 +10,7 @@
 11. limit and pagination
 12. in & not in 
 13. grouping data
-14. updating data 
+14. updating data ✅
 
 
 --------- conn

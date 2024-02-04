@@ -52,7 +52,7 @@ class TestUpdateOnMySQL:
         res_2 = sqlite_loom.update_by_pk(User, 10)
         me = sqlite_loom.find_by_pk(User, userId)
 
-        assert me.createdAt != me.updatedAt
+        assert me["createdAt"] != me["updatedAt"]
         assert res_1 == 1
         assert res_2 == 0
         conn.close()
@@ -121,7 +121,7 @@ class TestUpdateOnMySQL:
             sqlite_loom.update_one(Post, {"userId": userId}, values={"loca": "miller"})
         assert str(exc_info.value) == "Table posts does not have column 'loca'."
 
-        post.title == "John"
+        post["title"] == "John"
         assert res_1 == 1
         assert res_2 == 0
         conn.close()
@@ -190,7 +190,7 @@ class TestUpdateOnMySQL:
             sqlite_loom.update_one(Post, {"userId": userId}, values={"loca": "miller"})
         assert str(exc_info.value) == "Table posts does not have column 'loca'."
 
-        post.title == "John"
+        post["title"] == "John"
         assert res_1 == 5
         assert res_2 == 0
         conn.close()

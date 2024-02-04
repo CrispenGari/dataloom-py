@@ -116,7 +116,7 @@ class PrimaryKeyColumn:
             "DEFAULT {default}".format(
                 default=(
                     self.default
-                    if type(self.default) == type(True)
+                    if isinstance(self.default, bool)
                     else f"'{self.default}'"
                 )
             )
@@ -195,6 +195,9 @@ class Column:
 
         self._data = {}
 
+    def __str__(self) -> str:
+        return ""
+
     @property
     def nullable_constraint(self):
         return "NOT NULL" if not self.nullable else ""
@@ -209,7 +212,7 @@ class Column:
             "DEFAULT {default}".format(
                 default=(
                     self.default
-                    if type(self.default) == type(True)
+                    if isinstance(self.default, bool)
                     else f"'{self.default}'"
                 )
             )

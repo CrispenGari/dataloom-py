@@ -360,24 +360,38 @@ class GetStatement[T]:
                 "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
             )
 
-    def _get_select_where_command(self, filters: list = [], fields: list = []):
+    def _get_select_where_command(
+        self,
+        filters: list = [],
+        fields: list = [],
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+    ):
+        options = [
+            "" if limit is None else f"LIMIT {limit}",
+            "" if offset is None else f"OFFSET { offset}",
+        ]
+
         if self.dialect == "postgres":
             sql = PgStatements.SELECT_WHERE_COMMAND.format(
                 column_names=", ".join([f'"{f}"' for f in fields]),
                 table_name=f'"{self.table_name}"',
                 filters=" AND ".join(filters),
+                options=" ".join(options),
             )
         elif self.dialect == "mysql":
             sql = MySqlStatements.SELECT_WHERE_COMMAND.format(
                 column_names=", ".join([f"`{name}`" for name in fields]),
                 table_name=f"`{self.table_name}`",
                 filters=" AND ".join(filters),
+                options=" ".join(options),
             )
         elif self.dialect == "sqlite":
             sql = Sqlite3Statements.SELECT_WHERE_COMMAND.format(
                 column_names=", ".join([f"`{name}`" for name in fields]),
                 table_name=f"`{self.table_name}`",
                 filters=" AND ".join(filters),
+                options=" ".join(options),
             )
         else:
             raise UnsupportedDialectException(
@@ -385,21 +399,33 @@ class GetStatement[T]:
             )
         return sql
 
-    def _get_select_command(self, fields: list = []):
+    def _get_select_command(
+        self,
+        fields: list = [],
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+    ):
+        options = [
+            "" if limit is None else f"LIMIT {limit}",
+            "" if offset is None else f"OFFSET { offset}",
+        ]
         if self.dialect == "postgres":
             sql = PgStatements.SELECT_COMMAND.format(
                 column_names=", ".join([f'"{name}"' for name in fields]),
                 table_name=f'"{self.table_name}"',
+                options=" ".join(options),
             )
         elif self.dialect == "mysql":
             sql = MySqlStatements.SELECT_COMMAND.format(
                 column_names=", ".join([f"`{name}`" for name in fields]),
                 table_name=f"`{self.table_name}`",
+                options=" ".join(options),
             )
         elif self.dialect == "sqlite":
             sql = Sqlite3Statements.SELECT_COMMAND.format(
                 column_names=", ".join([f"`{name}`" for name in fields]),
                 table_name=f"`{self.table_name}`",
+                options=" ".join(options),
             )
         else:
             raise UnsupportedDialectException(

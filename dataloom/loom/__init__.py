@@ -285,38 +285,84 @@ class Dataloom:
         row_count = self._execute_sql(sql, args=tuple(values), fetchall=True, bulk=True)
         return row_count
 
-    def find_many(self, instance: Model, filters: dict = {}) -> list:
+    def find_many(
+        self,
+        instance: Model,
+        filters: dict = {},
+        select: list[str] = [],
+        include: list[Model] = [],
+        return_dict: bool = True,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+    ) -> list:
         sql, params, fields = instance._get_select_where_stm(
-            dialect=self.dialect, args=filters
+            dialect=self.dialect,
+            args=filters,
+            select=select,
+            limit=limit,
+            offset=offset,
         )
         data = list()
         rows = self._execute_sql(sql, fetchall=True, args=params)
         for row in rows:
-            res = dict(zip(fields, row))
-            data.append(instance(**res))
+            json = dict(zip(fields, row))
+            data.append(json if return_dict else instance(**json))
         return data
 
-    def find_all(self, instance: Model) -> list:
-        sql, fields, params = instance._get_select_where_stm(dialect=self.dialect)
+    def find_all(
+        self,
+        instance: Model,
+        select: list[str] = [],
+        include: list[Model] = [],
+        return_dict: bool = True,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+    ) -> list:
+        sql, params, fields = instance._get_select_where_stm(
+            dialect=self.dialect, select=select, limit=limit, offset=offset
+        )
         data = list()
         rows = self._execute_sql(sql, fetchall=True)
         for row in rows:
-            res = dict(zip(fields, row))
-            data.append(instance(**res))
+            json = dict(zip(fields, row))
+            data.append(json if return_dict else instance(**json))
         return data
 
-    def find_by_pk(self, instance: Model, pk, options: dict = {}):
+    def find_by_pk(
+        self,
+        instance: Model,
+        pk,
+        select: list[str] = [],
+        include: list[Model] = [],
+        return_dict: bool = True,
+    ):
         # what is the name of the primary key column? well we will find out
-        sql, fields = instance._get_select_by_pk_stm(dialect=self.dialect)
+        sql, fields = instance._get_select_by_pk_stm(
+            dialect=self.dialect, select=select
+        )
         row = self._execute_sql(sql, args=(pk,), fetchone=True)
-        return None if row is None else instance(**dict(zip(fields, row)))
+        if row is None:
+            return None
+        json = dict(zip(fields, row))
+        return json if return_dict else instance(**json)
 
-    def find_one(self, instance: Model, filters: dict = {}):
+    def find_one(
+        self,
+        instance: Model,
+        filters: dict = {},
+        select: list[str] = [],
+        include: list[Model] = [],
+        return_dict: bool = True,
+        offset: Optional[int] = None,
+    ):
         sql, params, fields = instance._get_select_where_stm(
-            dialect=self.dialect, args=filters
+            dialect=self.dialect, args=filters, select=select, offset=offset
         )
         row = self._execute_sql(sql, args=params, fetchone=True)
-        return None if row is None else instance(**dict(zip(fields, row)))
+        if row is None:
+            return None
+        json = dict(zip(fields, row))
+        return json if return_dict else instance(**json)
 
     def update_by_pk(self, instance: Model, pk, values: dict = {}):
         sql, args = instance._get_update_by_pk_stm(dialect=self.dialect, args=values)

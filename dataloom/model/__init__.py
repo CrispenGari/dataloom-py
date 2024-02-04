@@ -10,6 +10,7 @@ from dataloom.columns import (
     UpdatedAtColumn,
 )
 from dataloom.statements import GetStatement
+from typing import Optional
 
 
 class Model:
@@ -147,7 +148,14 @@ class Model:
         return sql, values
 
     @classmethod
-    def _get_select_where_stm(cls, dialect: str, args: dict = {}):
+    def _get_select_where_stm(
+        cls,
+        dialect: str,
+        args: dict = {},
+        select: list[str] = [],
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+    ):
         fields = []
         filters = []
         params = []
@@ -162,6 +170,11 @@ class Model:
                 fields.append(name)
             elif isinstance(field, UpdatedAtColumn):
                 fields.append(name)
+        for column in select:
+            if column not in fields:
+                raise UnknownColumnException(
+                    f'The table "{cls._get_table_name()}" does not have a column "{column}".'
+                )
         for key, value in args.items():
             _key = (
                 f'"{key}" = %s'
@@ -176,23 +189,33 @@ class Model:
             else:
                 filters.append(_key)
                 params.append(value)
+
         if dialect == "postgres" or "mysql" or "sqlite":
             if len(filters) == 0:
                 sql = GetStatement(
                     dialect=dialect, model=cls, table_name=cls._get_table_name()
-                )._get_select_command(fields=fields)
+                )._get_select_command(
+                    fields=fields if len(select) == 0 else select,
+                    limit=limit,
+                    offset=offset,
+                )
             else:
                 sql = GetStatement(
                     dialect=dialect, model=cls, table_name=cls._get_table_name()
-                )._get_select_where_command(filters=filters, fields=fields)
+                )._get_select_where_command(
+                    filters=filters,
+                    fields=fields if len(select) == 0 else select,
+                    limit=limit,
+                    offset=offset,
+                )
         else:
             raise UnsupportedDialectException(
                 "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
             )
-        return sql, params, fields
+        return sql, params, fields if len(select) == 0 else select
 
     @classmethod
-    def _get_select_by_pk_stm(cls, dialect: str):
+    def _get_select_by_pk_stm(cls, dialect: str, select: list[str] = []):
         fields = []
         pk_name = None
         # what is the pk name?
@@ -208,15 +231,24 @@ class Model:
                 fields.append(name)
             elif isinstance(field, UpdatedAtColumn):
                 fields.append(name)
+
+        for column in select:
+            if column not in fields:
+                raise UnknownColumnException(
+                    f'The table "{cls._get_table_name()}" does not have a column "{column}".'
+                )
+
         if dialect == "postgres" or "mysql" or "sqlite":
             sql = GetStatement(
                 dialect=dialect, model=cls, table_name=cls._get_table_name()
-            )._get_select_by_pk_command(fields=fields, pk_name=pk_name)
+            )._get_select_by_pk_command(
+                fields=select if len(select) != 0 else fields, pk_name=pk_name
+            )
         else:
             raise UnsupportedDialectException(
                 "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
             )
-        return sql, fields
+        return sql, fields if len(select) == 0 else select
 
     @classmethod
     def _get_update_by_pk_stm(cls, dialect: str, args: dict = {}):

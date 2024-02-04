@@ -9,9 +9,11 @@ class TestQueryingMySQL:
             UpdatedAtColumn,
             TableColumn,
             ForeignKeyColumn,
+            UnknownColumnException,
         )
         from dataloom.keys import MySQLConfig
         from typing import Optional
+        import pytest
 
         mysql_loom = Dataloom(
             dialect="mysql",
@@ -25,14 +27,6 @@ class TestQueryingMySQL:
             id = PrimaryKeyColumn(type="int", auto_increment=True)
             name = Column(type="text", nullable=False, default="Bob")
             username = Column(type="varchar", unique=True, length=255)
-
-            @property
-            def to_dict(self):
-                return {
-                    "id": self.id,
-                    "name": self.name,
-                    "username": self.username,
-                }
 
         class Post(Model):
             __tablename__: Optional[TableColumn] = TableColumn(name="posts")
@@ -51,9 +45,21 @@ class TestQueryingMySQL:
 
         conn, _ = mysql_loom.connect_and_sync([Post, User], drop=True, force=True)
         user = User(username="@miller")
-        _ = mysql_loom.insert_one(user)
-        me = mysql_loom.find_by_pk(User, 1).to_dict
+        userId = mysql_loom.insert_one(user)
+        post = Post(title="What are you doing?", userId=userId)
+        _ = mysql_loom.insert_bulk([post for i in range(5)])
+        me = mysql_loom.find_by_pk(User, 1)
         her = mysql_loom.find_by_pk(User, 2)
+
+        posts = mysql_loom.find_by_pk(Post, 1, select=["id", "completed"])
+        with pytest.raises(UnknownColumnException) as exc_info:
+            mysql_loom.find_by_pk(Post, 1, select=["id", "location"])
+        assert (
+            str(exc_info.value)
+            == 'The table "posts" does not have a column "location".'
+        )
+        assert len(posts) == 2
+        assert posts == {"id": 1, "completed": 0}
 
         assert her is None
         assert me == {"id": 1, "name": "Bob", "username": "@miller"}
@@ -69,9 +75,11 @@ class TestQueryingMySQL:
             UpdatedAtColumn,
             TableColumn,
             ForeignKeyColumn,
+            UnknownColumnException,
         )
         from dataloom.keys import MySQLConfig
         from typing import Optional
+        import pytest
 
         mysql_loom = Dataloom(
             dialect="mysql",
@@ -85,14 +93,6 @@ class TestQueryingMySQL:
             id = PrimaryKeyColumn(type="int", auto_increment=True)
             name = Column(type="text", nullable=False, default="Bob")
             username = Column(type="varchar", unique=True, length=255)
-
-            @property
-            def to_dict(self):
-                return {
-                    "id": self.id,
-                    "name": self.name,
-                    "username": self.username,
-                }
 
         class Post(Model):
             __tablename__: Optional[TableColumn] = TableColumn(name="posts")
@@ -116,6 +116,18 @@ class TestQueryingMySQL:
         _ = mysql_loom.insert_bulk([post for i in range(5)])
         users = mysql_loom.find_all(User)
         posts = mysql_loom.find_all(Post)
+
+        paginated = mysql_loom.find_all(
+            Post, select=["id", "completed"], limit=3, offset=3
+        )
+        with pytest.raises(UnknownColumnException) as exc_info:
+            mysql_loom.find_all(Post, select=["id", "location"], limit=3, offset=3)
+        assert (
+            str(exc_info.value)
+            == 'The table "posts" does not have a column "location".'
+        )
+        assert len(paginated) == 2
+        assert paginated == [{"id": 4, "completed": 0}, {"id": 5, "completed": 0}]
 
         assert len(users) == 1
         assert len(posts) == 5
@@ -151,14 +163,6 @@ class TestQueryingMySQL:
             name = Column(type="text", nullable=False, default="Bob")
             username = Column(type="varchar", unique=True, length=255)
 
-            @property
-            def to_dict(self):
-                return {
-                    "id": self.id,
-                    "name": self.name,
-                    "username": self.username,
-                }
-
         class Post(Model):
             __tablename__: Optional[TableColumn] = TableColumn(name="posts")
             id = PrimaryKeyColumn(
@@ -192,10 +196,19 @@ class TestQueryingMySQL:
             )
         assert str(exc_info.value) == "Table users does not have column 'location'."
 
+        posts = mysql_loom.find_one(Post, select=["id", "completed"])
+        with pytest.raises(UnknownColumnException) as exc_info:
+            mysql_loom.find_one(Post, select=["id", "location"])
+        assert (
+            str(exc_info.value)
+            == 'The table "posts" does not have a column "location".'
+        )
         assert one_0 is None
         assert one_3 is None
-        assert one_1.to_dict == {"id": 1, "name": "Bob", "username": "@miller"}
-        assert one_2.to_dict == {"id": 1, "name": "Bob", "username": "@miller"}
+        assert posts == {"id": 1, "completed": 0}
+        assert len(posts) == 2
+        assert one_1 == {"id": 1, "name": "Bob", "username": "@miller"}
+        assert one_2 == {"id": 1, "name": "Bob", "username": "@miller"}
         assert one_4 is None
 
         conn.close()
@@ -229,14 +242,6 @@ class TestQueryingMySQL:
             name = Column(type="text", nullable=False, default="Bob")
             username = Column(type="varchar", unique=True, length=255)
 
-            @property
-            def to_dict(self):
-                return {
-                    "id": self.id,
-                    "name": self.name,
-                    "username": self.username,
-                }
-
         class Post(Model):
             __tablename__: Optional[TableColumn] = TableColumn(name="posts")
             id = PrimaryKeyColumn(
@@ -269,6 +274,23 @@ class TestQueryingMySQL:
             mysql_loom.find_many(User, {"location": "Crispen", "username": "@miller"})
         assert str(exc_info.value) == "Table users does not have column 'location'."
 
+        paginated = mysql_loom.find_many(
+            Post, {"userId": 1}, select=["id", "completed"], limit=3, offset=3
+        )
+        with pytest.raises(UnknownColumnException) as exc_info:
+            mysql_loom.find_many(
+                Post, {"userId": 1}, select=["id", "location"], limit=3, offset=3
+            )
+        assert (
+            str(exc_info.value)
+            == 'The table "posts" does not have a column "location".'
+        )
+        assert len(paginated) == 2
+        assert paginated == [
+            {"id": 4, "completed": 0},
+            {"id": 5, "completed": 0},
+        ]
+
         assert len(users) == 1
         assert len(posts) == 1
         assert len(many_0) == 0
@@ -277,17 +299,11 @@ class TestQueryingMySQL:
         assert len(many_3) == 0
         assert len(many_4) == 1
         assert rows == len(mysql_loom.find_all(Post))
-        assert [u.to_dict for u in users] == [
-            {"id": 1, "name": "Bob", "username": "@miller"}
-        ]
-        assert [u.to_dict for u in many_0] == []
-        assert [u.to_dict for u in many_3] == []
-        assert [u.to_dict for u in many_1] == [
-            {"id": 1, "name": "Bob", "username": "@miller"}
-        ]
-        assert [u.to_dict for u in many_2] == []
-        assert [u.to_dict for u in many_4] == [
-            {"id": 1, "name": "Bob", "username": "@miller"}
-        ]
+        assert [u for u in users] == [{"id": 1, "name": "Bob", "username": "@miller"}]
+        assert [u for u in many_0] == []
+        assert [u for u in many_3] == []
+        assert [u for u in many_1] == [{"id": 1, "name": "Bob", "username": "@miller"}]
+        assert [u for u in many_2] == []
+        assert [u for u in many_4] == [{"id": 1, "name": "Bob", "username": "@miller"}]
 
         conn.close()

@@ -51,9 +51,11 @@ class MySqlStatements:
     )
 
     # selecting data
-    SELECT_COMMAND = "SELECT {column_names} FROM {table_name};"
+    SELECT_COMMAND = "SELECT {column_names} FROM {table_name} {options};".strip()
     SELECT_BY_PK = "SELECT {column_names} FROM {table_name} WHERE {pk_name} = {pk};"
-    SELECT_WHERE_COMMAND = "SELECT {column_names} FROM {table_name} WHERE {filters};"
+    SELECT_WHERE_COMMAND = (
+        "SELECT {column_names} FROM {table_name} WHERE {filters} {options};".strip()
+    )
 
 
 class Sqlite3Statements:
@@ -86,9 +88,11 @@ class Sqlite3Statements:
     )
 
     # selecting data
-    SELECT_COMMAND = "SELECT {column_names} FROM {table_name};"
+    SELECT_COMMAND = "SELECT {column_names} FROM {table_name} {options};".strip()
     SELECT_BY_PK = "SELECT {column_names} FROM {table_name} WHERE {pk_name} = {pk};"
-    SELECT_WHERE_COMMAND = "SELECT {column_names} FROM {table_name} WHERE {filters};"
+    SELECT_WHERE_COMMAND = (
+        "SELECT {column_names} FROM {table_name} WHERE {filters} {options};".strip()
+    )
 
     # dropping table
     DROP_TABLE = "DROP TABLE IF EXISTS {table_name};"
@@ -137,9 +141,11 @@ class PgStatements:
     DELETE_BULK_WHERE_COMMAND = "DELETE FROM {table_name} WHERE {filters};"
     DELETE_ALL_COMMAND = "DELETE FROM {table_name};"
     # select
-    SELECT_COMMAND = "SELECT {column_names} FROM {table_name};"
+    SELECT_COMMAND = "SELECT {column_names} FROM {table_name} {options};".strip()
     SELECT_BY_PK = "SELECT {column_names} FROM {table_name} WHERE {pk_name} = {pk};"
-    SELECT_WHERE_COMMAND = "SELECT {column_names} FROM {table_name} WHERE {filters};"
+    SELECT_WHERE_COMMAND = (
+        "SELECT {column_names} FROM {table_name} WHERE {filters} {options};".strip()
+    )
     # insert
     INSERT_COMMAND_ONE = "INSERT INTO {table_name} ({column_names}) VALUES ({placeholder_values}) RETURNING {pk};"
     INSERT_COMMAND_MANY = "INSERT INTO {table_name} ({column_names}) VALUES ({placeholder_values}) RETURNING *;"

@@ -1,7 +1,3 @@
-import sys
-
-print(sys.path)
-
 from dataloom import (
     Dataloom,
     Model,
@@ -39,14 +35,6 @@ class User(Model):
     name = Column(type="text", nullable=False, default="Bob")
     username = Column(type="varchar", unique=True, length=255)
 
-    @property
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "name": self.name,
-            "username": self.username,
-        }
-
 
 class Post(Model):
     __tablename__: Optional[TableColumn] = TableColumn(name="posts")
@@ -61,27 +49,22 @@ class Post(Model):
         User, type="int", required=True, onDelete="CASCADE", onUpdate="CASCADE"
     )
 
-    @property
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "completed": self.completed,
-            "title": self.title,
-            "userId": self.userId,
-            "createdAt": self.createdAt,
-            "updatedAt": self.updatedAt,
-        }
 
-
-conn, tables = sqlite_loom.connect_and_sync([Post, User], drop=True, force=True)
+conn, tables = mysql_loom.connect_and_sync([Post, User], drop=True, force=True)
 print(tables)
 
 
 user = User(username="@miller")
-userId = sqlite_loom.insert_one(user)
+userId = mysql_loom.insert_one(user)
 post = Post(title="What are you doing?", userId=userId)
-post_id = sqlite_loom.insert_bulk([post for i in range(5)])
-posts = sqlite_loom.delete_bulk(Post, {})
+post_id = mysql_loom.insert_bulk([post for i in range(5)])
+posts = mysql_loom.find_many(
+    Post, filters={"userId": 1}, select=["id", "completed"], limit=3, offset=3
+)
+
+print(posts)
+
+
 print(posts)
 
 if __name__ == "__main__":
