@@ -23,6 +23,8 @@
   - [`CreatedAtColumn` Class](#createdatcolumn-class)
   - [`UpdatedAtColumn` Class](#updatedatcolumn-class)
 - [Syncing Tables](#syncing-tables)
+  - [1. The `sync` method.](#1-the-sync-method)
+  - [2. The `connect_and_sync` method.](#2-the-connect_and_sync-method)
 - [CRUD Operations with Dataloom](#crud-operations-with-dataloom)
   - [1. Creating a Record](#1-creating-a-record)
   - [2. Getting records](#2-getting-records)
@@ -30,6 +32,8 @@
   - [4. Deleting a record](#4-deleting-a-record)
   - [5. Updating a record](#5-updating-a-record)
 - [Associations](#associations)
+- [Pagination](#pagination)
+- [Ordering](#ordering)
 
 ### Key Features:
 
@@ -393,7 +397,11 @@ When a column is designated as `UpdatedAtColumn`, its value will be automaticall
 
 ### Syncing Tables
 
-Syncing tables involves the process of creating tables from models and saving them to a database. After defining your tables, you will need to synchronize your database tables using the `sync` method. This method enables you to create and save tables into the database. For instance, if you have two models, `User` and `Post`, and you want to synchronize them with the database, you can achieve it as follows:
+Syncing tables involves the process of creating tables from models and saving them to a database. After defining your tables, you will need to synchronize your database tables using the `sync` method.
+
+#### 1. The `sync` method.
+
+This method enables you to create and save tables into the database. For instance, if you have two models, `User` and `Post`, and you want to synchronize them with the database, you can achieve it as follows:
 
 ```py
 tables = sqlite_loom.sync([Post, User], drop=True, force=True)
@@ -409,7 +417,11 @@ The method returns a list of table names that have been created or that exist in
 | `force`  | Forcefully drop tables during syncing or not.                   | `bool` | `False` |
 | `alter`  | Alter tables instead of dropping them during syncing or not.    | `bool` | `False` |
 
-> We've noticed two steps involved in starting to work with our `orm`. Initially, you need to create a connection and then synchronize the tables in another step. The `connect_and_sync` function proves to be very handy as it handles both the database connection and table synchronization. Here is an example demonstrating its usage:
+> We've noticed two steps involved in starting to work with our `orm`. Initially, you need to create a connection and then synchronize the tables in another step.
+
+#### 2. The `connect_and_sync` method.
+
+The `connect_and_sync` function proves to be very handy as it handles both the database connection and table synchronization. Here is an example demonstrating its usage:
 
 ```py
 # ....
@@ -597,16 +609,6 @@ db.create(post)
 
 > We have created `3` posts that belongs to `Crispen`.
 
-<table border="1">
-  <thead>
-    <tr><th>Argument</th><th>Description</th>
-      <th>Type</th><th>Default</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td></td><td></td>
-      <td></td><td></td>
-    </tr>
-  </tbody>
-</table>
+### Pagination
+
+### Ordering

@@ -60,31 +60,6 @@ class Model:
         return sql, params
 
     @classmethod
-    def _get_update_by_pk_stm(cls, pk_name: str = "id", args: dict = {}):
-        updatedAtColumName = None
-        for name, field in inspect.getmembers(cls):
-            if isinstance(field, UpdatedAtColumn):
-                updatedAtColumName = name
-
-        values = list()
-        placeholders = list()
-        for key, value in args.items():
-            placeholders.append(f'"{key}" = %s')
-            values.append(value)
-
-        if updatedAtColumName is not None:
-            placeholders.append(f'"{updatedAtColumName}" = %s')
-            values.append(current_time_stamp)
-
-        sql = PgStatements.UPDATE_BY_PK_COMMAND.format(
-            table_name=cls._get_name(),
-            pk="%s",
-            pk_name=pk_name,
-            placeholder_values=", ".join(placeholders),
-        )
-        return sql, values
-
-    @classmethod
     def _get_update_one_stm(
         cls, pk_name: str = "", filters: dict = {}, args: dict = {}
     ):
