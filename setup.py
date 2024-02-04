@@ -18,7 +18,7 @@ setup(
     description=DESCRIPTION,
     long_description_content_type="text/markdown",
     long_description=LON_DESCRIPTION,
-    packages=find_packages(),
+    packages=find_packages(exclude=["tests", "tests.*"]),
     install_requires=[
         "mysql-connector-python==8.3.0",
         "psycopg2==2.9.9",

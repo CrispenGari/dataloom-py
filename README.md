@@ -6,9 +6,14 @@
 <img src="/dataloom.png" alt="dataloom" width="200">
 </p>
 
+### ⚠️ Warning
+
+> **⚠️ Experimental Status of `dataloom`**: The `dataloom` module is currently in an experimental phase. As such, we strongly advise against using it in production environments until a major version is officially released and stability is ensured. During this experimental phase, the `dataloom` module may undergo significant changes, and its features are subject to refinement. We recommend monitoring the project updates and waiting for a stable release before incorporating it into production systems. Please exercise caution and consider alternative solutions for production use until the module reaches a stable release.\*\*
+
 ### Table of Contents
 
 - [dataloom](#dataloom)
+- [⚠️ Warning](#️-warning)
 - [Table of Contents](#table-of-contents)
 - [Key Features:](#key-features)
 - [Installation](#installation)
@@ -30,6 +35,8 @@
   - [2. Getting records](#2-getting-records)
   - [3. Getting a single record](#3-getting-a-single-record)
   - [4. Deleting a record](#4-deleting-a-record)
+  - [Warning: Potential Risk with `delete_bulk()`](#warning-potential-risk-with-delete_bulk)
+    - [Guidelines for Safe Usage](#guidelines-for-safe-usage)
   - [5. Updating a record](#5-updating-a-record)
 - [Associations](#associations)
 - [Pagination](#pagination)
@@ -521,6 +528,29 @@ You can also use the `delete_bulk()` method to delete a multitude of records tha
 ```py
 affected_rows = sqlite_loom.delete_bulk(User, {"name": "Crispen"})
 ```
+
+#### Warning: Potential Risk with `delete_bulk()`
+
+⚠️ **Warning:** When using the `delete_bulk()` function, exercise caution as it can be aggressive. If the filter is not explicitly provided, there is a risk of mistakenly deleting all records in the table.
+
+##### Guidelines for Safe Usage
+
+To mitigate the potential risks associated with `delete_bulk()`, follow these guidelines:
+
+1. **Always Provide a Filter:**
+
+   - When calling `delete_bulk()`, make sure to provide a filter to specify the subset of records to be deleted. This helps prevent unintentional deletions.
+
+   ```python
+   # Example: Delete records where 'status' is 'inactive'
+   sqlite_loom.delete_bulk(filter={'status': 'inactive'})
+   ```
+
+2. **Consider Usage When Necessary:**
+
+- When contemplating data deletion, it is advisable to consider more targeted methods before resorting to `delete_bulk()`. Prioritize the use of `delete_one()` or `delete_by_pk()` methods to remove specific records based on your needs. This ensures a more precise and controlled approach to data deletion.
+
+By following these guidelines, you can use the `delete_bulk()` function safely and minimize the risk of unintended data loss. Always exercise caution and adhere to best practices when performing bulk deletion operations.
 
 #### 5. Updating a record
 

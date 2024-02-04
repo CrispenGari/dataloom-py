@@ -1,3 +1,7 @@
+import sys
+
+print(sys.path)
+
 from dataloom import (
     Dataloom,
     Model,
