@@ -1,5 +1,18 @@
 class MySqlStatements:
 
+    # updates
+    UPDATE_BY_PK_COMMAND = (
+        "UPDATE {table_name} SET {placeholder_values} WHERE {pk_name} = {pk};"
+    )
+    UPDATE_ONE_WHERE_COMMAND = """
+        UPDATE {table_name} SET {placeholder_values} WHERE {pk_name} = (
+            SELECT {pk_name} FROM  {table_name} WHERE {placeholder_filters} LIMIT 1
+        );
+        """
+    UPDATE_BULK_WHERE_COMMAND = (
+        "UPDATE {table_name} SET {placeholder_values} WHERE {placeholder_filters};"
+    )
+
     # dropping table
     DROP_TABLE = "DROP TABLE IF EXISTS {table_name};"
     # getting tables
@@ -25,6 +38,19 @@ class MySqlStatements:
 
 
 class Sqlite3Statements:
+
+    # updates
+    UPDATE_BY_PK_COMMAND = (
+        "UPDATE {table_name} SET {placeholder_values} WHERE {pk_name} = {pk};"
+    )
+    UPDATE_ONE_WHERE_COMMAND = """
+        UPDATE {table_name} SET {placeholder_values} WHERE {pk_name} = (
+            SELECT {pk_name} FROM  {table_name} WHERE {placeholder_filters} LIMIT 1
+        );
+        """
+    UPDATE_BULK_WHERE_COMMAND = (
+        "UPDATE {table_name} SET {placeholder_values} WHERE {placeholder_filters};"
+    )
 
     # selecting data
     SELECT_COMMAND = "SELECT {column_names} FROM {table_name};"
@@ -55,7 +81,7 @@ class PgStatements:
     UPDATE_BY_PK_COMMAND = (
         "UPDATE {table_name} SET {placeholder_values} WHERE {pk_name} = {pk};"
     )
-    UPDATE_BY_ONE_COMMAND = """
+    UPDATE_ONE_WHERE_COMMAND = """
         UPDATE {table_name} SET {placeholder_values} WHERE {pk_name} = (
             SELECT {pk_name} FROM  {table_name} WHERE {placeholder_filters} LIMIT 1
         );

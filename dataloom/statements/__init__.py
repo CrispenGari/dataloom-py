@@ -14,6 +14,8 @@ from dataloom.exceptions import (
     UnsupportedDialectException,
     PkNotDefinedException,
     TooManyPkException,
+    InvalidFiltersForTableColumnException,
+    InvalidColumnValuesException,
 )
 
 
@@ -422,6 +424,116 @@ class GetStatement[T]():
                 table_name=f"`{self.table_name}`",
                 pk_name=pk_name,
                 pk="?",
+            )
+        else:
+            raise UnsupportedDialectException(
+                "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
+            )
+        return sql
+
+    def _get_update_by_pk_command(self, placeholders: list = [], pk_name=str):
+        if len(placeholders) == 0:
+            raise InvalidColumnValuesException(
+                f"There are no new values passed to perform the UPDATE ONE operation, or you don't have the CreatedAtColumn field in your table '{self.table_name}'."
+            )
+        if self.dialect == "postgres":
+            sql = PgStatements.UPDATE_BY_PK_COMMAND.format(
+                placeholder_values=", ".join(placeholders),
+                table_name=f'"{self.table_name}"',
+                pk_name=pk_name,
+                pk="%s",
+            )
+        elif self.dialect == "mysql":
+            sql = MySqlStatements.UPDATE_BY_PK_COMMAND.format(
+                placeholder_values=", ".join(placeholders),
+                table_name=f"`{self.table_name}`",
+                pk_name=pk_name,
+                pk="%s",
+            )
+        elif self.dialect == "sqlite":
+            sql = Sqlite3Statements.UPDATE_BY_PK_COMMAND.format(
+                placeholder_values=", ".join(placeholders),
+                table_name=f"`{self.table_name}`",
+                pk_name=pk_name,
+                pk="?",
+            )
+        else:
+            raise UnsupportedDialectException(
+                "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
+            )
+        return sql
+
+    def _get_update_one_command(
+        self,
+        pk_name: str,
+        placeholders_of_new_values: list = [],
+        placeholder_filters: list = [],
+    ):
+        if len(placeholders_of_new_values) == 0:
+            raise InvalidColumnValuesException(
+                f"There are no new values passed to perform the UPDATE ONE operation, or you don't have the CreatedAtColumn field in your table '{self.table_name}'."
+            )
+        if len(placeholder_filters) == 0:
+            raise InvalidFiltersForTableColumnException(
+                f"There are no column filter passed to perform the UPDATE ONE operation or you passed filters that does not match columns in table '{self.table_name}'."
+            )
+        if self.dialect == "postgres":
+            sql = PgStatements.UPDATE_ONE_WHERE_COMMAND.format(
+                placeholder_values=", ".join(placeholders_of_new_values),
+                table_name=f'"{self.table_name}"',
+                pk_name=pk_name,
+                placeholder_filters=", ".join(placeholder_filters),
+            )
+        elif self.dialect == "mysql":
+            sql = MySqlStatements.UPDATE_ONE_WHERE_COMMAND.format(
+                placeholder_values=", ".join(placeholders_of_new_values),
+                table_name=f"`{self.table_name}`",
+                pk_name=pk_name,
+                placeholder_filters=", ".join(placeholder_filters),
+            )
+        elif self.dialect == "sqlite":
+            sql = Sqlite3Statements.UPDATE_ONE_WHERE_COMMAND.format(
+                placeholder_values=", ".join(placeholders_of_new_values),
+                table_name=f"`{self.table_name}`",
+                pk_name=pk_name,
+                placeholder_filters=", ".join(placeholder_filters),
+            )
+        else:
+            raise UnsupportedDialectException(
+                "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
+            )
+        return sql
+
+    def _get_update_bulk_command(
+        self,
+        placeholders_of_new_values: list = [],
+        placeholder_filters: list = [],
+    ):
+        if len(placeholders_of_new_values) == 0:
+            raise InvalidColumnValuesException(
+                f"There are no new values passed to perform the UPDATE ONE operation, or you don't have the CreatedAtColumn field in your table '{self.table_name}'."
+            )
+        if len(placeholder_filters) == 0:
+            raise InvalidFiltersForTableColumnException(
+                f"There are no column filter passed to perform the UPDATE ONE operation or you passed filters that does not match columns in table '{self.table_name}'."
+            )
+        if self.dialect == "postgres":
+            sql = PgStatements.UPDATE_BULK_WHERE_COMMAND.format(
+                placeholder_values=", ".join(placeholders_of_new_values),
+                table_name=f'"{self.table_name}"',
+                placeholder_filters=", ".join(placeholder_filters),
+            )
+        elif self.dialect == "mysql":
+            sql = MySqlStatements.UPDATE_BULK_WHERE_COMMAND.format(
+                placeholder_values=", ".join(placeholders_of_new_values),
+                table_name=f"`{self.table_name}`",
+                placeholder_filters=", ".join(placeholder_filters),
+            )
+        elif self.dialect == "sqlite":
+            sql = Sqlite3Statements.UPDATE_BULK_WHERE_COMMAND.format(
+                placeholder_values=", ".join(placeholders_of_new_values),
+                table_name=f"`{self.table_name}`",
+                placeholder_filters=", ".join(placeholder_filters),
             )
         else:
             raise UnsupportedDialectException(

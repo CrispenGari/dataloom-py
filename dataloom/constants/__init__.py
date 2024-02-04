@@ -1,3 +1,6 @@
+from datetime import datetime
+
+CURRENT_TIME_STAMP = datetime.now()
 instances = {
     "postgres": {
         "type": "postgres",

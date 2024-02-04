@@ -10,6 +10,7 @@
 11. limit and pagination
 12. in & not in 
 13. grouping data
+14. updating data 
 
 
 --------- conn
@@ -20,3 +21,22 @@
     * sqlite3 ✅
 
 
+
+#    """
+#     SELECT
+#         posts.post_id,
+#         posts.content,
+#         posts.created_at,
+#         users.user_id,
+#         users.username
+#     FROM
+#         posts
+#     JOIN
+#         users ON posts.user_id = users.user_id
+#     WHERE
+#         posts.post_id = 1;  -- Replace 1 with the specific post_id you are interested in
+#     """
+#         fields = list()
+#         for name, field in inspect.getmembers(instance):
+#             if isinstance(field, Column):
+#                 fields.append(name)

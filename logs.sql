@@ -58,3 +58,56 @@
 [2024-02-03 20:35:34.991419] : Dataloom[mysql]: INSERT INTO `users` (`username`) VALUES (%s);
 [2024-02-03 20:35:35.015520] : Dataloom[mysql]: INSERT INTO `posts` (`title`, `userId`) VALUES (%s, %s);
 [2024-02-03 20:35:35.047500] : Dataloom[mysql]: SELECT `id`, `name`, `username` FROM `users` WHERE `id` = %s AND `name` = %s;
+[2024-02-04 08:12:30.943295] : Dataloom[mysql]: DROP TABLE IF EXISTS `posts`;
+[2024-02-04 08:12:31.011872] : Dataloom[mysql]: CREATE TABLE IF NOT EXISTS `posts` (`completed` BOOLEAN DEFAULT False, `id` INT PRIMARY KEY AUTO_INCREMENT UNIQUE NOT NULL, `title` VARCHAR(255) NOT NULL, `createdAt` TIMESTAMP DEFAULT CURRENT_TIMESTAMP, `updatedAt` TIMESTAMP DEFAULT CURRENT_TIMESTAMP, `userId` INT NOT NULL REFERENCES `users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-04 08:12:31.103641] : Dataloom[mysql]: DROP TABLE IF EXISTS `users`;
+[2024-02-04 08:12:31.159641] : Dataloom[mysql]: CREATE TABLE IF NOT EXISTS `users` (`id` INT PRIMARY KEY AUTO_INCREMENT UNIQUE NOT NULL, `name` VARCHAR(255) NOT NULL DEFAULT 'Bob', `username` VARCHAR(255) UNIQUE);
+[2024-02-04 08:12:31.245388] : Dataloom[mysql]: SHOW TABLES;
+[2024-02-04 08:12:31.271348] : Dataloom[mysql]: INSERT INTO `users` (`username`) VALUES (%s);
+[2024-02-04 08:12:31.296363] : Dataloom[mysql]: INSERT INTO `posts` (`title`, `userId`) VALUES (%s, %s);
+[2024-02-04 08:12:31.325355] : Dataloom[mysql]: UPDATE `posts` SET `title`, `updatedAt` = %s WHERE `id` = %s;
+[2024-02-04 08:14:15.687853] : Dataloom[mysql]: DROP TABLE IF EXISTS `posts`;
+[2024-02-04 08:14:15.744005] : Dataloom[mysql]: CREATE TABLE IF NOT EXISTS `posts` (`completed` BOOLEAN DEFAULT False, `id` INT PRIMARY KEY AUTO_INCREMENT UNIQUE NOT NULL, `title` VARCHAR(255) NOT NULL, `createdAt` TIMESTAMP DEFAULT CURRENT_TIMESTAMP, `updatedAt` TIMESTAMP DEFAULT CURRENT_TIMESTAMP, `userId` INT NOT NULL REFERENCES `users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-04 08:14:15.826487] : Dataloom[mysql]: DROP TABLE IF EXISTS `users`;
+[2024-02-04 08:14:15.883486] : Dataloom[mysql]: CREATE TABLE IF NOT EXISTS `users` (`id` INT PRIMARY KEY AUTO_INCREMENT UNIQUE NOT NULL, `name` VARCHAR(255) NOT NULL DEFAULT 'Bob', `username` VARCHAR(255) UNIQUE);
+[2024-02-04 08:14:15.966092] : Dataloom[mysql]: SHOW TABLES;
+[2024-02-04 08:14:15.990173] : Dataloom[mysql]: INSERT INTO `users` (`username`) VALUES (%s);
+[2024-02-04 08:14:16.025684] : Dataloom[mysql]: INSERT INTO `posts` (`title`, `userId`) VALUES (%s, %s);
+[2024-02-04 08:14:16.067734] : Dataloom[mysql]: UPDATE `posts` SET `title`, `updatedAt` = %s WHERE `id` = %s;
+[2024-02-04 08:17:27.571204] : Dataloom[mysql]: DROP TABLE IF EXISTS `posts`;
+[2024-02-04 08:17:27.638199] : Dataloom[mysql]: CREATE TABLE IF NOT EXISTS `posts` (`completed` BOOLEAN DEFAULT False, `id` INT PRIMARY KEY AUTO_INCREMENT UNIQUE NOT NULL, `title` VARCHAR(255) NOT NULL, `createdAt` TIMESTAMP DEFAULT CURRENT_TIMESTAMP, `updatedAt` TIMESTAMP DEFAULT CURRENT_TIMESTAMP, `userId` INT NOT NULL REFERENCES `users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-04 08:17:27.701771] : Dataloom[mysql]: DROP TABLE IF EXISTS `users`;
+[2024-02-04 08:17:27.761770] : Dataloom[mysql]: CREATE TABLE IF NOT EXISTS `users` (`id` INT PRIMARY KEY AUTO_INCREMENT UNIQUE NOT NULL, `name` VARCHAR(255) NOT NULL DEFAULT 'Bob', `username` VARCHAR(255) UNIQUE);
+[2024-02-04 08:17:27.855227] : Dataloom[mysql]: SHOW TABLES;
+[2024-02-04 08:17:27.882150] : Dataloom[mysql]: INSERT INTO `users` (`username`) VALUES (%s);
+[2024-02-04 08:17:27.912153] : Dataloom[mysql]: INSERT INTO `posts` (`title`, `userId`) VALUES (%s, %s);
+[2024-02-04 08:17:27.940196] : Dataloom[mysql]: UPDATE `posts` SET `title` = %s, `updatedAt` = %s WHERE `id` = %s;
+[2024-02-04 09:25:42.828608] : Dataloom[mysql]: DROP TABLE IF EXISTS `posts`;
+[2024-02-04 09:25:42.933592] : Dataloom[mysql]: CREATE TABLE IF NOT EXISTS `posts` (`completed` BOOLEAN DEFAULT False, `id` INT PRIMARY KEY AUTO_INCREMENT UNIQUE NOT NULL, `title` VARCHAR(255) NOT NULL, `createdAt` TIMESTAMP DEFAULT CURRENT_TIMESTAMP, `updatedAt` TIMESTAMP DEFAULT CURRENT_TIMESTAMP, `userId` INT NOT NULL REFERENCES `users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-04 09:25:43.071915] : Dataloom[mysql]: DROP TABLE IF EXISTS `users`;
+[2024-02-04 09:25:43.163671] : Dataloom[mysql]: CREATE TABLE IF NOT EXISTS `users` (`id` INT PRIMARY KEY AUTO_INCREMENT UNIQUE NOT NULL, `name` VARCHAR(255) NOT NULL DEFAULT 'Bob', `username` VARCHAR(255) UNIQUE);
+[2024-02-04 09:25:43.260275] : Dataloom[mysql]: SHOW TABLES;
+[2024-02-04 09:25:43.291274] : Dataloom[mysql]: INSERT INTO `users` (`username`) VALUES (%s);
+[2024-02-04 09:25:43.321272] : Dataloom[mysql]: INSERT INTO `posts` (`title`, `userId`) VALUES (%s, %s);
+[2024-02-04 09:25:43.351275] : Dataloom[mysql]: UPDATE `posts` SET `title` = %s, `updatedAt` = %s WHERE `userId` = %s;
+[2024-02-04 10:26:08.514098] : Dataloom[mysql]: DROP TABLE IF EXISTS `posts`;
+[2024-02-04 10:26:08.705457] : Dataloom[mysql]: CREATE TABLE IF NOT EXISTS `posts` (`completed` BOOLEAN DEFAULT False, `id` INT PRIMARY KEY AUTO_INCREMENT UNIQUE NOT NULL, `title` VARCHAR(255) NOT NULL, `createdAt` TIMESTAMP DEFAULT CURRENT_TIMESTAMP, `updatedAt` TIMESTAMP DEFAULT CURRENT_TIMESTAMP, `userId` INT NOT NULL REFERENCES `users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-04 10:26:09.674098] : Dataloom[mysql]: DROP TABLE IF EXISTS `users`;
+[2024-02-04 10:26:09.832876] : Dataloom[mysql]: CREATE TABLE IF NOT EXISTS `users` (`id` INT PRIMARY KEY AUTO_INCREMENT UNIQUE NOT NULL, `name` VARCHAR(255) NOT NULL DEFAULT 'Bob', `username` VARCHAR(255) UNIQUE);
+[2024-02-04 10:26:10.293792] : Dataloom[mysql]: SHOW TABLES;
+[2024-02-04 10:26:10.407507] : Dataloom[mysql]: INSERT INTO `users` (`username`) VALUES (%s);
+[2024-02-04 10:26:10.535119] : Dataloom[mysql]: INSERT INTO `posts` (`title`, `userId`) VALUES (%s, %s);
+[2024-02-04 10:26:10.665121] : Dataloom[mysql]: UPDATE `posts` SET `title` = %s, `updatedAt` = %s WHERE `userId` = %s;
+[2024-02-04 10:26:10.778292] : Dataloom[mysql]: 
+        UPDATE `users` SET `name` = %s WHERE `id` = (
+            SELECT `id` FROM  `users` WHERE `username` = %s LIMIT 1
+        );
+        
+[2024-02-04 11:03:09.949094] : Dataloom[mysql]: DROP TABLE IF EXISTS `posts`;
+[2024-02-04 11:03:10.466495] : Dataloom[mysql]: CREATE TABLE IF NOT EXISTS `posts` (`completed` BOOLEAN DEFAULT False, `id` INT PRIMARY KEY AUTO_INCREMENT UNIQUE NOT NULL, `title` VARCHAR(255) NOT NULL, `createdAt` TIMESTAMP DEFAULT CURRENT_TIMESTAMP, `updatedAt` TIMESTAMP DEFAULT CURRENT_TIMESTAMP, `userId` INT NOT NULL REFERENCES `users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-04 11:03:10.566488] : Dataloom[mysql]: DROP TABLE IF EXISTS `users`;
+[2024-02-04 11:03:10.679441] : Dataloom[mysql]: CREATE TABLE IF NOT EXISTS `users` (`id` INT PRIMARY KEY AUTO_INCREMENT UNIQUE NOT NULL, `name` VARCHAR(255) NOT NULL DEFAULT 'Bob', `username` VARCHAR(255) UNIQUE);
+[2024-02-04 11:03:10.809409] : Dataloom[mysql]: SHOW TABLES;
+[2024-02-04 11:03:10.835411] : Dataloom[mysql]: INSERT INTO `users` (`username`) VALUES (%s);
+[2024-02-04 11:03:10.857153] : Dataloom[mysql]: INSERT INTO `posts` (`title`, `userId`) VALUES (%s, %s);
+[2024-02-04 11:03:10.882741] : Dataloom[mysql]: UPDATE `posts` SET `title` = %s, `updatedAt` = %s WHERE `userId` = %s;

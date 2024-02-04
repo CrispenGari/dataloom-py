@@ -12,3 +12,11 @@ class UnsupportedDialectException(ValueError):
 
 class UnsupportedTypeException(ValueError):
     pass
+
+
+class InvalidFiltersForTableColumnException(ValueError):
+    pass
+
+
+class InvalidColumnValuesException(ValueError):
+    pass

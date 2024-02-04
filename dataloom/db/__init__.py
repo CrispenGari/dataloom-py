@@ -315,29 +315,30 @@ class Dataloom:
         sql, fields, params = instance._get_select_where_stm(
             dialect=self.dialect, args=filters
         )
-        print(params)
         row = self._execute_sql(sql, args=params, fetchone=True)
         return None if row is None else instance(**dict(zip(fields, row)))
 
+    def update_by_pk(self, instance: Model, pk, values: dict = {}):
+        sql, args = instance._get_update_by_pk_stm(dialect=self.dialect, args=values)
+        args.append(pk)
+        affected_rows = self._execute_sql(sql, args=args, affected_rows=True)
+        return affected_rows
 
-#    """
-#     SELECT
-#         posts.post_id,
-#         posts.content,
-#         posts.created_at,
-#         users.user_id,
-#         users.username
-#     FROM
-#         posts
-#     JOIN
-#         users ON posts.user_id = users.user_id
-#     WHERE
-#         posts.post_id = 1;  -- Replace 1 with the specific post_id you are interested in
-#     """
-#         fields = list()
-#         for name, field in inspect.getmembers(instance):
-#             if isinstance(field, Column):
-#                 fields.append(name)
+    def update_one(self, instance: Model, filters: dict = {}, values: dict = {}):
+        sql, new_values, filter_values = instance._get_update_one_stm(
+            dialect=self.dialect, filters=filters, values=values
+        )
+        args = [*new_values, *filter_values]
+        affected_rows = self._execute_sql(sql, args=args, affected_rows=True)
+        return affected_rows
+
+    def update_bulk(self, instance: Model, filters: dict = {}, values: dict = {}):
+        sql, new_values, filter_values = instance._get_update_bulk_where_stm(
+            dialect=self.dialect, filters=filters, values=values
+        )
+        args = [*new_values, *filter_values]
+        affected_rows = self._execute_sql(sql, args=args, affected_rows=True)
+        return affected_rows
 
 
 #     def delete_bulk(self, instance: Model, filters: dict = {}):
@@ -367,34 +368,4 @@ class Dataloom:
 #         affected_rows = self._execute_sql(
 #             sql, args=(pk,), affected_rows=True, fetchall=True
 #         )
-#         return affected_rows
-
-#     def update_by_pk(self, instance: Model, pk, values: dict = {}):
-#         pk_name = "id"
-#         for name, field in inspect.getmembers(instance):
-#             if isinstance(field, PrimaryKeyColumn):
-#                 pk_name = name
-#         sql, values = instance._get_update_by_pk_stm(pk_name, values)
-#         values.append(pk)
-#         affected_rows = self._execute_sql(sql, args=values, affected_rows=True)
-#         return affected_rows
-
-#     def update_one(self, instance: Model, filters: dict = {}, values: dict = {}):
-#         pk_name = "id"
-#         for name, field in inspect.getmembers(instance):
-#             if isinstance(field, PrimaryKeyColumn):
-#                 pk_name = name
-#         sql, new_values, filter_values = instance._get_update_one_stm(
-#             pk_name, filters, values
-#         )
-#         args = [*new_values, *filter_values]
-#         affected_rows = self._execute_sql(sql, args=args, affected_rows=True)
-#         return affected_rows
-
-#     def update_bulk(self, instance: Model, filters: dict = {}, values: dict = {}):
-#         sql, new_values, filter_values = instance._get_update_bulk_where_stm(
-#             filters, values
-#         )
-#         args = [*new_values, *filter_values]
-#         affected_rows = self._execute_sql(sql, args=args, affected_rows=True)
 #         return affected_rows

@@ -9,6 +9,7 @@ from dataloom.model.column import (
     CreatedAtColumn,
     UpdatedAtColumn,
 )
+from dataloom.constants import CURRENT_TIME_STAMP
 
 
 class Model:
@@ -246,6 +247,162 @@ class Model:
                 "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
             )
         return sql, fields, params
+
+    @classmethod
+    def _get_update_by_pk_stm(cls, dialect: str, args: dict = {}):
+        fields = []  
+        # what is the pk name and updated column name?
+        pk_name = None
+        updatedAtColumName = None
+        for name, field in inspect.getmembers(cls):
+            if isinstance(field, Column):
+                fields.append(name)
+            elif isinstance(field, ForeignKeyColumn):
+                fields.append(name)
+            elif isinstance(field, PrimaryKeyColumn):
+                fields.append(name)
+                pk_name = f'"{name}"' if dialect == "postgres" else f"`{name}`"
+            elif isinstance(field, CreatedAtColumn):
+                fields.append(name)
+            elif isinstance(field, UpdatedAtColumn):
+                fields.append(name)
+                updatedAtColumName = (
+                    f'"{name}"' if dialect == "postgres" else f"`{name}`"
+                )
+        values = list()
+        placeholders = list()
+        for key, value in args.items():
+            if key in fields:
+                placeholders.append(
+                    f'"{key}" = %s' if dialect == "postgres" else f"`{key}` = {'%s' if dialect == 'mysql' else '?'}"
+                )
+                values.append(value)
+
+        if updatedAtColumName is not None:
+            placeholders.append(f'{updatedAtColumName} = {'?' if dialect == 'sqlite' else '%s'}')
+            values.append(CURRENT_TIME_STAMP)
+
+        if dialect == "postgres" or "mysql" or "sqlite":
+            sql = GetStatement(
+                dialect=dialect, model=cls, table_name=cls._get_table_name()
+            )._get_update_by_pk_command(placeholders=placeholders, pk_name=pk_name)
+        else:
+            raise UnsupportedDialectException(
+                "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
+            )
+        return sql, values
+
+
+    @classmethod
+    def _get_update_one_stm(cls, dialect: str,
+            filters: dict={}, values: dict={}
+        ):
+        fields = []  
+        # what is the pk name and updated column name?
+        pk_name = None
+        updatedAtColumName = None
+        for name, field in inspect.getmembers(cls):
+            if isinstance(field, Column):
+                fields.append(name)
+            elif isinstance(field, ForeignKeyColumn):
+                fields.append(name)
+            elif isinstance(field, PrimaryKeyColumn):
+                fields.append(name)
+                pk_name = f'"{name}"' if dialect == "postgres" else f"`{name}`"
+            elif isinstance(field, CreatedAtColumn):
+                fields.append(name)
+            elif isinstance(field, UpdatedAtColumn):
+                fields.append(name)
+                updatedAtColumName = (
+                    f'"{name}"' if dialect == "postgres" else f"`{name}`"
+                )
+                
+        new_values = []
+        placeholders_of_new_values = []
+        placeholder_filter_values = []
+        placeholder_filters = []
+        
+        for key, value in filters.items():
+            if key in fields:
+                placeholder_filters.append(
+                    f'"{key}" = %s' if dialect == "postgres" else f"`{key}` = {'%s' if dialect == 'mysql' else '?'}"
+                )
+                placeholder_filter_values.append(value)
+        for key, value in values.items():
+            if key in fields:
+                placeholders_of_new_values.append(
+                    f'"{key}" = %s' if dialect == "postgres" else f"`{key}` = {'%s' if dialect == 'mysql' else '?'}"
+                )
+                new_values.append(value)
+
+        if updatedAtColumName is not None:
+            placeholders_of_new_values.append(f'{updatedAtColumName} = {'?' if dialect == 'sqlite' else '%s'}')
+            new_values.append(CURRENT_TIME_STAMP)
+
+        if dialect == "postgres" or "mysql" or "sqlite":
+            sql = GetStatement(
+                dialect=dialect, model=cls, table_name=cls._get_table_name()
+            )._get_update_one_command(pk_name=pk_name,placeholders_of_new_values=placeholders_of_new_values, placeholder_filters=placeholder_filters)
+        else:
+            raise UnsupportedDialectException(
+                "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
+            )
+        return sql,  new_values,  placeholder_filter_values
+    
+    @classmethod
+    def _get_update_bulk_where_stm(cls, dialect: str,
+            filters: dict={}, values: dict={}
+        ):
+        fields = []  
+        # what is updated column name?
+       
+        updatedAtColumName = None
+        for name, field in inspect.getmembers(cls):
+            if isinstance(field, Column):
+                fields.append(name)
+            elif isinstance(field, ForeignKeyColumn):
+                fields.append(name)
+            elif isinstance(field, PrimaryKeyColumn):
+                fields.append(name)
+            elif isinstance(field, CreatedAtColumn):
+                fields.append(name)
+            elif isinstance(field, UpdatedAtColumn):
+                fields.append(name)
+                updatedAtColumName = (
+                    f'"{name}"' if dialect == "postgres" else f"`{name}`"
+                )
+                
+        new_values = []
+        placeholders_of_new_values = []
+        placeholder_filter_values = []
+        placeholder_filters = []
+        
+        for key, value in filters.items():
+            if key in fields:
+                placeholder_filters.append(
+                    f'"{key}" = %s' if dialect == "postgres" else f"`{key}` = {'%s' if dialect == 'mysql' else '?'}"
+                )
+                placeholder_filter_values.append(value)
+        for key, value in values.items():
+            if key in fields:
+                placeholders_of_new_values.append(
+                    f'"{key}" = %s' if dialect == "postgres" else f"`{key}` = {'%s' if dialect == 'mysql' else '?'}"
+                )
+                new_values.append(value)
+
+        if updatedAtColumName is not None:
+            placeholders_of_new_values.append(f'{updatedAtColumName} = {'?' if dialect == 'sqlite' else '%s'}')
+            new_values.append(CURRENT_TIME_STAMP)
+
+        if dialect == "postgres" or "mysql" or "sqlite":
+            sql = GetStatement(
+                dialect=dialect, model=cls, table_name=cls._get_table_name()
+            )._get_update_bulk_command(placeholders_of_new_values=placeholders_of_new_values, placeholder_filters=placeholder_filters)
+        else:
+            raise UnsupportedDialectException(
+                "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
+            )
+        return sql,  new_values,  placeholder_filter_values
 
 
 # class IModel[T](ABC):
