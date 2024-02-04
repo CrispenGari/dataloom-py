@@ -2,7 +2,6 @@ import inspect
 import re
 from dataclasses import dataclass
 from typing import Optional
-
 from dataloom.exceptions import (
     InvalidColumnValuesException,
     InvalidFiltersForTableColumnException,
@@ -10,7 +9,7 @@ from dataloom.exceptions import (
     TooManyPkException,
     UnsupportedDialectException,
 )
-from dataloom.model.column import (
+from dataloom.model import (
     Column,
     CreatedAtColumn,
     ForeignKeyColumn,

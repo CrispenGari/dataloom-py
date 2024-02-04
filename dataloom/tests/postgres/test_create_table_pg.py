@@ -22,7 +22,7 @@ class TestCreatingTablePG:
             name = Column(type="varchar", unique=True, length=255)
 
         with pytest.raises(Exception) as exc_info:
-            tables = pg_loom.sync([User], drop=True, force=True)
+            _ = pg_loom.sync([User], drop=True, force=True)
 
         assert (
             str(exc_info.value)
@@ -51,7 +51,7 @@ class TestCreatingTablePG:
             name = Column(type="varchar", unique=True, length=255)
 
         with pytest.raises(Exception) as exc_info:
-            tables = pg_loom.sync([User], drop=True, force=True)
+            _ = pg_loom.sync([User], drop=True, force=True)
         assert str(exc_info.value) == "Your table does not have a primary key column."
         conn.close()
 
@@ -107,14 +107,14 @@ class TestCreatingTablePG:
             user=PgConfig.user,
             logging=True,
         )
-        conn, tables = pg_loom.connect_and_sync([User, Post], drop=True, force=True)
-        assert len(tables) == 2
+        conn, _ = pg_loom.connect_and_sync([User, Post], drop=True, force=True)
+        assert len(_) == 2
         assert conn.status == 1
-        assert sorted(tables) == sorted(["users", "posts"])
+        assert sorted(_) == sorted(["users", "posts"])
 
         conn.close()
 
-    def test_syncing_tables(self):
+    def test_syncing__(self):
         from dataloom import Model, Dataloom, Column, PrimaryKeyColumn, TableColumn
         from typing import Optional
         from dataloom.keys import PgConfig
@@ -140,7 +140,7 @@ class TestCreatingTablePG:
             username = Column(type="text", nullable=False, default="Hello there!!")
             name = Column(type="varchar", unique=True, length=255)
 
-        tables = pg_loom.sync([User, Post], drop=True, force=True)
-        assert len(tables) == 2
-        assert sorted(tables) == sorted(["users", "posts"])
+        _ = pg_loom.sync([User, Post], drop=True, force=True)
+        assert len(_) == 2
+        assert sorted(_) == sorted(["users", "posts"])
         conn.close()

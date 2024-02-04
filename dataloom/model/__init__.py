@@ -1,7 +1,7 @@
 import inspect
 from dataloom.constants import CURRENT_TIME_STAMP, SQLITE_CURRENT_TIME_STAMP
 from dataloom.exceptions import UnknownColumnException, UnsupportedDialectException
-from dataloom.model.column import (
+from dataloom.columns import (
     Column,
     CreatedAtColumn,
     ForeignKeyColumn,
