@@ -1,5 +1,65 @@
 class TestQueryingMySQL:
-    def test_querying_data(self):
+    def test_find_by_pk_fn(self):
+        from dataloom import (
+            Dataloom,
+            Model,
+            Column,
+            PrimaryKeyColumn,
+            CreatedAtColumn,
+            UpdatedAtColumn,
+            TableColumn,
+            ForeignKeyColumn,
+        )
+        from dataloom.keys import MySQLConfig
+        from typing import Optional
+
+        mysql_loom = Dataloom(
+            dialect="mysql",
+            database=MySQLConfig.database,
+            password=MySQLConfig.password,
+            user=MySQLConfig.user,
+        )
+
+        class User(Model):
+            __tablename__: Optional[TableColumn] = TableColumn(name="users")
+            id = PrimaryKeyColumn(type="int", auto_increment=True)
+            name = Column(type="text", nullable=False, default="Bob")
+            username = Column(type="varchar", unique=True, length=255)
+
+            @property
+            def to_dict(self):
+                return {
+                    "id": self.id,
+                    "name": self.name,
+                    "username": self.username,
+                }
+
+        class Post(Model):
+            __tablename__: Optional[TableColumn] = TableColumn(name="posts")
+            id = PrimaryKeyColumn(
+                type="int", auto_increment=True, nullable=False, unique=True
+            )
+            completed = Column(type="boolean", default=False)
+            title = Column(type="varchar", length=255, nullable=False)
+            # timestamps
+            createdAt = CreatedAtColumn()
+            updatedAt = UpdatedAtColumn()
+            # relations
+            userId = ForeignKeyColumn(
+                User, type="int", required=True, onDelete="CASCADE", onUpdate="CASCADE"
+            )
+
+        conn, _ = mysql_loom.connect_and_sync([Post, User], drop=True, force=True)
+        user = User(username="@miller")
+        _ = mysql_loom.insert_one(user)
+        me = mysql_loom.find_by_pk(User, 1).to_dict
+        her = mysql_loom.find_by_pk(User, 2)
+
+        assert her is None
+        assert me == {"id": 1, "name": "Bob", "username": "@miller"}
+        conn.close()
+
+    def test_find_all_fn(self):
         from dataloom import (
             Dataloom,
             Model,
@@ -53,22 +113,161 @@ class TestQueryingMySQL:
         user = User(username="@miller")
         userId = mysql_loom.insert_one(user)
         post = Post(title="What are you doing?", userId=userId)
-        rows = mysql_loom.insert_bulk([post for i in range(5)])
-        posts = mysql_loom.find_many(Post, {"id": 1, "userId": 1})
+        _ = mysql_loom.insert_bulk([post for i in range(5)])
         users = mysql_loom.find_all(User)
-        me = mysql_loom.find_by_pk(User, 1).to_dict
-        her = mysql_loom.find_by_pk(User, 2)
-        many_0 = mysql_loom.find_many(User, {"id": 5})
-        many_1 = mysql_loom.find_many(User, {"id": 1})
-        many_2 = mysql_loom.find_many(User, {"id": 1, "name": "Crispen"})
-        many_3 = mysql_loom.find_many(User, {"id": 5, "username": "@miller"})
-        many_4 = mysql_loom.find_many(User, {"name": "Bob", "username": "@miller"})
+        posts = mysql_loom.find_all(Post)
+
+        assert len(users) == 1
+        assert len(posts) == 5
+        assert True
+        conn.close()
+
+    def test_find_one_fn(self):
+        from dataloom import (
+            Dataloom,
+            Model,
+            Column,
+            PrimaryKeyColumn,
+            CreatedAtColumn,
+            UpdatedAtColumn,
+            TableColumn,
+            ForeignKeyColumn,
+            UnknownColumnException,
+        )
+        from dataloom.keys import MySQLConfig
+        from typing import Optional
+        import pytest
+
+        mysql_loom = Dataloom(
+            dialect="mysql",
+            database=MySQLConfig.database,
+            password=MySQLConfig.password,
+            user=MySQLConfig.user,
+        )
+
+        class User(Model):
+            __tablename__: Optional[TableColumn] = TableColumn(name="users")
+            id = PrimaryKeyColumn(type="int", auto_increment=True)
+            name = Column(type="text", nullable=False, default="Bob")
+            username = Column(type="varchar", unique=True, length=255)
+
+            @property
+            def to_dict(self):
+                return {
+                    "id": self.id,
+                    "name": self.name,
+                    "username": self.username,
+                }
+
+        class Post(Model):
+            __tablename__: Optional[TableColumn] = TableColumn(name="posts")
+            id = PrimaryKeyColumn(
+                type="int", auto_increment=True, nullable=False, unique=True
+            )
+            completed = Column(type="boolean", default=False)
+            title = Column(type="varchar", length=255, nullable=False)
+            # timestamps
+            createdAt = CreatedAtColumn()
+            updatedAt = UpdatedAtColumn()
+            # relations
+            userId = ForeignKeyColumn(
+                User, type="int", required=True, onDelete="CASCADE", onUpdate="CASCADE"
+            )
+
+        conn, _ = mysql_loom.connect_and_sync([Post, User], drop=True, force=True)
+        user = User(username="@miller")
+        userId = mysql_loom.insert_one(user)
+        post = Post(title="What are you doing?", userId=userId)
+        _ = mysql_loom.insert_bulk([post for i in range(5)])
 
         one_0 = mysql_loom.find_one(User, {"id": 5})
         one_1 = mysql_loom.find_one(User, {"id": 1})
         one_2 = mysql_loom.find_one(User, {"id": 1, "name": "Bob"})
         one_3 = mysql_loom.find_one(User, {"id": 5, "username": "@miller"})
         one_4 = mysql_loom.find_one(User, {"name": "Crispen", "username": "@miller"})
+
+        with pytest.raises(UnknownColumnException) as exc_info:
+            one_4 = mysql_loom.find_one(
+                User, {"location": "Crispen", "username": "@miller"}
+            )
+        assert str(exc_info.value) == "Table users does not have column 'location'."
+
+        assert one_0 is None
+        assert one_3 is None
+        assert one_1.to_dict == {"id": 1, "name": "Bob", "username": "@miller"}
+        assert one_2.to_dict == {"id": 1, "name": "Bob", "username": "@miller"}
+        assert one_4 is None
+
+        conn.close()
+
+    def test_find_many(self):
+        from dataloom import (
+            Dataloom,
+            Model,
+            Column,
+            PrimaryKeyColumn,
+            CreatedAtColumn,
+            UpdatedAtColumn,
+            TableColumn,
+            ForeignKeyColumn,
+            UnknownColumnException,
+        )
+        from dataloom.keys import MySQLConfig
+        from typing import Optional
+        import pytest
+
+        mysql_loom = Dataloom(
+            dialect="mysql",
+            database=MySQLConfig.database,
+            password=MySQLConfig.password,
+            user=MySQLConfig.user,
+        )
+
+        class User(Model):
+            __tablename__: Optional[TableColumn] = TableColumn(name="users")
+            id = PrimaryKeyColumn(type="int", auto_increment=True)
+            name = Column(type="text", nullable=False, default="Bob")
+            username = Column(type="varchar", unique=True, length=255)
+
+            @property
+            def to_dict(self):
+                return {
+                    "id": self.id,
+                    "name": self.name,
+                    "username": self.username,
+                }
+
+        class Post(Model):
+            __tablename__: Optional[TableColumn] = TableColumn(name="posts")
+            id = PrimaryKeyColumn(
+                type="int", auto_increment=True, nullable=False, unique=True
+            )
+            completed = Column(type="boolean", default=False)
+            title = Column(type="varchar", length=255, nullable=False)
+            # timestamps
+            createdAt = CreatedAtColumn()
+            updatedAt = UpdatedAtColumn()
+            # relations
+            userId = ForeignKeyColumn(
+                User, type="int", required=True, onDelete="CASCADE", onUpdate="CASCADE"
+            )
+
+        conn, _ = mysql_loom.connect_and_sync([Post, User], drop=True, force=True)
+        user = User(username="@miller")
+        userId = mysql_loom.insert_one(user)
+        post = Post(title="What are you doing?", userId=userId)
+        rows = mysql_loom.insert_bulk([post for i in range(5)])
+        posts = mysql_loom.find_many(Post, {"id": 1, "userId": 1})
+        users = mysql_loom.find_many(User)
+        many_0 = mysql_loom.find_many(User, {"id": 5})
+        many_1 = mysql_loom.find_many(User, {"id": 1})
+        many_2 = mysql_loom.find_many(User, {"id": 1, "name": "Crispen"})
+        many_3 = mysql_loom.find_many(User, {"id": 5, "username": "@miller"})
+        many_4 = mysql_loom.find_many(User, {"name": "Bob", "username": "@miller"})
+
+        with pytest.raises(UnknownColumnException) as exc_info:
+            mysql_loom.find_many(User, {"location": "Crispen", "username": "@miller"})
+        assert str(exc_info.value) == "Table users does not have column 'location'."
 
         assert len(users) == 1
         assert len(posts) == 1
@@ -78,7 +277,6 @@ class TestQueryingMySQL:
         assert len(many_3) == 0
         assert len(many_4) == 1
         assert rows == len(mysql_loom.find_all(Post))
-
         assert [u.to_dict for u in users] == [
             {"id": 1, "name": "Bob", "username": "@miller"}
         ]
@@ -92,11 +290,4 @@ class TestQueryingMySQL:
             {"id": 1, "name": "Bob", "username": "@miller"}
         ]
 
-        assert one_0 is None
-        assert one_3 is None
-        assert one_1.to_dict == {"id": 1, "name": "Bob", "username": "@miller"}
-        assert one_2.to_dict == {"id": 1, "name": "Bob", "username": "@miller"}
-        assert one_4 is None
-        assert her is None
-        assert me == {"id": 1, "name": "Bob", "username": "@miller"}
         conn.close()

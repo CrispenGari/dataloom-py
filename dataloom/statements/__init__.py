@@ -540,3 +540,28 @@ class GetStatement[T]():
                 "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
             )
         return sql
+
+    def _get_delete_by_pk_command(self, pk_name: str):
+        if self.dialect == "postgres":
+            sql = PgStatements.DELETE_BY_PK.format(
+                table_name=f'"{self.table_name}"',
+                pk_name=pk_name,
+                pk="%s",
+            )
+        elif self.dialect == "mysql":
+            sql = MySqlStatements.DELETE_BY_PK.format(
+                table_name=f"`{self.table_name}`",
+                pk_name=pk_name,
+                pk="%s",
+            )
+        elif self.dialect == "sqlite":
+            sql = Sqlite3Statements.DELETE_BY_PK.format(
+                table_name=f"`{self.table_name}`",
+                pk_name=pk_name,
+                pk="?",
+            )
+        else:
+            raise UnsupportedDialectException(
+                "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
+            )
+        return sql

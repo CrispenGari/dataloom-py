@@ -1,18 +1,18 @@
 class TestUpdateOnMySQL:
     def test_update_by_pk_fn(self):
-        from dataloom import (
-            Dataloom,
-            Model,
-            Column,
-            PrimaryKeyColumn,
-            CreatedAtColumn,
-            UpdatedAtColumn,
-            TableColumn,
-            ForeignKeyColumn,
-        )
-
+        import time
         from typing import Optional
-        import time, pytest
+
+        from dataloom import (
+            Column,
+            CreatedAtColumn,
+            Dataloom,
+            ForeignKeyColumn,
+            Model,
+            PrimaryKeyColumn,
+            TableColumn,
+            UpdatedAtColumn,
+        )
 
         sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
 
@@ -58,21 +58,22 @@ class TestUpdateOnMySQL:
         conn.close()
 
     def test_update_one_fn(self):
-        from dataloom import (
-            Dataloom,
-            Model,
-            Column,
-            PrimaryKeyColumn,
-            CreatedAtColumn,
-            UpdatedAtColumn,
-            TableColumn,
-            ForeignKeyColumn,
-            InvalidFiltersForTableColumnException,
-            InvalidColumnValuesException,
-        )
-
+        import time
         from typing import Optional
-        import time, pytest
+
+        import pytest
+
+        from dataloom import (
+            Column,
+            CreatedAtColumn,
+            Dataloom,
+            ForeignKeyColumn,
+            Model,
+            PrimaryKeyColumn,
+            TableColumn,
+            UnknownColumnException,
+            UpdatedAtColumn,
+        )
 
         sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
 
@@ -113,20 +114,12 @@ class TestUpdateOnMySQL:
 
         post = sqlite_loom.find_by_pk(Post, 1)
 
-        with pytest.raises(InvalidFiltersForTableColumnException) as exc_info:
+        with pytest.raises(UnknownColumnException) as exc_info:
             sqlite_loom.update_one(Post, {"wrong_key": "@miller"}, {"userId": 3})
-
-        assert (
-            str(exc_info.value)
-            == "There are no column filter passed to perform the UPDATE ONE operation or you passed filters that does not match columns in table 'posts'."
-        )
-
-        with pytest.raises(InvalidColumnValuesException) as exc_info:
+        assert str(exc_info.value) == "Table posts does not have column 'wrong_key'."
+        with pytest.raises(UnknownColumnException) as exc_info:
             sqlite_loom.update_one(Post, {"userId": userId}, values={"loca": "miller"})
-        assert (
-            str(exc_info.value)
-            == "There are no new values passed to perform the UPDATE ONE operation, or you don't have the CreatedAtColumn field in your table 'posts'."
-        )
+        assert str(exc_info.value) == "Table posts does not have column 'loca'."
 
         post.title == "John"
         assert res_1 == 1
@@ -134,21 +127,22 @@ class TestUpdateOnMySQL:
         conn.close()
 
     def test_update_bulk_fn(self):
-        from dataloom import (
-            Dataloom,
-            Model,
-            Column,
-            PrimaryKeyColumn,
-            CreatedAtColumn,
-            UpdatedAtColumn,
-            TableColumn,
-            ForeignKeyColumn,
-            InvalidFiltersForTableColumnException,
-            InvalidColumnValuesException,
-        )
-
+        import time
         from typing import Optional
-        import time, pytest
+
+        import pytest
+
+        from dataloom import (
+            Column,
+            CreatedAtColumn,
+            Dataloom,
+            ForeignKeyColumn,
+            Model,
+            PrimaryKeyColumn,
+            TableColumn,
+            UnknownColumnException,
+            UpdatedAtColumn,
+        )
 
         sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
 
@@ -189,20 +183,12 @@ class TestUpdateOnMySQL:
 
         post = sqlite_loom.find_by_pk(Post, 1)
 
-        with pytest.raises(InvalidFiltersForTableColumnException) as exc_info:
-            sqlite_loom.update_bulk(Post, {"wrong_key": "@miller"}, {"userId": 3})
-
-        assert (
-            str(exc_info.value)
-            == "There are no column filter passed to perform the UPDATE ONE operation or you passed filters that does not match columns in table 'posts'."
-        )
-
-        with pytest.raises(InvalidColumnValuesException) as exc_info:
-            sqlite_loom.update_bulk(Post, {"userId": userId}, values={"loca": "miller"})
-        assert (
-            str(exc_info.value)
-            == "There are no new values passed to perform the UPDATE ONE operation, or you don't have the CreatedAtColumn field in your table 'posts'."
-        )
+        with pytest.raises(UnknownColumnException) as exc_info:
+            sqlite_loom.update_one(Post, {"wrong_key": "@miller"}, {"userId": 3})
+        assert str(exc_info.value) == "Table posts does not have column 'wrong_key'."
+        with pytest.raises(UnknownColumnException) as exc_info:
+            sqlite_loom.update_one(Post, {"userId": userId}, values={"loca": "miller"})
+        assert str(exc_info.value) == "Table posts does not have column 'loca'."
 
         post.title == "John"
         assert res_1 == 5

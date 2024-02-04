@@ -15,7 +15,7 @@ class TestCreatingTableSQlite:
             name = Column(type="varchar", unique=True, length=255)
 
         with pytest.raises(Exception) as exc_info:
-            tables = sqlite_loom.sync([User], drop=True, force=True)
+            _ = sqlite_loom.sync([User], drop=True, force=True)
         assert (
             str(exc_info.value)
             == "You have defined many field as primary keys which is not allowed. Fields (`_id`, `id`) are primary keys."
@@ -36,7 +36,7 @@ class TestCreatingTableSQlite:
             name = Column(type="varchar", unique=True, length=255)
 
         with pytest.raises(Exception) as exc_info:
-            tables = sqlite_loom.sync([User], drop=True, force=True)
+            _ = sqlite_loom.sync([User], drop=True, force=True)
         assert str(exc_info.value) == "Your table does not have a primary key column."
         conn.close()
 

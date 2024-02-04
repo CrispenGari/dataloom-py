@@ -1,18 +1,21 @@
 class TestUpdateOnMySQL:
     def test_update_by_pk_fn(self):
+        import time
+        from typing import Optional
+
+        import pytest
+
         from dataloom import (
-            Dataloom,
-            Model,
             Column,
-            PrimaryKeyColumn,
             CreatedAtColumn,
-            UpdatedAtColumn,
-            TableColumn,
+            Dataloom,
             ForeignKeyColumn,
+            Model,
+            PrimaryKeyColumn,
+            TableColumn,
+            UpdatedAtColumn,
         )
         from dataloom.keys import MySQLConfig
-        from typing import Optional
-        import time, pytest
 
         mysql_loom = Dataloom(
             dialect="mysql",
@@ -69,21 +72,23 @@ class TestUpdateOnMySQL:
         conn.close()
 
     def test_update_one_fn(self):
+        import time
+        from typing import Optional
+
+        import pytest
+
         from dataloom import (
-            Dataloom,
-            Model,
             Column,
-            PrimaryKeyColumn,
             CreatedAtColumn,
-            UpdatedAtColumn,
-            TableColumn,
+            Dataloom,
             ForeignKeyColumn,
-            InvalidFiltersForTableColumnException,
-            InvalidColumnValuesException,
+            Model,
+            PrimaryKeyColumn,
+            TableColumn,
+            UnknownColumnException,
+            UpdatedAtColumn,
         )
         from dataloom.keys import MySQLConfig
-        from typing import Optional
-        import time, pytest
 
         mysql_loom = Dataloom(
             dialect="mysql",
@@ -134,21 +139,12 @@ class TestUpdateOnMySQL:
 
         assert exc_info.value.errno == 1366
         exc_info.value.msg = "Incorrect integer value: 'Gari' for column 'id' at row 1"
-
-        with pytest.raises(InvalidFiltersForTableColumnException) as exc_info:
+        with pytest.raises(UnknownColumnException) as exc_info:
             mysql_loom.update_one(Post, {"wrong_key": "@miller"}, {"userId": 3})
-
-        assert (
-            str(exc_info.value)
-            == "There are no column filter passed to perform the UPDATE ONE operation or you passed filters that does not match columns in table 'posts'."
-        )
-
-        with pytest.raises(InvalidColumnValuesException) as exc_info:
+        assert str(exc_info.value) == "Table posts does not have column 'wrong_key'."
+        with pytest.raises(UnknownColumnException) as exc_info:
             mysql_loom.update_one(Post, {"userId": userId}, values={"loca": "miller"})
-        assert (
-            str(exc_info.value)
-            == "There are no new values passed to perform the UPDATE ONE operation, or you don't have the CreatedAtColumn field in your table 'posts'."
-        )
+        assert str(exc_info.value) == "Table posts does not have column 'loca'."
 
         post.title == "John"
         assert res_1 == 1
@@ -156,21 +152,23 @@ class TestUpdateOnMySQL:
         conn.close()
 
     def test_update_bulk_fn(self):
+        import time
+        from typing import Optional
+
+        import pytest
+
         from dataloom import (
-            Dataloom,
-            Model,
             Column,
-            PrimaryKeyColumn,
             CreatedAtColumn,
-            UpdatedAtColumn,
-            TableColumn,
+            Dataloom,
             ForeignKeyColumn,
-            InvalidFiltersForTableColumnException,
-            InvalidColumnValuesException,
+            Model,
+            PrimaryKeyColumn,
+            TableColumn,
+            UnknownColumnException,
+            UpdatedAtColumn,
         )
         from dataloom.keys import MySQLConfig
-        from typing import Optional
-        import time, pytest
 
         mysql_loom = Dataloom(
             dialect="mysql",
@@ -222,20 +220,12 @@ class TestUpdateOnMySQL:
         assert exc_info.value.errno == 1366
         exc_info.value.msg = "Incorrect integer value: 'Gari' for column 'id' at row 1"
 
-        with pytest.raises(InvalidFiltersForTableColumnException) as exc_info:
-            mysql_loom.update_bulk(Post, {"wrong_key": "@miller"}, {"userId": 3})
-
-        assert (
-            str(exc_info.value)
-            == "There are no column filter passed to perform the UPDATE ONE operation or you passed filters that does not match columns in table 'posts'."
-        )
-
-        with pytest.raises(InvalidColumnValuesException) as exc_info:
-            mysql_loom.update_bulk(Post, {"userId": userId}, values={"loca": "miller"})
-        assert (
-            str(exc_info.value)
-            == "There are no new values passed to perform the UPDATE ONE operation, or you don't have the CreatedAtColumn field in your table 'posts'."
-        )
+        with pytest.raises(UnknownColumnException) as exc_info:
+            mysql_loom.update_one(Post, {"wrong_key": "@miller"}, {"userId": 3})
+        assert str(exc_info.value) == "Table posts does not have column 'wrong_key'."
+        with pytest.raises(UnknownColumnException) as exc_info:
+            mysql_loom.update_one(Post, {"userId": userId}, values={"loca": "miller"})
+        assert str(exc_info.value) == "Table posts does not have column 'loca'."
 
         post.title == "John"
         assert res_1 == 5

@@ -285,8 +285,8 @@ class Dataloom:
         row_count = self._execute_sql(sql, args=tuple(values), fetchall=True, bulk=True)
         return row_count
 
-    def find_many[T](self, instance: Model, filters: dict = {}) -> list[T]:
-        sql, fields, params = instance._get_select_where_stm(
+    def find_many(self, instance: Model, filters: dict = {}) -> list:
+        sql, params, fields = instance._get_select_where_stm(
             dialect=self.dialect, args=filters
         )
         data = list()
@@ -296,7 +296,7 @@ class Dataloom:
             data.append(instance(**res))
         return data
 
-    def find_all[T](self, instance: Model) -> list[T]:
+    def find_all(self, instance: Model) -> list:
         sql, fields, params = instance._get_select_where_stm(dialect=self.dialect)
         data = list()
         rows = self._execute_sql(sql, fetchall=True)
@@ -312,7 +312,7 @@ class Dataloom:
         return None if row is None else instance(**dict(zip(fields, row)))
 
     def find_one(self, instance: Model, filters: dict = {}):
-        sql, fields, params = instance._get_select_where_stm(
+        sql, params, fields = instance._get_select_where_stm(
             dialect=self.dialect, args=filters
         )
         row = self._execute_sql(sql, args=params, fetchone=True)
@@ -340,32 +340,30 @@ class Dataloom:
         affected_rows = self._execute_sql(sql, args=args, affected_rows=True)
         return affected_rows
 
+    def delete_by_pk(self, instance: Model, pk):
+        sql = instance._get_delete_by_pk_stm(dialect=self.dialect)
+        affected_rows = self._execute_sql(
+            sql, args=(pk,), affected_rows=True, fetchall=True
+        )
+        return affected_rows
 
-#     def delete_bulk(self, instance: Model, filters: dict = {}):
-#         sql, params = instance._get_delete_bulk_where_stm(filters)
-#         affected_rows = self._execute_sql(
-#             sql, args=params, affected_rows=True, fetchall=True
-#         )
-#         return affected_rows
+    def delete_one(self, instance: Model, filters: dict = {}):
+        sql, params = instance._get_delete_where_stm(
+            dialect=self.dialect,
+            filters=filters,
+        )
 
-#     def delete_one(self, instance: Model, filters: dict = {}):
-#         pk = None
-#         for name, field in inspect.getmembers(instance):
-#             if isinstance(field, PrimaryKeyColumn):
-#                 pk = name
-#         sql, params = instance._get_delete_where_stm(pk=pk, args=filters)
-#         affected_rows = self._execute_sql(sql, args=params, affected_rows=True)
-#         return affected_rows
+        print(sql, params)
 
-#     def delete_by_pk(self, instance: Model, pk):
-#         # what is the name of the primary key column?
-#         pk_name = "id"
-#         for name, field in inspect.getmembers(instance):
-#             if isinstance(field, PrimaryKeyColumn):
-#                 pk_name = name
+        # affected_rows = self._execute_sql(sql, args=params, affected_rows=True)
+        # return affected_rows
 
-#         sql, pk = instance._get_delete_by_pk_stm(pk, pk_name)
-#         affected_rows = self._execute_sql(
-#             sql, args=(pk,), affected_rows=True, fetchall=True
-#         )
-#         return affected_rows
+    def delete_bulk(self, instance: Model, filters: dict = {}):
+        sql, params = instance._get_delete_bulk_where_stm(
+            dialect=self.dialect,
+            filters=filters,
+        )
+        affected_rows = self._execute_sql(
+            sql, args=params, affected_rows=True, fetchall=True
+        )
+        return affected_rows

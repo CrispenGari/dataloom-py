@@ -20,3 +20,7 @@ class InvalidFiltersForTableColumnException(ValueError):
 
 class InvalidColumnValuesException(ValueError):
     pass
+
+
+class UnknownColumnException(ValueError):
+    pass

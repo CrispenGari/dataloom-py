@@ -1,18 +1,21 @@
 class TestUpdateOnPG:
     def test_update_by_pk_fn(self):
+        import time
+        from typing import Optional
+
+        import pytest
+
         from dataloom import (
-            Dataloom,
-            Model,
             Column,
-            PrimaryKeyColumn,
             CreatedAtColumn,
-            UpdatedAtColumn,
-            TableColumn,
+            Dataloom,
             ForeignKeyColumn,
+            Model,
+            PrimaryKeyColumn,
+            TableColumn,
+            UpdatedAtColumn,
         )
         from dataloom.keys import PgConfig
-        from typing import Optional
-        import time, pytest
 
         pg_loom = Dataloom(
             dialect="postgres",
@@ -67,21 +70,23 @@ class TestUpdateOnPG:
         conn.close()
 
     def test_update_one_fn(self):
+        import time
+        from typing import Optional
+
+        import pytest
+
         from dataloom import (
-            Dataloom,
-            Model,
             Column,
-            PrimaryKeyColumn,
             CreatedAtColumn,
-            UpdatedAtColumn,
-            TableColumn,
+            Dataloom,
             ForeignKeyColumn,
-            InvalidFiltersForTableColumnException,
-            InvalidColumnValuesException,
+            Model,
+            PrimaryKeyColumn,
+            TableColumn,
+            UnknownColumnException,
+            UpdatedAtColumn,
         )
         from dataloom.keys import PgConfig
-        from typing import Optional
-        import time, pytest
 
         pg_loom = Dataloom(
             dialect="postgres",
@@ -128,20 +133,12 @@ class TestUpdateOnPG:
         with pytest.raises(Exception) as exc_info:
             pg_loom.update_one(User, {"username": "@miller"}, {"id": "Gari"})
         assert exc_info.value.pgcode == "22P02"
-        with pytest.raises(InvalidFiltersForTableColumnException) as exc_info:
-            pg_loom.update_one(User, {"wrong_key": "@miller"}, {"username": "miller"})
-
-        assert (
-            str(exc_info.value)
-            == "There are no column filter passed to perform the UPDATE ONE operation or you passed filters that does not match columns in table 'users'."
-        )
-
-        with pytest.raises(InvalidColumnValuesException) as exc_info:
+        with pytest.raises(UnknownColumnException) as exc_info:
+            pg_loom.update_one(Post, {"wrong_key": "@miller"}, {"userId": 3})
+        assert str(exc_info.value) == "Table posts does not have column 'wrong_key'."
+        with pytest.raises(UnknownColumnException) as exc_info:
             pg_loom.update_one(Post, {"userId": userId}, values={"loca": "miller"})
-        assert (
-            str(exc_info.value)
-            == "There are no new values passed to perform the UPDATE ONE operation, or you don't have the CreatedAtColumn field in your table 'posts'."
-        )
+        assert str(exc_info.value) == "Table posts does not have column 'loca'."
 
         assert me.createdAt != me.updatedAt
         assert res_1 == 1
@@ -149,21 +146,22 @@ class TestUpdateOnPG:
         conn.close()
 
     def test_update_bulk_fn(self):
+        from typing import Optional
+
+        import pytest
+
         from dataloom import (
-            Dataloom,
-            Model,
             Column,
-            PrimaryKeyColumn,
             CreatedAtColumn,
-            UpdatedAtColumn,
-            TableColumn,
+            Dataloom,
             ForeignKeyColumn,
-            InvalidFiltersForTableColumnException,
-            InvalidColumnValuesException,
+            Model,
+            PrimaryKeyColumn,
+            TableColumn,
+            UnknownColumnException,
+            UpdatedAtColumn,
         )
         from dataloom.keys import PgConfig
-        from typing import Optional
-        import time, pytest
 
         pg_loom = Dataloom(
             dialect="postgres",
@@ -208,20 +206,14 @@ class TestUpdateOnPG:
         with pytest.raises(Exception) as exc_info:
             pg_loom.update_bulk(Post, {"userId": userId}, {"userId": "Gari"})
         assert exc_info.value.pgcode == "22P02"
-        with pytest.raises(InvalidFiltersForTableColumnException) as exc_info:
-            pg_loom.update_bulk(Post, {"wrong_key": "@miller"}, {"userId": 3})
+        with pytest.raises(UnknownColumnException) as exc_info:
+            pg_loom.update_one(Post, {"wrong_key": "@miller"}, {"userId": 3})
+        assert str(exc_info.value) == "Table posts does not have column 'wrong_key'."
 
-        assert (
-            str(exc_info.value)
-            == "There are no column filter passed to perform the UPDATE ONE operation or you passed filters that does not match columns in table 'posts'."
-        )
+        with pytest.raises(UnknownColumnException) as exc_info:
+            pg_loom.update_one(Post, {"userId": userId}, values={"loca": "miller"})
+        assert str(exc_info.value) == "Table posts does not have column 'loca'."
 
-        with pytest.raises(InvalidColumnValuesException) as exc_info:
-            pg_loom.update_bulk(Post, {"userId": userId}, values={"loca": "miller"})
-        assert (
-            str(exc_info.value)
-            == "There are no new values passed to perform the UPDATE ONE operation, or you don't have the CreatedAtColumn field in your table 'posts'."
-        )
         assert res_1 == 5
         assert res_2 == 0
         conn.close()

@@ -1,4 +1,13 @@
 class MySqlStatements:
+    # delete
+    DELETE_BY_PK = "DELETE FROM {table_name} WHERE {pk_name} = {pk};"
+    DELETE_ONE_WHERE_COMMAND = """
+    DELETE FROM {table_name} WHERE {pk_name} = (
+        SELECT {pk_name} FROM  {table_name} WHERE {filters} LIMIT 1
+    );
+    """
+    DELETE_BULK_WHERE_COMMAND = "DELETE FROM {table_name} WHERE {filters};"
+    DELETE_ALL_COMMAND = "DELETE FROM {table_name};"
     # updates
     UPDATE_BY_PK_COMMAND = (
         "UPDATE {table_name} SET {placeholder_values} WHERE {pk_name} = {pk};"
@@ -39,6 +48,15 @@ class MySqlStatements:
 
 
 class Sqlite3Statements:
+    # delete
+    DELETE_BY_PK = "DELETE FROM {table_name} WHERE {pk_name} = {pk};"
+    DELETE_ONE_WHERE_COMMAND = """
+    DELETE FROM {table_name} WHERE {pk_name} = (
+        SELECT {pk_name} FROM  {table_name} WHERE {filters} LIMIT 1
+    );
+    """
+    DELETE_BULK_WHERE_COMMAND = "DELETE FROM {table_name} WHERE {filters};"
+    DELETE_ALL_COMMAND = "DELETE FROM {table_name};"
 
     # updates
     UPDATE_BY_PK_COMMAND = (
