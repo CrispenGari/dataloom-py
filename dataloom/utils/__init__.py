@@ -7,7 +7,16 @@ from dataloom.columns import (
     ForeignKeyColumn,
     PrimaryKeyColumn,
 )
-from dataloom.types import Include, DIALECT_LITERAL
+from dataloom.types import Include, DIALECT_LITERAL, OPERATOR_LITERAL, SLQ_OPERATORS
+from dataloom.exceptions import InvalidOperatorException
+
+
+def get_operator(op: OPERATOR_LITERAL) -> str:
+    if op not in SLQ_OPERATORS:
+        raise InvalidOperatorException(
+            f"The operator '{op}' is not supported by dataloom, suported operators are ({', '.join(SLQ_OPERATORS.keys())})."
+        )
+    return SLQ_OPERATORS[op]
 
 
 def get_child_table_columns(include: Include) -> dict:

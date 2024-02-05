@@ -8,6 +8,7 @@ from dataloom import (
     TableColumn,
     ForeignKeyColumn,
     Order,
+    Filter,
     Include,
 )
 from typing import Optional
@@ -71,16 +72,15 @@ userId = pg_loom.insert_one(user)
 categoryId = pg_loom.insert_one(cate)
 post = Post(title="What are you doing?", userId=userId, categoryId=categoryId)
 post_id = pg_loom.insert_bulk([post for i in range(5)])
-posts = pg_loom.find_by_pk(
+
+post = pg_loom.find_one(
     Post,
-    1,
+    filters=[
+        Filter(column="id", operator="eq", value=4, join_next_filter_with="AND"),
+        Filter(column="userId", operator="eq", value=1),
+    ],
+    offset=2,
     select=["id", "completed", "title", "createdAt"],
-    # limit=3,
-    # offset=1,
-    # order=[
-    #     Order(column="createdAt", order="ASC"),
-    #     Order(column="id", order="DESC"),
-    # ],
     include=[
         Include(
             model=User,
@@ -91,14 +91,89 @@ posts = pg_loom.find_by_pk(
     ],
     return_dict=True,
 )
+print(post)
 
+post = pg_loom.find_by_pk(
+    Post,
+    pk=1,
+    select=["id", "completed", "title", "createdAt"],
+    include=[
+        Include(
+            model=User,
+            select=["id", "username", "name"],
+            limit=1,
+            offset=0,
+        ),
+    ],
+    return_dict=True,
+)
+print(post)
+
+
+posts = pg_loom.find_one(
+    Post,
+    filters=[
+        Filter(column="id", operator="eq", value=1, join_next_filter_with="AND"),
+        Filter(column="userId", operator="eq", value=1),
+    ],
+    select=["id", "completed", "title", "createdAt"],
+    include=[
+        Include(
+            model=User,
+            select=["id", "username", "name"],
+            limit=1,
+            offset=0,
+        ),
+    ],
+    return_dict=True,
+)
+print(posts)
+
+posts = pg_loom.find_all(
+    Post,
+    select=["id", "completed", "title", "createdAt"],
+    limit=3,
+    offset=0,
+    order=[
+        Order(column="createdAt", order="ASC"),
+        Order(column="id", order="DESC"),
+    ],
+    include=[
+        Include(
+            model=User,
+            select=["id", "username", "name"],
+            limit=1,
+            offset=0,
+        ),
+    ],
+    return_dict=True,
+)
+print(posts)
+posts = pg_loom.find_many(
+    Post,
+    filters=[
+        Filter(column="id", operator="eq", value=1, join_next_filter_with="AND"),
+        Filter(column="userId", operator="eq", value=1),
+    ],
+    select=["id", "completed", "title", "createdAt"],
+    limit=10,
+    offset=0,
+    order=[
+        Order(column="createdAt", order="ASC"),
+        Order(column="id", order="DESC"),
+    ],
+    include=[
+        Include(
+            model=User,
+            select=["id", "username", "name"],
+            limit=1,
+            offset=0,
+        ),
+    ],
+    return_dict=True,
+)
 print(posts)
 
 
-print(posts)
-
-# if __name__ == "__main__":
-#     conn.close()
-
-
-# class Order:
+if __name__ == "__main__":
+    conn.close()

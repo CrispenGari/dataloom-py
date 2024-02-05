@@ -57,6 +57,41 @@ class MySqlStatements:
         "SELECT {column_names} FROM {table_name} WHERE {filters} {options};".strip()
     )
 
+    # -------------- subqueries
+
+    SELECT_BY_PK_INCLUDE_COMMAND = """
+        SELECT 
+            {parent_columns},
+            {child_columns}
+        FROM 
+            {parent_table_name} parent
+        {joins}
+        WHERE 
+            parent.{parent_pk_name} = {parent_pk};
+    """
+
+    SELECT_WHERE_INCLUDE_COMMAND = """
+        SELECT 
+            {parent_columns},
+            {child_columns}
+        FROM 
+            {parent_table_name} parent
+        {joins}
+        WHERE 
+            {filters} {options}
+        ;
+    """
+    SELECT_INCLUDE_COMMAND = """
+        SELECT 
+            {parent_columns},
+            {child_columns}
+        FROM 
+            {parent_table_name} parent
+        {joins}
+        {options}
+        ;
+    """
+
 
 class Sqlite3Statements:
     # delete
@@ -93,6 +128,41 @@ class Sqlite3Statements:
     SELECT_WHERE_COMMAND = (
         "SELECT {column_names} FROM {table_name} WHERE {filters} {options};".strip()
     )
+
+    # -------------- subqueries
+
+    SELECT_BY_PK_INCLUDE_COMMAND = """
+        SELECT 
+            {parent_columns},
+            {child_columns}
+        FROM 
+            {parent_table_name} parent
+        {joins}
+        WHERE 
+            parent.{parent_pk_name} = {parent_pk};
+    """
+
+    SELECT_WHERE_INCLUDE_COMMAND = """
+        SELECT 
+            {parent_columns},
+            {child_columns}
+        FROM 
+            {parent_table_name} parent
+        {joins}
+        WHERE 
+            {filters} {options}
+        ;
+    """
+    SELECT_INCLUDE_COMMAND = """
+        SELECT 
+            {parent_columns},
+            {child_columns}
+        FROM 
+            {parent_table_name} parent
+        {joins}
+        {options}
+        ;
+    """
 
     # dropping table
     DROP_TABLE = "DROP TABLE IF EXISTS {table_name};"
@@ -157,6 +227,28 @@ class PgStatements:
         {joins}
         WHERE 
             parent.{parent_pk_name} = {parent_pk};
+    """
+
+    SELECT_WHERE_INCLUDE_COMMAND = """
+        SELECT 
+            {parent_columns},
+            {child_columns}
+        FROM 
+            {parent_table_name} parent
+        {joins}
+        WHERE 
+            {filters} {options}
+        ;
+    """
+    SELECT_INCLUDE_COMMAND = """
+        SELECT 
+            {parent_columns},
+            {child_columns}
+        FROM 
+            {parent_table_name} parent
+        {joins}
+        {options}
+        ;
     """
 
     # insert

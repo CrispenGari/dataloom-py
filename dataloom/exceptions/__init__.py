@@ -24,3 +24,7 @@ class InvalidColumnValuesException(ValueError):
 
 class UnknownColumnException(ValueError):
     pass
+
+
+class InvalidOperatorException(ValueError):
+    pass

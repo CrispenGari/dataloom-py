@@ -1,6 +1,32 @@
-from typing_extensions import Literal
+from typing_extensions import Literal, Any
 from dataclasses import dataclass, field
 from typing import Optional
+
+OPERATOR_LITERAL = Literal["eq", "lt", "gt", "leq", "geq", "in", "notIn", "like"]
+SLQ_OPERAND_LITERAL = Literal["AND", "OR"]
+
+SLQ_OPERATORS = {
+    "eq": "=",
+    "lt": "<",
+    "gt": ">",
+    "leq": "<=",
+    "geq": ">=",
+    "in": "IN",
+    "notIn": "NOT IN",
+    "like": "LIKE",
+}
+SLQ_OPERAND = {
+    "AND": "AND",
+    "OR": "OR",
+}
+
+
+@dataclass(kw_only=True, repr=False)
+class Filter:
+    column: str = field(repr=False)
+    operator: OPERATOR_LITERAL = field(repr=False, default="eq")
+    value: Any = field(repr=False)
+    join_next_filter_with: Optional[SLQ_OPERAND_LITERAL] = field(default="AND")
 
 
 @dataclass(kw_only=True, repr=False)

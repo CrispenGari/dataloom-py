@@ -12,7 +12,8 @@ from dataloom.columns import (
 from dataloom.statements import GetStatement
 from dataloom.types import Order, Include
 from typing import Optional
-from dataloom.types import DIALECT_LITERAL
+from dataloom.types import DIALECT_LITERAL, Filter
+from dataloom.utils import get_operator
 
 
 class Model:
@@ -200,18 +201,20 @@ class Model:
     def _get_select_where_stm(
         cls,
         dialect: DIALECT_LITERAL,
-        args: dict = {},
+        filters: Optional[Filter | list[Filter]] = None,
         select: list[str] = [],
         limit: Optional[int] = None,
         offset: Optional[int] = None,
         order: Optional[list[Order]] = [],
         include: list[Include] = [],
     ):
+        pk_name = None
         orders = list()
         fields = []
-        filters = []
-        params = []
+        query_params = []
         includes = []
+        # what are the foreign keys?
+        fks = dict()
 
         for _include in include:
             includes.append(cls._get_child_table_params(_include))
@@ -221,8 +224,11 @@ class Model:
                 fields.append(name)
             elif isinstance(field, ForeignKeyColumn):
                 fields.append(name)
+                table_name = field.table._get_table_name()
+                fks[table_name] = name
             elif isinstance(field, PrimaryKeyColumn):
                 fields.append(name)
+                pk_name = name
             elif isinstance(field, CreatedAtColumn):
                 fields.append(name)
             elif isinstance(field, UpdatedAtColumn):
@@ -244,23 +250,43 @@ class Model:
                 raise UnknownColumnException(
                     f'The table "{cls._get_table_name()}" does not have a column "{column}".'
                 )
-        for key, value in args.items():
-            _key = (
-                f'"{key}" = %s'
-                if dialect == "postgres"
-                else f"`{
-                key}` = {'%s' if dialect == 'mysql' else '?'}"
-            )
-            if key not in fields:
-                raise UnknownColumnException(
-                    f"Table {cls._get_table_name()} does not have column '{key}'."
-                )
-            else:
-                filters.append(_key)
-                params.append(value)
 
+        if filters is not None:
+            if isinstance(filters, list):
+                for idx, filter in enumerate(filters):
+                    key = filter.column
+                    if key not in fields:
+                        raise UnknownColumnException(
+                            f"Table {cls._get_table_name()} does not have column '{key}'."
+                        )
+                    op = get_operator(filter.operator)
+                    join = (
+                        ""
+                        if len(filters) == idx + 1
+                        else f" {filter.join_next_filter_with}"
+                    )
+                    _key = (
+                        f'"{key}" {op} %s {join}'
+                        if dialect == "postgres"
+                        else f"`{key}` {op} {'%s' if dialect == 'mysql' else '?'} {join}"
+                    )
+                    query_params.append((_key, filter.value))
+            else:
+                filter = filters
+                key = filter.column
+                if key not in fields:
+                    raise UnknownColumnException(
+                        f"Table {cls._get_table_name()} does not have column '{key}'."
+                    )
+                op = get_operator(filter.operator)
+                _key = (
+                    f'"{key}" {op} %s'
+                    if dialect == "postgres"
+                    else f"`{key}` {op} {'%s' if dialect == 'mysql' else '?'}"
+                )
+                query_params.append((_key, filter.value))
         if dialect == "postgres" or "mysql" or "sqlite":
-            if len(filters) == 0:
+            if len(query_params) == 0:
                 sql = GetStatement(
                     dialect=dialect, model=cls, table_name=cls._get_table_name()
                 )._get_select_command(
@@ -268,22 +294,32 @@ class Model:
                     limit=limit,
                     offset=offset,
                     orders=orders,
+                    includes=includes,
+                    fks=fks,
+                    pk_name=pk_name,
                 )
             else:
                 sql = GetStatement(
                     dialect=dialect, model=cls, table_name=cls._get_table_name()
                 )._get_select_where_command(
-                    filters=filters,
+                    query_params=query_params,
                     fields=fields if len(select) == 0 else select,
                     limit=limit,
                     offset=offset,
                     orders=orders,
+                    includes=includes,
+                    fks=fks,
+                    pk_name=pk_name,
                 )
         else:
             raise UnsupportedDialectException(
                 "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
             )
-        return sql, params, fields if len(select) == 0 else select
+        return (
+            sql,
+            [qp[1] for qp in query_params],
+            fields if len(select) == 0 else select,
+        )
 
     @classmethod
     def _get_select_by_pk_stm(

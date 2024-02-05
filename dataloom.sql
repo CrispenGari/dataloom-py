@@ -3291,3 +3291,1142 @@ REMENT UNIQUE NOT NULL, `name` VARCHAR(255) NOT NULL DEFAULT 'Bob', `username` V
 [2024-02-05 11:22:33.431540] : Dataloom[sqlite]: UPDATE `posts` SET `title` = ? WHERE `userId` = ?;
 [2024-02-05 11:22:33.467540] : Dataloom[sqlite]: UPDATE `posts` SET `title` = ? WHERE `userId` = ?;
 [2024-02-05 11:22:33.497540] : Dataloom[sqlite]: SELECT `completed`, `createdAt`, `id`, `title`, `userId` FROM `posts` WHERE `id` = ?;
+[2024-02-05 11:23:23.444460] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 11:23:23.489299] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 11:23:23.541815] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 11:23:23.583453] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 11:23:23.629528] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 11:23:23.664508] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 11:23:23.697786] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 11:23:23.736788] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 11:23:23.772802] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 11:23:23.806346] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 11:23:23.843349] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        WHERE 
+            parent."id" = %s;
+    
+[2024-02-05 11:35:06.568095] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 11:35:06.621399] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 11:35:06.675162] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 11:35:06.715140] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 11:35:06.754144] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 11:35:06.788140] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 11:35:06.817141] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 11:35:06.849152] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 11:35:06.879173] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 11:35:06.903139] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 11:35:23.137640] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 11:35:23.208266] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 11:35:23.293500] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 11:35:23.363331] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 11:35:23.440222] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 11:35:23.510982] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 11:35:23.569053] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 11:35:23.641988] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 11:35:23.704978] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 11:35:23.759970] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 11:35:23.813976] : Dataloom[postgres]: SELECT "id", "completed", "title", "createdAt" FROM "posts"   ;
+[2024-02-05 12:02:49.378217] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 12:02:49.461990] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 12:02:49.560369] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 12:02:49.621986] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 12:02:49.694573] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 12:02:49.768128] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 12:02:49.800125] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 12:02:49.845559] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 12:02:49.891563] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 12:02:49.935560] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 12:03:08.873766] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 12:03:08.922204] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 12:03:08.972201] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 12:03:09.011200] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 12:03:09.057198] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 12:03:09.095201] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 12:03:09.127222] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 12:03:09.169231] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 12:03:09.207213] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 12:03:09.248204] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 12:03:54.152951] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 12:03:54.197944] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 12:03:54.249943] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 12:03:54.288169] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 12:03:54.333038] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 12:03:54.375043] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 12:03:54.411204] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 12:03:54.450036] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 12:03:54.482041] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 12:03:54.513030] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 12:04:03.023308] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 12:04:03.065348] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 12:04:03.115381] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 12:04:03.155986] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 12:04:03.199986] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 12:04:03.234162] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 12:04:03.267869] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 12:04:03.309400] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 12:04:03.340401] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 12:04:03.376398] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 12:09:23.119845] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 12:09:23.164256] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 12:09:23.216772] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 12:09:23.258792] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 12:09:23.303793] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 12:09:23.338753] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 12:09:23.370900] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 12:09:23.407796] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 12:09:23.442812] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 12:09:23.488416] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 12:10:24.403611] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 12:10:24.476590] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 12:10:24.568589] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 12:10:24.626587] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 12:10:24.747608] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 12:10:24.811002] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 12:10:24.859760] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 12:10:24.916765] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 12:10:25.066768] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 12:10:25.102765] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 12:12:32.451098] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 12:12:32.495690] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 12:12:32.551691] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 12:12:32.597148] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 12:12:32.658145] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 12:12:32.700212] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 12:12:32.751214] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 12:12:32.800215] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 12:12:32.831213] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 12:12:32.861213] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 12:12:47.545121] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 12:12:47.592454] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 12:12:47.651738] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 12:12:47.690792] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 12:12:47.735737] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 12:12:47.772730] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 12:12:47.808787] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 12:12:47.851726] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 12:12:47.883704] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 12:12:47.915747] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 12:12:47.950716] : Dataloom[postgres]: SELECT "id", "completed", "title", "createdAt" FROM "posts" WHERE "id" = %s   ;
+[2024-02-05 12:56:26.655712] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 12:56:26.678712] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 12:56:26.704207] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 12:56:26.727198] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 12:56:26.749199] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 12:56:26.768200] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 12:56:26.786920] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 12:56:26.808965] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 12:56:26.827923] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 12:56:26.843922] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 12:56:26.859920] : Dataloom[postgres]: SELECT "id", "completed", "title", "createdAt" FROM "posts" WHERE "id" = %s   ;
+[2024-02-05 13:18:15.341984] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 13:18:15.365310] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 13:18:15.385704] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 13:18:15.410706] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 13:18:15.437669] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 13:18:15.453704] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 13:18:15.470669] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 13:18:15.492673] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 13:18:15.507673] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 13:18:15.525670] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 13:18:15.543669] : Dataloom[postgres]: SELECT "id", "completed", "title", "createdAt" FROM "posts" WHERE "id" = %s  AND "userId" = %s    ;
+[2024-02-05 13:18:34.529163] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 13:18:34.555136] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 13:18:34.581209] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 13:18:34.602614] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 13:18:34.624596] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 13:18:34.641612] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 13:18:34.656586] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 13:18:34.676584] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 13:18:34.694616] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 13:18:34.711616] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 13:18:34.727616] : Dataloom[postgres]: SELECT "id", "completed", "title", "createdAt" FROM "posts" WHERE "id" = %s  OR "userId" = %s    ;
+[2024-02-05 13:18:48.773664] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 13:18:48.796626] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 13:18:48.819632] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 13:18:48.839728] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 13:18:48.863659] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 13:18:48.886634] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 13:18:48.906629] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 13:18:48.927209] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 13:18:48.944796] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 13:18:48.962758] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 13:18:48.977897] : Dataloom[postgres]: SELECT "id", "completed", "title", "createdAt" FROM "posts" WHERE "id" = %s  AND "userId" = %s    ;
+[2024-02-05 13:37:16.789550] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 13:37:16.835396] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 13:37:16.887999] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 13:37:16.926998] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 13:37:16.969997] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 13:37:17.007005] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 13:37:17.042000] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 13:37:17.083015] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 13:37:17.113040] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 13:37:17.144997] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 13:37:17.184039] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        WHERE 
+            parent.id = %s;
+    
+[2024-02-05 13:47:17.766474] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 13:47:17.811470] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 13:47:17.861475] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 13:47:17.898505] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 13:47:17.939473] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 13:47:17.973464] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 13:47:18.006580] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 13:47:18.047154] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 13:47:18.079154] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 13:47:18.109186] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 13:47:18.145152] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        WHERE 
+            "id" = %s  AND "userId" = %s  
+    
+[2024-02-05 13:50:39.761926] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 13:50:39.793939] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 13:50:39.832943] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 13:50:39.864402] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 13:50:39.904403] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 13:50:39.943406] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 13:50:39.980613] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 13:50:40.021589] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 13:50:40.054581] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 13:50:40.092289] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 13:50:40.138291] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        WHERE 
+            parent."id" = %s  AND parent."userId" = %s  
+    
+[2024-02-05 13:53:33.566629] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 13:53:33.609086] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 13:53:33.661091] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 13:53:33.700165] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 13:53:33.746163] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 13:53:33.784166] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 13:53:33.814204] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 13:53:33.855164] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 13:53:33.888243] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 13:53:33.921769] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 13:53:33.961776] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        WHERE 
+            parent."id" = %s  AND parent."userId" = %s  
+    
+[2024-02-05 13:54:41.487837] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 13:54:41.531453] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 13:54:41.583488] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 13:54:41.621486] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 13:54:41.666451] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 13:54:41.701449] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 13:54:41.729929] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 13:54:41.768447] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 13:54:41.801446] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 13:54:41.831199] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 13:55:18.589782] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 13:55:18.636674] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 13:55:18.687957] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 13:55:18.727773] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 13:55:18.768774] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 13:55:18.800782] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 13:55:18.831784] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 13:55:18.874001] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 13:55:18.911002] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 13:55:18.951009] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 13:55:56.175186] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 13:55:56.222190] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 13:55:56.271902] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 13:55:56.309902] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 13:55:56.348903] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 13:55:56.382904] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 13:55:56.416998] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 13:55:56.459945] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 13:55:56.489902] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 13:55:56.520902] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 13:55:56.554600] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        WHERE 
+            parent."id" = %s  AND parent."userId" = %s  
+    
+[2024-02-05 13:59:26.808957] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 13:59:26.865017] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 13:59:26.932007] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 13:59:27.002221] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 13:59:27.052151] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 13:59:27.092151] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 13:59:27.129150] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 13:59:27.171700] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 13:59:27.199741] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 13:59:27.227701] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 13:59:27.259704] : Dataloom[postgres]: SELECT "id", "completed", "title", "createdAt" FROM "posts"   ;
+[2024-02-05 13:59:55.463240] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 13:59:55.506235] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 13:59:55.557239] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 13:59:55.598241] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 13:59:55.644241] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 13:59:55.678915] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 13:59:55.710908] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 13:59:55.751910] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 13:59:55.784919] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 13:59:55.816916] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 13:59:55.847910] : Dataloom[postgres]: SELECT "id", "completed", "title", "createdAt" FROM "posts" ORDER BY "createdAt" ASC, "id" DESC LIMIT 3 OFFSET 1;
+[2024-02-05 14:00:20.397340] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 14:00:20.440656] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 14:00:20.494461] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 14:00:20.533414] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 14:00:20.580503] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 14:00:20.616542] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 14:00:20.647504] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 14:00:20.684506] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 14:00:20.730021] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 14:00:20.771192] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 14:00:20.819185] : Dataloom[postgres]: SELECT "id", "completed", "title", "createdAt" FROM "posts" ORDER BY "createdAt" ASC, "id" DESC LIMIT 3 OFFSET 1;
+[2024-02-05 14:06:51.554629] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 14:06:51.628698] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 14:06:51.714480] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 14:06:51.778471] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 14:06:51.847950] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 14:06:51.901944] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 14:06:51.960540] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 14:06:52.022698] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 14:06:52.070160] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 14:06:52.116163] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 14:06:52.168155] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        WHERE 
+             ORDER BY "createdAt" ASC, "id" DESCLIMIT 3OFFSET 1
+    
+[2024-02-05 14:08:22.573950] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 14:08:22.653528] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 14:08:22.734115] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 14:08:22.795457] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 14:08:22.848238] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 14:08:22.886091] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 14:08:22.929092] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 14:08:22.973092] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 14:08:23.010094] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 14:08:23.053967] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 14:08:44.319738] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 14:08:44.373297] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 14:08:44.440890] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 14:08:44.493764] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 14:08:44.547758] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 14:08:44.593422] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 14:08:44.640415] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 14:08:44.689424] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 14:08:44.741839] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 14:08:44.805687] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 14:08:44.878676] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        WHERE 
+             ORDER BY "createdAt" ASC, "id" DESCLIMIT 3OFFSET 1
+    
+[2024-02-05 14:10:38.093519] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 14:10:38.141568] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 14:10:38.197618] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 14:10:38.240661] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 14:10:38.282621] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 14:10:38.319957] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 14:10:38.354952] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 14:10:38.396503] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 14:10:38.431521] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 14:10:38.468522] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 14:10:38.504940] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        WHERE 
+             ORDER BY "createdAt" ASC, "id" DESCLIMIT 3OFFSET 1
+    
+[2024-02-05 14:11:17.587962] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 14:11:17.621962] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 14:11:17.661254] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 14:11:17.702253] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 14:11:17.746254] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 14:11:17.795255] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 14:11:17.855261] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 14:11:17.920263] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 14:11:17.979476] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 14:11:18.039422] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 14:11:18.100675] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        ORDER BY "createdAt" ASC, "id" DESCLIMIT 3OFFSET 1
+    
+[2024-02-05 14:11:46.087882] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 14:11:46.137530] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 14:11:46.190894] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 14:11:46.230850] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 14:11:46.277800] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 14:11:46.314343] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 14:11:46.349343] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 14:11:46.387342] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 14:11:46.422343] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 14:11:46.449404] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 14:11:46.480350] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        ORDER BY "createdAt" ASC, "id" DESC LIMIT 3 OFFSET 1
+    
+[2024-02-05 14:12:53.539410] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 14:12:53.579368] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 14:12:53.629516] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 14:12:53.671519] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 14:12:53.711210] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 14:12:53.745253] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 14:12:53.776210] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 14:12:53.822313] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 14:12:53.873132] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 14:12:53.915337] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 14:12:53.953905] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        parent.ORDER BY "createdAt" ASC, "id" DESC parent.LIMIT 3 parent.OFFSET 1
+    
+[2024-02-05 14:14:11.999049] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 14:14:12.059060] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 14:14:12.132682] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 14:14:12.188705] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 14:14:12.249436] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 14:14:12.298030] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 14:14:12.348146] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 14:14:12.405094] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 14:14:12.438682] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 14:14:12.463686] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 14:14:12.497684] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        parent.ORDER BY "createdAt" ASC, "id" DESC parent.LIMIT 3 parent.OFFSET 1
+    
+[2024-02-05 14:20:39.357730] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 14:20:39.404726] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 14:20:39.468851] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 14:20:39.513851] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 14:20:39.557973] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 14:20:39.591851] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 14:20:39.624852] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 14:20:39.667847] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 14:20:39.701848] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 14:20:39.731848] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 14:20:39.766418] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        ORDER BY parent."createdAt" ASC, parent."id" DESC LIMIT 3 OFFSET 1
+    
+[2024-02-05 14:21:17.652896] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 14:21:17.697555] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 14:21:17.747878] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 14:21:17.787911] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 14:21:17.825926] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 14:21:17.860925] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 14:21:17.892869] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 14:21:17.933974] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 14:21:17.965986] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 14:21:17.995019] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 14:21:18.028507] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        WHERE 
+            parent."id" = %s  AND parent."userId" = %s    
+    
+[2024-02-05 14:21:18.066262] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        ORDER BY parent."createdAt" ASC, parent."id" DESC LIMIT 3 OFFSET 1
+    
+[2024-02-05 14:25:24.651954] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 14:25:24.691949] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 14:25:24.748524] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 14:25:24.783514] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 14:25:24.816229] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 14:25:24.842230] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 14:25:24.869232] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 14:25:24.902423] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 14:25:24.935427] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 14:25:24.968422] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 14:25:24.994420] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        ORDER BY parent."createdAt" ASC, parent."id" DESC LIMIT 3 OFFSET 1
+    
+[2024-02-05 14:26:03.236836] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 14:26:03.279863] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 14:26:03.343839] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 14:26:03.387419] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 14:26:03.430837] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 14:26:03.466813] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 14:26:03.498993] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 14:26:03.542018] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 14:26:03.579020] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 14:26:03.611017] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 14:26:03.644023] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        ORDER BY parent."createdAt" ASC, parent."id" DESC LIMIT 3 OFFSET 1
+    
+[2024-02-05 14:28:01.375663] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 14:28:01.422653] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 14:28:01.473885] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 14:28:01.513190] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 14:28:01.558140] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 14:28:01.599142] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 14:28:01.637138] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 14:28:01.674143] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 14:28:01.698178] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 14:28:01.730178] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 14:28:01.760140] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        ORDER BY parent."createdAt" ASC, parent."id" DESC LIMIT 3 OFFSET 1
+    
+[2024-02-05 14:30:33.580566] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 14:30:33.632678] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 14:30:33.694565] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 14:30:33.741699] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 14:30:33.789607] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 14:30:33.825600] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 14:30:33.860313] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 14:30:33.902598] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 14:30:33.928599] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 14:30:33.953598] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 14:30:53.097677] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 14:30:53.146971] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 14:30:53.202988] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 14:30:53.246603] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 14:30:53.287547] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 14:30:53.323547] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 14:30:53.357549] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 14:30:53.396546] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 14:30:53.432599] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 14:30:53.462548] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 14:30:53.496547] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        WHERE 
+            parent."id" = %s  AND parent."userId" = %s  ORDER BY "createdAt" ASC, "id" DESC LIMIT 3 OFFSET 1
+    
+[2024-02-05 14:35:08.609937] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 14:35:08.684579] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 14:35:08.766931] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 14:35:08.830925] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 14:35:08.902125] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 14:35:08.954484] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 14:35:09.008483] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 14:35:09.081476] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 14:35:09.132479] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 14:35:09.177486] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 14:35:09.229475] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        WHERE 
+            parent."id" = %s  AND parent."userId" = %s  ORDER BY parent."createdAt" ASC, parent."id" DESC LIMIT 3 OFFSET 1
+    
+[2024-02-05 14:36:45.940061] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 14:36:45.992750] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 14:36:46.056422] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 14:36:46.103411] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 14:36:46.150410] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 14:36:46.187416] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 14:36:46.223412] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 14:36:46.265409] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 14:36:46.297415] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 14:36:46.326126] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 14:36:46.360413] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        WHERE 
+            parent."id" = %s  OR parent."userId" = %s  ORDER BY parent."createdAt" ASC, parent."id" DESC LIMIT 3 OFFSET 1
+    
+[2024-02-05 14:37:25.064262] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 14:37:25.107738] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 14:37:25.165700] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 14:37:25.213688] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 14:37:25.261109] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 14:37:25.295132] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 14:37:25.325731] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 14:37:25.363790] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 14:37:25.393812] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 14:37:25.428813] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 14:37:25.459818] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        WHERE 
+            parent."id" = %s  AND parent."userId" = %s  ORDER BY parent."createdAt" ASC, parent."id" DESC LIMIT 10 OFFSET 0
+    
+[2024-02-05 14:37:40.607428] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 14:37:40.650015] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 14:37:40.704018] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 14:37:40.744054] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 14:37:40.783043] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 14:37:40.817007] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 14:37:40.859045] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 14:37:40.899049] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 14:37:40.930041] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 14:37:40.958013] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 14:37:40.996002] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        ORDER BY parent."createdAt" ASC, parent."id" DESC LIMIT 10 OFFSET 0
+    
+[2024-02-05 14:38:48.602956] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 14:38:48.652206] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 14:38:48.706090] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 14:38:48.742129] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 14:38:48.782432] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 14:38:48.817276] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 14:38:48.854529] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 14:38:48.892436] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 14:38:48.923389] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 14:38:48.956393] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 14:39:12.012923] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 14:39:12.058754] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 14:39:12.109570] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 14:39:12.149571] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 14:39:12.191662] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 14:39:12.225574] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 14:39:12.258528] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 14:39:12.299529] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 14:39:12.330523] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 14:39:12.360124] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 14:39:12.393121] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        WHERE 
+            parent."id" = %s  AND parent."userId" = %s  ORDER BY parent."createdAt" ASC, parent."id" DESC LIMIT 10 OFFSET 0
+    
+[2024-02-05 14:45:04.594247] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        WHERE 
+            parent."id" = %s  AND parent."userId" = %s  ORDER BY parent."createdAt" ASC, parent."id" DESC LIMIT 10 OFFSET 0
+    
+[2024-02-05 14:48:56.698033] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        WHERE 
+            parent."id" = %s  AND parent."userId" = %s  ORDER BY parent."createdAt" ASC, parent."id" DESC LIMIT 10 OFFSET 0
+    
+[2024-02-05 14:53:24.254470] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        WHERE 
+            parent."id" = %s  AND parent."userId" = %s  ORDER BY parent."createdAt" ASC, parent."id" DESC LIMIT 10 OFFSET 0
+    
+[2024-02-05 14:56:14.132146] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        WHERE 
+            parent."id" = %s  AND parent."userId" = %s  ORDER BY parent."createdAt" ASC, parent."id" DESC LIMIT 10 OFFSET 0
+        ;
+    
+[2024-02-05 15:00:56.143855] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 15:00:56.214542] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 15:00:56.296239] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 15:00:56.332238] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 15:00:56.367350] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 15:00:56.396819] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 15:00:56.423988] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 15:00:56.459808] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 15:00:56.488772] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 15:00:56.515768] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 15:00:56.544208] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        WHERE 
+            parent."id" = %s  AND parent."userId" = %s    
+        ;
+    
+[2024-02-05 15:00:56.575284] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        ORDER BY parent."createdAt" ASC, parent."id" DESC LIMIT 3 OFFSET 1
+        ;
+    
+[2024-02-05 15:00:56.605232] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        WHERE 
+            parent."id" = %s  AND parent."userId" = %s  ORDER BY parent."createdAt" ASC, parent."id" DESC LIMIT 10 OFFSET 0
+        ;
+    
+[2024-02-05 15:07:43.927786] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 15:07:43.980066] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 15:07:44.055836] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 15:07:44.109090] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 15:07:44.164826] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 15:07:44.210638] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 15:07:44.257881] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 15:07:44.325016] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 15:07:44.364637] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 15:07:44.405662] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 15:07:44.446651] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        WHERE 
+            parent."id" = %s  AND parent."userId" = %s    
+        ;
+    
+[2024-02-05 15:07:44.488808] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        ORDER BY parent."createdAt" ASC, parent."id" DESC LIMIT 3 OFFSET 0
+        ;
+    
+[2024-02-05 15:07:44.547753] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        WHERE 
+            parent."id" = %s  OR parent."userId" = %s  ORDER BY parent."createdAt" ASC, parent."id" DESC LIMIT 10 OFFSET 0
+        ;
+    
+[2024-02-05 15:08:29.171913] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 15:08:29.233012] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 15:08:29.319055] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 15:08:29.387924] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 15:08:29.451310] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 15:08:29.517138] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 15:08:29.571782] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 15:08:29.645994] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 15:08:29.693715] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 15:08:29.749076] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 15:08:29.800043] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        WHERE 
+            parent."id" = %s  AND parent."userId" = %s    
+        ;
+    
+[2024-02-05 15:08:29.862187] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        ORDER BY parent."createdAt" ASC, parent."id" DESC LIMIT 3 OFFSET 0
+        ;
+    
+[2024-02-05 15:08:29.932393] : Dataloom[postgres]: SELECT "id", "completed", "title", "createdAt" FROM "posts" WHERE "id" = %s  AND "userId" = %s  ORDER BY "createdAt" ASC, "id" DESC LIMIT 10 OFFSET 0;
+[2024-02-05 15:08:55.324913] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 15:08:55.368020] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 15:08:55.420069] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 15:08:55.462162] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 15:08:55.504428] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 15:08:55.539171] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 15:08:55.573346] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 15:08:55.615900] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 15:08:55.647751] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 15:08:55.682257] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 15:08:55.718950] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        WHERE 
+            parent."id" = %s  AND parent."userId" = %s    
+        ;
+    
+[2024-02-05 15:08:55.749951] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        ORDER BY parent."createdAt" ASC, parent."id" DESC LIMIT 3 OFFSET 0
+        ;
+    
+[2024-02-05 15:08:55.782719] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        WHERE 
+            parent."id" = %s  AND parent."userId" = %s  ORDER BY parent."createdAt" ASC, parent."id" DESC  
+        ;
+    
+[2024-02-05 15:10:15.994770] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 15:10:16.074120] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 15:10:16.175069] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 15:10:16.239193] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 15:10:16.303363] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 15:10:16.358955] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 15:10:16.411456] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 15:10:16.476123] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 15:10:16.523953] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 15:10:16.571706] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 15:10:16.623425] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        WHERE 
+            parent."id" = %s  AND parent."userId" = %s    
+        ;
+    
+[2024-02-05 15:10:16.677169] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        ORDER BY parent."createdAt" ASC, parent."id" DESC LIMIT 3 OFFSET 0
+        ;
+    
+[2024-02-05 15:10:16.724917] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        WHERE 
+            parent."id" = %s  AND parent."userId" = %s  ORDER BY parent."createdAt" ASC, parent."id" DESC LIMIT 10 OFFSET 0
+        ;
+    
+[2024-02-05 15:10:32.893650] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 15:10:32.948965] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 15:10:33.007473] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 15:10:33.055079] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 15:10:33.103154] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 15:10:33.139969] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 15:10:33.167922] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 15:10:33.205849] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 15:10:33.230652] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 15:10:33.256812] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 15:10:33.284914] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        WHERE 
+            parent."id" = %s  AND parent."userId" = %s    
+        ;
+    
+[2024-02-05 15:10:33.309799] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        ORDER BY parent."createdAt" ASC, parent."id" DESC LIMIT 3 OFFSET 0
+        ;
+    
+[2024-02-05 15:10:33.335863] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        WHERE 
+            parent."id" = %s  AND parent."userId" = %s  ORDER BY parent."createdAt" ASC, parent."id" DESC LIMIT 10 OFFSET 0
+        ;
+    
+[2024-02-05 15:14:41.708007] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 15:14:41.789275] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 15:14:41.883648] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 15:14:41.947297] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 15:14:42.006315] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 15:14:42.036031] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 15:14:42.065534] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 15:14:42.102740] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 15:14:42.136156] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 15:14:42.164792] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 15:14:42.192964] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        WHERE 
+            parent."id" = %s  AND parent."userId" = %s    OFFSET 2
+        ;
+    
+[2024-02-05 15:14:56.072922] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 15:14:56.135305] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 15:14:56.211523] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 15:14:56.265893] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 15:14:56.328036] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 15:14:56.373760] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 15:14:56.418916] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 15:14:56.468243] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 15:14:56.511411] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 15:14:56.548507] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 15:14:56.593890] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        WHERE 
+            parent."id" = %s  AND parent."userId" = %s    OFFSET 2
+        ;
+    
+[2024-02-05 15:14:56.643342] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        WHERE 
+            parent."id" = %s;
+    
+[2024-02-05 15:14:56.696361] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        WHERE 
+            parent."id" = %s  AND parent."userId" = %s    
+        ;
+    
+[2024-02-05 15:14:56.736967] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        ORDER BY parent."createdAt" ASC, parent."id" DESC LIMIT 3 OFFSET 0
+        ;
+    
+[2024-02-05 15:14:56.781049] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        WHERE 
+            parent."id" = %s  AND parent."userId" = %s  ORDER BY parent."createdAt" ASC, parent."id" DESC LIMIT 10 OFFSET 0
+        ;
+    
+[2024-02-05 15:21:17.587179] : Dataloom[postgres]: DROP TABLE IF EXISTS "posts" CASCADE;
+[2024-02-05 15:21:17.629147] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "posts" ("completed" BOOLEAN DEFAULT False, "id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "title" VARCHAR(255) NOT NULL, "categoryId" BIGSERIAL NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE, "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "userId" BIGSERIAL NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE);
+[2024-02-05 15:21:17.676603] : Dataloom[postgres]: DROP TABLE IF EXISTS "users" CASCADE;
+[2024-02-05 15:21:17.715436] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "users" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" TEXT NOT NULL DEFAULT 'Bob', "username" VARCHAR(255) UNIQUE);
+[2024-02-05 15:21:17.758921] : Dataloom[postgres]: DROP TABLE IF EXISTS "categories" CASCADE;
+[2024-02-05 15:21:17.806344] : Dataloom[postgres]: CREATE TABLE IF NOT EXISTS "categories" ("id" BIGSERIAL PRIMARY KEY UNIQUE NOT NULL, "name" VARCHAR(255) NOT NULL);
+[2024-02-05 15:21:17.855239] : Dataloom[postgres]: SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public';
+[2024-02-05 15:21:17.901238] : Dataloom[postgres]: INSERT INTO "users" ("username") VALUES (%s) RETURNING "id";
+[2024-02-05 15:21:17.933177] : Dataloom[postgres]: INSERT INTO "categories" ("name") VALUES (%s) RETURNING "id";
+[2024-02-05 15:21:17.975358] : Dataloom[postgres]: INSERT INTO "posts" ("categoryId", "title", "userId") VALUES (%s, %s, %s) RETURNING *;
+[2024-02-05 15:21:18.019863] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        WHERE 
+            parent."id" = %s  AND parent."userId" = %s    OFFSET 2
+        ;
+    
+[2024-02-05 15:21:18.059925] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        WHERE 
+            parent."id" = %s;
+    
+[2024-02-05 15:21:18.101999] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        WHERE 
+            parent."id" = %s  AND parent."userId" = %s    
+        ;
+    
+[2024-02-05 15:21:18.142297] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        ORDER BY parent."createdAt" ASC, parent."id" DESC LIMIT 3 OFFSET 0
+        ;
+    
+[2024-02-05 15:21:18.177083] : Dataloom[postgres]: 
+        SELECT 
+            parent."id" AS "posts_id", parent."completed" AS "posts_completed", parent."title" AS "posts_title", parent."createdAt" AS "posts_createdAt",
+            child_user."id" AS "users_id", child_user."username" AS "users_username", child_user."name" AS "users_name"
+        FROM 
+            posts parent
+        JOIN users child_user ON parent."userId" = child_user.id 
+        WHERE 
+            parent."id" = %s  AND parent."userId" = %s  ORDER BY parent."createdAt" ASC, parent."id" DESC LIMIT 10 OFFSET 0
+        ;
+    

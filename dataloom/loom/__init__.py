@@ -9,8 +9,7 @@ from dataloom.statements import GetStatement
 from dataloom.conn import ConnectionOptionsFactory
 from dataloom.utils import logger_function, get_child_table_columns
 from typing import Optional
-from dataloom.types import Order, Include
-from dataloom.types import DIALECT_LITERAL
+from dataloom.types import Order, Include, DIALECT_LITERAL, Filter
 
 
 class Dataloom:
@@ -300,17 +299,24 @@ class Dataloom:
     ) -> list:
         sql, params, fields = instance._get_select_where_stm(
             dialect=self.dialect,
-            args=filters,
+            filters=filters,
             select=select,
             limit=limit,
             offset=offset,
             order=order,
+            include=include,
         )
-        data = list()
+        data = []
         rows = self._execute_sql(sql, fetchall=True, args=params)
         for row in rows:
-            json = dict(zip(fields, row))
-            data.append(json if return_dict else instance(**json))
+            res = self.__map_relationships(
+                instance=instance,
+                row=row,
+                parent_fields=fields,
+                include=include,
+                return_dict=return_dict,
+            )
+            data.append(res)
         return data
 
     def find_all(
@@ -323,6 +329,7 @@ class Dataloom:
         offset: Optional[int] = None,
         order: Optional[list[Order]] = [],
     ) -> list:
+        return_dict = True
         sql, params, fields = instance._get_select_where_stm(
             dialect=self.dialect,
             select=select,
@@ -331,11 +338,17 @@ class Dataloom:
             order=order,
             include=include,
         )
-        data = list()
+        data = []
         rows = self._execute_sql(sql, fetchall=True)
         for row in rows:
-            json = dict(zip(fields, row))
-            data.append(json if return_dict else instance(**json))
+            res = self.__map_relationships(
+                instance=instance,
+                row=row,
+                parent_fields=fields,
+                include=include,
+                return_dict=return_dict,
+            )
+            data.append(res)
         return data
 
     def __map_relationships(
@@ -368,6 +381,7 @@ class Dataloom:
         include: list[Include] = [],
         return_dict: bool = True,
     ):
+        return_dict = True
         # what is the name of the primary key column? well we will find out
         sql, fields = instance._get_select_by_pk_stm(
             dialect=self.dialect, select=select, include=include
@@ -386,20 +400,30 @@ class Dataloom:
     def find_one(
         self,
         instance: Model,
-        filters: dict = {},
+        filters: Optional[Filter | list[Filter]] = None,
         select: list[str] = [],
         include: list[Include] = [],
         return_dict: bool = True,
         offset: Optional[int] = None,
     ):
+        return_dict = True
         sql, params, fields = instance._get_select_where_stm(
-            dialect=self.dialect, args=filters, select=select, offset=offset
+            dialect=self.dialect,
+            filters=filters,
+            select=select,
+            offset=offset,
+            include=include,
         )
         row = self._execute_sql(sql, args=params, fetchone=True)
         if row is None:
             return None
-        json = dict(zip(fields, row))
-        return json if return_dict else instance(**json)
+        return self.__map_relationships(
+            instance=instance,
+            row=row,
+            parent_fields=fields,
+            include=include,
+            return_dict=return_dict,
+        )
 
     def update_by_pk(self, instance: Model, pk, values: dict = {}):
         sql, args = instance._get_update_by_pk_stm(dialect=self.dialect, args=values)
