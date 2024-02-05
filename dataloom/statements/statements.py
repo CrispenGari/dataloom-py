@@ -146,6 +146,19 @@ class PgStatements:
     SELECT_WHERE_COMMAND = (
         "SELECT {column_names} FROM {table_name} WHERE {filters} {options};".strip()
     )
+    # -------------- subqueries
+
+    SELECT_BY_PK_INCLUDE_COMMAND = """
+        SELECT 
+            {parent_columns},
+            {child_columns}
+        FROM 
+            {parent_table_name} parent
+        {joins}
+        WHERE 
+            parent.{parent_pk_name} = {parent_pk};
+    """
+
     # insert
     INSERT_COMMAND_ONE = "INSERT INTO {table_name} ({column_names}) VALUES ({placeholder_values}) RETURNING {pk};"
     INSERT_COMMAND_MANY = "INSERT INTO {table_name} ({column_names}) VALUES ({placeholder_values}) RETURNING *;"

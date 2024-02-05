@@ -21,13 +21,14 @@ from dataloom.statements.statements import (
     PgStatements,
     Sqlite3Statements,
 )
+from dataloom.types import DIALECT_LITERAL
 
 
 @dataclass(kw_only=True)
 class GetStatement[T]:
     def __init__(
         self,
-        dialect: str,
+        dialect: DIALECT_LITERAL,
         model: Optional[T] = None,
         table_name: Optional[str] = None,
         ignore_exists: bool = True,
@@ -366,8 +367,10 @@ class GetStatement[T]:
         fields: list = [],
         limit: Optional[int] = None,
         offset: Optional[int] = None,
+        orders: Optional[list[str]] = [],
     ):
         options = [
+            "" if len(orders) == 0 else f"ORDER BY {', '.join(orders)}",
             "" if limit is None else f"LIMIT {limit}",
             "" if offset is None else f"OFFSET { offset}",
         ]
@@ -404,8 +407,10 @@ class GetStatement[T]:
         fields: list = [],
         limit: Optional[int] = None,
         offset: Optional[int] = None,
+        orders: Optional[list[str]] = [],
     ):
         options = [
+            "" if len(orders) == 0 else f"ORDER BY {', '.join(orders)}",
             "" if limit is None else f"LIMIT {limit}",
             "" if offset is None else f"OFFSET { offset}",
         ]
@@ -433,7 +438,82 @@ class GetStatement[T]:
             )
         return sql
 
-    def _get_select_by_pk_command(self, pk_name: str, fields: list = []):
+    @staticmethod
+    def _get_relationships(includes, fks):
+        relationships = []
+        for include in includes:
+            table = include["table"]
+            relationships.append(
+                {
+                    "table_name": table,
+                    "fk": fks[table],
+                    "pk_name": include["pk_name"],
+                    "alias": "child_" + include["alias"],
+                    "columns": include["fields"]
+                    if len(include["select"]) == 0
+                    else include["select"],
+                }
+            )
+        return relationships
+
+    @staticmethod
+    def _get_formatted_query(
+        dialect=str, table_names: dict = {}, relationships: list = []
+    ):
+        joins = []
+        parent_columns = ", ".join(
+            [
+                f'parent.{f'"{col}"' if dialect== 'postgres' else f'`{col}`' } AS {f"`{table_names['parent_table_name']}_{col}`" if dialect != "postgres" else f"\"{table_names['parent_table_name']}_{col}\""}'
+                for col in table_names["parent_columns"]
+            ]
+        )
+        child_columns = []
+        for rel in relationships:
+            joins.append(
+                f'JOIN {rel['table_name']} {rel['alias']} ON parent.{f'"{rel['fk']}"' if dialect=='postgres' else f'`{rel['fk']}`'  } = {rel['alias']}.{rel['pk_name']} '
+            )
+            child_columns.append(
+                ", ".join(
+                    [
+                        f'{rel['alias']}.{f'"{col}"' if dialect== 'postgres' else f'`{col}`'} AS {f"`{rel['table_name']}_{col}`" if dialect != "postgres" else f"\"{rel['table_name']}_{col}\""}'
+                        for col in rel["columns"]
+                    ]
+                )
+            )
+
+        print(child_columns)
+
+        # table_names["joins"] = joins
+        # table_names["child_columns"] = child_columns
+        # table_names["parent_columns"] = parent_columns
+        sql = PgStatements.SELECT_BY_PK_INCLUDE_COMMAND.format(
+            parent_columns=parent_columns,
+            child_columns=", ".join(child_columns),
+            parent_table_name=table_names["parent_table_name"],
+            joins="".join(joins),
+            parent_pk_name=table_names["parent_pk_name"],
+            parent_pk=table_names["parent_pk"],
+        )
+        return sql
+
+    def _get_select_by_pk_command(
+        self, pk_name: str, fields: list = [], includes: list[dict] = [], fks: dict = {}
+    ):
+        if len(includes) != 0:
+            relationships = self._get_relationships(includes=includes, fks=fks)
+            table_names = {
+                "parent_table_name": self.table_name,
+                "parent_columns": fields,
+                "parent_pk_name": pk_name,
+                "parent_pk": "?" if self.dialect == "sqlite" else "%s",
+            }
+            sql = self._get_formatted_query(
+                dialect=self.dialect,
+                table_names=table_names,
+                relationships=relationships,
+            )
+            return sql
+
         if self.dialect == "postgres":
             sql = PgStatements.SELECT_BY_PK.format(
                 column_names=", ".join([f'"{name}"' for name in fields]),

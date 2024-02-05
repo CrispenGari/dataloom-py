@@ -7,15 +7,17 @@ from dataloom.exceptions import UnsupportedDialectException
 from dataloom.model import Model
 from dataloom.statements import GetStatement
 from dataloom.conn import ConnectionOptionsFactory
-from dataloom.utils import logger_function
+from dataloom.utils import logger_function, get_child_table_columns
 from typing import Optional
+from dataloom.types import Order, Include
+from dataloom.types import DIALECT_LITERAL
 
 
 class Dataloom:
     def __init__(
         self,
         database: str,
-        dialect: str,
+        dialect: DIALECT_LITERAL,
         user: Optional[str] = None,
         host: Optional[str] = None,
         port: Optional[int] = None,
@@ -294,6 +296,7 @@ class Dataloom:
         return_dict: bool = True,
         limit: Optional[int] = None,
         offset: Optional[int] = None,
+        order: Optional[list[Order]] = [],
     ) -> list:
         sql, params, fields = instance._get_select_where_stm(
             dialect=self.dialect,
@@ -301,6 +304,7 @@ class Dataloom:
             select=select,
             limit=limit,
             offset=offset,
+            order=order,
         )
         data = list()
         rows = self._execute_sql(sql, fetchall=True, args=params)
@@ -313,13 +317,19 @@ class Dataloom:
         self,
         instance: Model,
         select: list[str] = [],
-        include: list[Model] = [],
+        include: list[Include] = [],
         return_dict: bool = True,
         limit: Optional[int] = None,
         offset: Optional[int] = None,
+        order: Optional[list[Order]] = [],
     ) -> list:
         sql, params, fields = instance._get_select_where_stm(
-            dialect=self.dialect, select=select, limit=limit, offset=offset
+            dialect=self.dialect,
+            select=select,
+            limit=limit,
+            offset=offset,
+            order=order,
+            include=include,
         )
         data = list()
         rows = self._execute_sql(sql, fetchall=True)
@@ -328,30 +338,57 @@ class Dataloom:
             data.append(json if return_dict else instance(**json))
         return data
 
+    def __map_relationships(
+        self,
+        instance: Model,
+        row: tuple,
+        parent_fields: list,
+        include: list[Include] = [],
+        return_dict: bool = True,
+    ):
+        # how are relations are mapped?
+        json = dict(zip(parent_fields, row[: len(parent_fields)]))
+        result = json if return_dict else instance(**json)
+        row = row[len(parent_fields) :]
+        for _include in include:
+            alias, selected = [v for v in get_child_table_columns(_include).items()][0]
+            child_json = dict(zip(selected, row[: len(selected)]))
+            row = row[len(selected) :]
+            if return_dict:
+                result[alias] = child_json
+            else:
+                result[alias] = _include.model(**child_json)
+        return result
+
     def find_by_pk(
         self,
         instance: Model,
         pk,
         select: list[str] = [],
-        include: list[Model] = [],
+        include: list[Include] = [],
         return_dict: bool = True,
     ):
         # what is the name of the primary key column? well we will find out
         sql, fields = instance._get_select_by_pk_stm(
-            dialect=self.dialect, select=select
+            dialect=self.dialect, select=select, include=include
         )
         row = self._execute_sql(sql, args=(pk,), fetchone=True)
         if row is None:
             return None
-        json = dict(zip(fields, row))
-        return json if return_dict else instance(**json)
+        return self.__map_relationships(
+            instance=instance,
+            row=row,
+            parent_fields=fields,
+            include=include,
+            return_dict=return_dict,
+        )
 
     def find_one(
         self,
         instance: Model,
         filters: dict = {},
         select: list[str] = [],
-        include: list[Model] = [],
+        include: list[Include] = [],
         return_dict: bool = True,
         offset: Optional[int] = None,
     ):

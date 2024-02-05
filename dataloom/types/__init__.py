@@ -1,3 +1,23 @@
+from typing_extensions import Literal
+from dataclasses import dataclass, field
+from typing import Optional
+
+
+@dataclass(kw_only=True, repr=False)
+class Order:
+    column: str = field(repr=False)
+    order: Literal["ASC", "DESC"] = field(repr=False, default="ASC")
+
+
+@dataclass(kw_only=True, repr=False)
+class Include[Model]:
+    model: Model = field(repr=False)
+    order: list[Order] = field(repr=False, default_factory=list)
+    limit: Optional[int] = field(default=None)
+    offset: Optional[int] = field(default=None)
+    select: Optional[list[str]] = field(default_factory=list())
+
+
 POSTGRES_SQL_TYPES = {
     "int": "INTEGER",
     "smallint": "SMALLINT",
@@ -35,6 +55,42 @@ POSTGRES_SQL_TYPES = {
     "hstore": "HSTORE",
 }
 
+POSTGRES_SQL_TYPES_LITERAL = Literal[
+    "int",
+    "smallint",
+    "bigint",
+    "serial",
+    "bigserial",
+    "smallserial",
+    "float",
+    "double precision",
+    "numeric",
+    "text",
+    "varchar",
+    "char",
+    "boolean",
+    "date",
+    "time",
+    "timestamp",
+    "interval",
+    "uuid",
+    "json",
+    "jsonb",
+    "bytea",
+    "array",
+    "inet",
+    "cidr",
+    "macaddr",
+    "tsvector",
+    "point",
+    "line",
+    "lseg",
+    "box",
+    "path",
+    "polygon",
+    "circle",
+    "hstore",
+]
 
 MYSQL_SQL_TYPES = {
     "int": "INT",
@@ -53,6 +109,23 @@ MYSQL_SQL_TYPES = {
     "json": "JSON",
     "blob": "BLOB",
 }
+MYSQL_SQL_TYPES_LITERAL = Literal[
+    "int",
+    "smallint",
+    "bigint",
+    "float",
+    "double",
+    "numeric",
+    "text",
+    "varchar",
+    "char",
+    "boolean",
+    "date",
+    "time",
+    "timestamp",
+    "json",
+    "blob",
+]
 
 SQLITE3_SQL_TYPES = {
     "int": "INTEGER",
@@ -71,3 +144,25 @@ SQLITE3_SQL_TYPES = {
     "json": "JSON",
     "blob": "BLOB",
 }
+
+SQLITE3_SQL_TYPES_LITERAL = Literal[
+    "int",
+    "smallint",
+    "bigint",
+    "float",
+    "double precision",
+    "numeric",
+    "text",
+    "varchar",
+    "char",
+    "boolean",
+    "date",
+    "time",
+    "timestamp",
+    "json",
+    "blob",
+]
+
+
+CASCADE_LITERAL = Literal["NO ACTION", "CASCADE", "SET NULL"]
+DIALECT_LITERAL = Literal["postgres", "mysql", "sqlite"]

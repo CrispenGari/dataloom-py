@@ -10,7 +10,9 @@ from dataloom.columns import (
     UpdatedAtColumn,
 )
 from dataloom.statements import GetStatement
+from dataloom.types import Order, Include
 from typing import Optional
+from dataloom.types import DIALECT_LITERAL
 
 
 class Model:
@@ -26,7 +28,7 @@ class Model:
         return object.__getattribute__(self, key)
 
     @classmethod
-    def _create_sql(cls, dialect: str, ignore_exists=True):
+    def _create_sql(cls, dialect: DIALECT_LITERAL, ignore_exists=True):
         sql = GetStatement(
             dialect=dialect, model=cls, table_name=cls._get_table_name()
         )._get_create_table_command
@@ -46,7 +48,7 @@ class Model:
         )
 
     @classmethod
-    def _get_pk_attributes(cls, dialect: str):
+    def _get_pk_attributes(cls, dialect: DIALECT_LITERAL):
         pk = None
         pk_type = "BIGSERIAL" if dialect == "postgres" else "INT"
         for name, field in inspect.getmembers(cls):
@@ -56,7 +58,7 @@ class Model:
         return pk, pk_type
 
     @classmethod
-    def _drop_sql(cls, dialect: str):
+    def _drop_sql(cls, dialect: DIALECT_LITERAL):
         if dialect == "postgres" or "mysql" or "sqlite":
             sql = GetStatement(
                 dialect=dialect, model=cls, table_name=cls._get_table_name()
@@ -68,7 +70,7 @@ class Model:
             )
         return sql
 
-    def _get_insert_one_stm(self, dialect: str):
+    def _get_insert_one_stm(self, dialect: DIALECT_LITERAL):
         cls = self.__class__
         fields = []
         placeholders = []
@@ -105,7 +107,7 @@ class Model:
             )
         return values
 
-    def _get_insert_bulk_attrs(self, dialect: str):
+    def _get_insert_bulk_attrs(self, dialect: DIALECT_LITERAL):
         cls = self.__class__
         fields = []
         placeholders = []
@@ -136,7 +138,9 @@ class Model:
         return column_names, placeholder_values, values
 
     @classmethod
-    def _get_insert_bulk_smt(cls, dialect: str, placeholders, columns, data):
+    def _get_insert_bulk_smt(
+        cls, dialect: DIALECT_LITERAL, placeholders, columns, data
+    ):
         if dialect == "postgres" or "mysql" or "sqlite":
             sql, values = GetStatement(
                 dialect=dialect, model=cls, table_name=cls._get_table_name()
@@ -147,18 +151,71 @@ class Model:
             )
         return sql, values
 
+    @staticmethod
+    def _get_child_table_params(include: Include):
+        fields = []
+        filters = []
+        limit = include.limit
+        offset = include.offset
+        orders = None
+        select = include.select
+        pk_name = None
+        table__name = include.model._get_table_name()
+        alias = include.model.__name__.lower()
+        for (
+            name,
+            field,
+        ) in inspect.getmembers(include.model):
+            if isinstance(field, Column):
+                fields.append(name)
+            elif isinstance(field, ForeignKeyColumn):
+                fields.append(name)
+            elif isinstance(field, PrimaryKeyColumn):
+                fields.append(name)
+                pk_name = name
+            elif isinstance(field, CreatedAtColumn):
+                fields.append(name)
+            elif isinstance(field, UpdatedAtColumn):
+                fields.append(name)
+
+        for column in select:
+            if column not in fields:
+                raise UnknownColumnException(
+                    f'The table "{table__name}" does not have a column "{column}".'
+                )
+
+        return {
+            "alias": alias,
+            "fields": fields,
+            "filters": filters,
+            "offset": offset,
+            "limit": limit,
+            "orders": orders,
+            "select": select,
+            "table": table__name,
+            "pk_name": pk_name,
+        }
+
     @classmethod
     def _get_select_where_stm(
         cls,
-        dialect: str,
+        dialect: DIALECT_LITERAL,
         args: dict = {},
         select: list[str] = [],
         limit: Optional[int] = None,
         offset: Optional[int] = None,
+        order: Optional[list[Order]] = [],
+        include: list[Include] = [],
     ):
+        orders = list()
         fields = []
         filters = []
         params = []
+        includes = []
+
+        for _include in include:
+            includes.append(cls._get_child_table_params(_include))
+
         for name, field in inspect.getmembers(cls):
             if isinstance(field, Column):
                 fields.append(name)
@@ -170,6 +227,18 @@ class Model:
                 fields.append(name)
             elif isinstance(field, UpdatedAtColumn):
                 fields.append(name)
+
+        for _order in order:
+            if _order.column not in fields:
+                raise UnknownColumnException(
+                    f'The table "{cls._get_table_name()}" does not have a column "{_order.column}".'
+                )
+            orders.append(
+                f'"{_order.column}" {_order.order}'
+                if dialect == "postgres"
+                else f"`{_order.column}` {_order.order}"
+            )
+
         for column in select:
             if column not in fields:
                 raise UnknownColumnException(
@@ -198,6 +267,7 @@ class Model:
                     fields=fields if len(select) == 0 else select,
                     limit=limit,
                     offset=offset,
+                    orders=orders,
                 )
             else:
                 sql = GetStatement(
@@ -207,6 +277,7 @@ class Model:
                     fields=fields if len(select) == 0 else select,
                     limit=limit,
                     offset=offset,
+                    orders=orders,
                 )
         else:
             raise UnsupportedDialectException(
@@ -215,18 +286,32 @@ class Model:
         return sql, params, fields if len(select) == 0 else select
 
     @classmethod
-    def _get_select_by_pk_stm(cls, dialect: str, select: list[str] = []):
+    def _get_select_by_pk_stm(
+        cls,
+        dialect: DIALECT_LITERAL,
+        select: list[str] = [],
+        include: list[Include] = [],
+    ):
         fields = []
-        pk_name = None
         # what is the pk name?
+        pk_name = None
+        includes = []
+        # what are the foreign keys?
+        fks = dict()
+        for _include in include:
+            includes.append(cls._get_child_table_params(_include))
+
         for name, field in inspect.getmembers(cls):
             if isinstance(field, Column):
                 fields.append(name)
             elif isinstance(field, ForeignKeyColumn):
                 fields.append(name)
+                table_name = field.table._get_table_name()
+                fks[table_name] = name
             elif isinstance(field, PrimaryKeyColumn):
                 fields.append(name)
                 pk_name = f'"{name}"' if dialect == "postgres" else f"`{name}`"
+
             elif isinstance(field, CreatedAtColumn):
                 fields.append(name)
             elif isinstance(field, UpdatedAtColumn):
@@ -242,7 +327,10 @@ class Model:
             sql = GetStatement(
                 dialect=dialect, model=cls, table_name=cls._get_table_name()
             )._get_select_by_pk_command(
-                fields=select if len(select) != 0 else fields, pk_name=pk_name
+                fields=select if len(select) != 0 else fields,
+                pk_name=pk_name,
+                includes=includes,
+                fks=fks,
             )
         else:
             raise UnsupportedDialectException(
@@ -251,7 +339,9 @@ class Model:
         return sql, fields if len(select) == 0 else select
 
     @classmethod
-    def _get_update_by_pk_stm(cls, dialect: str, args: dict = {}):
+    def _get_update_by_pk_stm(
+        cls, dialect: DIALECT_LITERAL, args: dict = {}, include: list[Include] = []
+    ):
         fields = []
         # what is the pk name and updated column name?
         pk_name = None
@@ -308,7 +398,9 @@ class Model:
         return sql, values
 
     @classmethod
-    def _get_update_one_stm(cls, dialect: str, filters: dict = {}, values: dict = {}):
+    def _get_update_one_stm(
+        cls, dialect: DIALECT_LITERAL, filters: dict = {}, values: dict = {}
+    ):
         fields = []
         # what is the pk name and updated column name?
         pk_name = None
@@ -388,7 +480,7 @@ class Model:
 
     @classmethod
     def _get_update_bulk_where_stm(
-        cls, dialect: str, filters: dict = {}, values: dict = {}
+        cls, dialect: DIALECT_LITERAL, filters: dict = {}, values: dict = {}
     ):
         fields = []
         # what is updated column name?
@@ -466,7 +558,7 @@ class Model:
         return sql, new_values, placeholder_filter_values
 
     @classmethod
-    def _get_delete_by_pk_stm(cls, dialect: str):
+    def _get_delete_by_pk_stm(cls, dialect: DIALECT_LITERAL):
         # what is the pk name?
         pk_name = None
         for name, field in inspect.getmembers(cls):
@@ -483,7 +575,7 @@ class Model:
         return sql
 
     @classmethod
-    def _get_delete_where_stm(cls, dialect: str, args: dict = {}):
+    def _get_delete_where_stm(cls, dialect: DIALECT_LITERAL, args: dict = {}):
         fields = []
         filters = []
         params = []
@@ -530,7 +622,7 @@ class Model:
         return sql, params
 
     @classmethod
-    def _get_delete_bulk_where_stm(cls, dialect: str, args: dict = {}):
+    def _get_delete_bulk_where_stm(cls, dialect: DIALECT_LITERAL, args: dict = {}):
         fields = []
         filters = []
         params = []

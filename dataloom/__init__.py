@@ -9,6 +9,7 @@ from dataloom.exceptions import (
     UnsupportedDialectException,
     UnsupportedTypeException,
 )
+from dataloom.types import Order, Include
 from dataloom.model import Model
 from dataloom.model import (
     PrimaryKeyColumn,
@@ -20,6 +21,8 @@ from dataloom.model import (
 )
 
 __all__ = [
+    Order,
+    Include,
     MySQLConfig,
     PgConfig,
     InvalidColumnValuesException,

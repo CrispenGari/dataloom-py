@@ -1,4 +1,35 @@
 from datetime import datetime
+import inspect
+from dataloom.columns import (
+    Column,
+    CreatedAtColumn,
+    UpdatedAtColumn,
+    ForeignKeyColumn,
+    PrimaryKeyColumn,
+)
+from dataloom.types import Include, DIALECT_LITERAL
+
+
+def get_child_table_columns(include: Include) -> dict:
+    fields = []
+    alias = include.model.__name__.lower()
+    select = include.select
+    for (
+        name,
+        field,
+    ) in inspect.getmembers(include.model):
+        if isinstance(field, Column):
+            fields.append(name)
+        elif isinstance(field, ForeignKeyColumn):
+            fields.append(name)
+        elif isinstance(field, PrimaryKeyColumn):
+            fields.append(name)
+
+        elif isinstance(field, CreatedAtColumn):
+            fields.append(name)
+        elif isinstance(field, UpdatedAtColumn):
+            fields.append(name)
+    return {alias: field if len(select) == 0 else select}
 
 
 def logger(fn):
@@ -18,5 +49,7 @@ def logger(fn):
 
 
 @logger
-def logger_function(file_name: str, dialect: str, sql_statement: str) -> None:
+def logger_function(
+    file_name: str, dialect: DIALECT_LITERAL, sql_statement: str
+) -> None:
     return sql_statement, file_name, dialect
