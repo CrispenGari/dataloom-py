@@ -7,9 +7,7 @@ from dataloom import (
     UpdatedAtColumn,
     TableColumn,
     ForeignKeyColumn,
-    Order,
     Filter,
-    Include,
     ColumnValue,
 )
 from typing import Optional
@@ -38,6 +36,7 @@ class User(Model):
     id = PrimaryKeyColumn(type="int", auto_increment=True)
     name = Column(type="text", nullable=False, default="Bob")
     username = Column(type="varchar", unique=True, length=255)
+    tokenVersion = Column(type="int", default=0)
 
 
 class Category(Model):
@@ -65,62 +64,68 @@ class Post(Model):
 
 conn, tables = pg_loom.connect_and_sync([Post, User, Category], drop=True, force=True)
 print(tables)
-
-
 user = User(username="@miller")
-cate = Category(name="general")
 userId = pg_loom.insert_one(user)
-categoryId = pg_loom.insert_one(cate)
-post = Post(title="What are you doing?", userId=userId, categoryId=categoryId)
-post_id = pg_loom.insert_bulk([post for i in range(5)])
 
-post = pg_loom.find_one(
-    Post,
-    filters=[
-        Filter(column="id", operator="eq", value=4, join_next_filter_with="AND"),
-        Filter(column="userId", operator="eq", value=1),
-    ],
-    offset=2,
-    select=["id", "completed", "title", "createdAt"],
-    include=[
-        Include(
-            model=User,
-            select=["id", "username", "name"],
-            limit=1,
-            offset=0,
-        ),
-    ],
-    return_dict=True,
-)
-print(post)
-
-post = pg_loom.find_by_pk(
-    Post,
-    pk=1,
-    select=["id", "completed", "title", "createdAt"],
-    include=[
-        Include(
-            model=User,
-            select=["id", "username", "name"],
-            limit=1,
-            offset=0,
-        ),
-    ],
-    return_dict=True,
+pg_loom.increment(
+    User,
+    filters=Filter(column="id", value=1),
+    column=ColumnValue(name="tokenVersion", value=2),
 )
 
-re = pg_loom.update_one(
-    Post,
-    values=[
-        ColumnValue(name="title", value="Hey"),
-        ColumnValue(name="completed", value=True),
-    ],
-    filters=[
-        Filter(column="id", value=1, join_next_filter_with="AND"),
-        Filter(column="userId", value=1, join_next_filter_with="AND"),
-    ],
-)
-print(post)
+
+# cate = Category(name="general")
+# categoryId = pg_loom.insert_one(cate)
+# post = Post(title="What are you doing?", userId=userId, categoryId=categoryId)
+# post_id = pg_loom.insert_bulk([post for i in range(5)])
+
+# post = pg_loom.find_one(
+#     Post,
+#     filters=[
+#         Filter(column="id", operator="eq", value=4, join_next_filter_with="AND"),
+#         Filter(column="userId", operator="eq", value=1),
+#     ],
+#     offset=2,
+#     select=["id", "completed", "title", "createdAt"],
+#     include=[
+#         Include(
+#             model=User,
+#             select=["id", "username", "name"],
+#             limit=1,
+#             offset=0,
+#         ),
+#     ],
+#     return_dict=True,
+# )
+# print(post)
+
+# post = pg_loom.find_by_pk(
+#     Post,
+#     pk=1,
+#     select=["id", "completed", "title", "createdAt"],
+#     include=[
+#         Include(
+#             model=User,
+#             select=["id", "username", "name"],
+#             limit=1,
+#             offset=0,
+#         ),
+#     ],
+#     return_dict=True,
+# )
+
+# re = pg_loom.update_one(
+#     Post,
+#     values=[
+#         ColumnValue(name="title", value="Hey"),
+#         ColumnValue(name="completed", value=True),
+#     ],
+#     filters=[
+#         Filter(column="id", value=1, join_next_filter_with="AND"),
+#         Filter(column="userId", value=1, join_next_filter_with="AND"),
+#     ],
+# )
+# print(post)
 # print(post)
 
 
@@ -189,5 +194,5 @@ print(post)
 # print(posts)
 
 
-# if __name__ == "__main__":
-#     conn.close()
+if __name__ == "__main__":
+    conn.close()

@@ -763,3 +763,40 @@ class GetStatement[T]:
                 "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
             )
         return sql
+
+    def _get_increment_decrement_command(
+        self,
+        placeholders_values: list = [],
+        placeholder_filters: list = [],
+    ):
+        if len(placeholders_values) == 0:
+            raise InvalidColumnValuesException(
+                f"There are no new values passed to perform the UPDATE ONE operation, or you don't have the CreatedAtColumn field in your table '{self.table_name}'."
+            )
+        if len(placeholder_filters) == 0:
+            raise InvalidFiltersForTableColumnException(
+                f"There are no column filter passed to perform the UPDATE ONE operation or you passed filters that does not match columns in table '{self.table_name}'."
+            )
+        if self.dialect == "postgres":
+            sql = PgStatements.INCREMENT_DECREMENT_COMMAND.format(
+                placeholder_values=", ".join(placeholders_values),
+                table_name=f'"{self.table_name}"',
+                placeholder_filters=" ".join(placeholder_filters),
+            )
+        elif self.dialect == "mysql":
+            sql = MySqlStatements.INCREMENT_DECREMENT_COMMAND.format(
+                placeholder_values=", ".join(placeholders_values),
+                table_name=f"`{self.table_name}`",
+                placeholder_filters=", ".join(placeholder_filters),
+            )
+        elif self.dialect == "sqlite":
+            sql = Sqlite3Statements.INCREMENT_DECREMENT_COMMAND.format(
+                placeholder_values=", ".join(placeholders_values),
+                table_name=f"`{self.table_name}`",
+                placeholder_filters=", ".join(placeholder_filters),
+            )
+        else:
+            raise UnsupportedDialectException(
+                "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
+            )
+        return sql

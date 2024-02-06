@@ -10,7 +10,11 @@ from dataloom.columns import (
 from dataloom.statements import GetStatement
 from dataloom.types import Order, Include
 from typing import Optional
-from dataloom.types import DIALECT_LITERAL, Filter, ColumnValue
+from dataloom.types import (
+    DIALECT_LITERAL,
+    Filter,
+    ColumnValue,
+)
 from dataloom.utils import (
     get_table_filters,
     get_column_values,
@@ -471,3 +475,50 @@ class Model:
                 "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
             )
         return sql, placeholder_filter_values
+
+    @classmethod
+    def _get_increment_decrement_stm(
+        cls,
+        dialect: DIALECT_LITERAL,
+        filters: Optional[Filter | list[Filter]],
+        value: ColumnValue[int | float],
+    ):
+        # what is the pk name and updated column name?
+        fields, pk_name, fks, updatedAtColumName = get_table_fields(
+            cls, dialect=dialect
+        )
+        placeholder_filters, placeholder_values = get_table_filters(
+            table_name=cls._get_table_name(),
+            dialect=dialect,
+            fields=fields,
+            filters=filters,
+        )
+
+        placeholders_of_column_values, column_values = get_column_values(
+            table_name=cls._get_table_name(),
+            dialect=dialect,
+            fields=fields,
+            values=value,
+        )
+        if updatedAtColumName is not None:
+            placeholders_of_column_values.append(
+                f'{updatedAtColumName} = {
+                                              '?' if dialect == 'sqlite' else '%s'}'
+            )
+            column_values.append(
+                SQLITE_CURRENT_TIME_STAMP if dialect == "sqlite" else CURRENT_TIME_STAMP
+            )
+
+        if dialect == "postgres" or "mysql" or "sqlite":
+            sql = GetStatement(
+                dialect=dialect, model=cls, table_name=cls._get_table_name()
+            )._get_increment_decrement_command(
+                placeholders_values=placeholder_values,
+                placeholder_filters=placeholder_filters,
+            )
+
+        else:
+            raise UnsupportedDialectException(
+                "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
+            )
+        return sql, column_values

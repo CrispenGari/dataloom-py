@@ -9,7 +9,14 @@ from dataloom.statements import GetStatement
 from dataloom.conn import ConnectionOptionsFactory
 from dataloom.utils import logger_function, get_child_table_columns
 from typing import Optional
-from dataloom.types import Order, Include, DIALECT_LITERAL, Filter, ColumnValue
+from dataloom.types import (
+    Order,
+    Include,
+    DIALECT_LITERAL,
+    Filter,
+    ColumnValue,
+    INCREMENT_DECREMENT_LITERAL,
+)
 
 
 class Dataloom:
@@ -488,8 +495,19 @@ class Dataloom:
         )
         return affected_rows
 
-    def increment(self):
-        pass
+    def increment(
+        self,
+        instance: Model,
+        filters: Optional[Filter | list[Filter]],
+        column: ColumnValue[int | float],
+    ):
+        sql, value = instance._get_increment_decrement_stm(
+            dialect=self.dialect, filters=filters, value=column, operation="increment"
+        )
+        print(sql)
+        # args = (value,)
+        # affected_rows = self._execute_sql(sql, args=args, affected_rows=True)
+        # return affected_rows
 
     def decrement(self):
         pass

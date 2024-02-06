@@ -4,6 +4,7 @@ from typing import Optional
 
 OPERATOR_LITERAL = Literal["eq", "lt", "gt", "leq", "geq", "in", "notIn", "like"]
 SLQ_OPERAND_LITERAL = Literal["AND", "OR"]
+INCREMENT_DECREMENT_LITERAL = Literal["increment", "decrement"]
 
 SLQ_OPERATORS = {
     "eq": "=",
@@ -30,9 +31,9 @@ class Filter:
 
 
 @dataclass(kw_only=True, repr=False)
-class ColumnValue:
+class ColumnValue[T]:
     name: str = field(repr=False)
-    value: Any = field(repr=False)
+    value: T = field(repr=False)
 
 
 @dataclass(kw_only=True, repr=False)

@@ -18,6 +18,9 @@ class MySqlStatements:
     DELETE_BULK_WHERE_COMMAND = "DELETE FROM {table_name} WHERE {filters};"
     DELETE_ALL_COMMAND = "DELETE FROM {table_name};"
     # updates
+    INCREMENT_DECREMENT_COMMAND = (
+        "UPDATE {table_name} SET {placeholder_values} WHERE {placeholder_filters};"
+    )
     UPDATE_BY_PK_COMMAND = (
         "UPDATE {table_name} SET {placeholder_values} WHERE {pk_name} = {pk};"
     )
@@ -110,6 +113,9 @@ class Sqlite3Statements:
     DELETE_ALL_COMMAND = "DELETE FROM {table_name};"
 
     # updates
+    INCREMENT_DECREMENT_COMMAND = (
+        "UPDATE {table_name} SET {placeholder_values} WHERE {placeholder_filters};"
+    )
     UPDATE_BY_PK_COMMAND = (
         "UPDATE {table_name} SET {placeholder_values} WHERE {pk_name} = {pk};"
     )
@@ -185,6 +191,9 @@ class Sqlite3Statements:
 
 class PgStatements:
     # updates
+    INCREMENT_DECREMENT_COMMAND = (
+        "UPDATE {table_name} SET {placeholder_values} WHERE {placeholder_filters};"
+    )
     UPDATE_BY_PK_COMMAND = (
         "UPDATE {table_name} SET {placeholder_values} WHERE {pk_name} = {pk};"
     )
