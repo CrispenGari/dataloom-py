@@ -174,6 +174,7 @@ class logger:
 
         return wrapper
 
+    @staticmethod
     def console(fn):
         def wrapper(*args, **kwargs):
             index, sql_statement, dialect = fn(*args, **kwargs)
