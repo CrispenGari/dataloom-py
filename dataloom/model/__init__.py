@@ -2,8 +2,6 @@ import inspect
 from dataloom.constants import CURRENT_TIME_STAMP, SQLITE_CURRENT_TIME_STAMP
 from dataloom.exceptions import UnknownColumnException, UnsupportedDialectException
 from dataloom.columns import (
-    Column,
-    ForeignKeyColumn,
     PrimaryKeyColumn,
     TableColumn,
 )
@@ -25,16 +23,7 @@ from dataloom.utils import (
 
 
 class Model:
-    def __init__(self, **args) -> None:
-        self._data = {}
-        for k, v in args.items():
-            self._data[k] = v
-
-    def __getattribute__(self, key: str):
-        _data = object.__getattribute__(self, "_data")
-        if key in _data:
-            return _data[key]
-        return object.__getattribute__(self, key)
+    # def __init__(self) -> None:
 
     @classmethod
     def _create_sql(cls, dialect: DIALECT_LITERAL, ignore_exists=True):
@@ -79,86 +68,50 @@ class Model:
             )
         return sql
 
-    def _get_insert_one_stm(self, dialect: DIALECT_LITERAL):
-        cls = self.__class__
-        fields = []
-        placeholders = []
-        values = []
-        pk = None
-        for _name, field in inspect.getmembers(cls):
-            if isinstance(field, Column):
-                value = getattr(self, _name)
-                if not isinstance(value, Column):
-                    fields.append(_name)
-                    values.append(value)
-                    placeholders.append("?" if dialect == "sqlite" else "%s")
-            elif isinstance(field, ForeignKeyColumn):
-                value = getattr(self, _name)
-                if not isinstance(value, ForeignKeyColumn):
-                    fields.append(_name)
-                    values.append(value)
-                    placeholders.append("?" if dialect == "sqlite" else "%s")
-            elif isinstance(field, PrimaryKeyColumn):
-                pk = f'"{_name}"'
-                value = getattr(self, _name)
-                if not isinstance(value, PrimaryKeyColumn):
-                    fields.append(_name)
-                    values.append(value)
-                    placeholders.append("?" if dialect == "sqlite" else "%s")
-        data = (values, placeholders, fields)
+    @classmethod
+    def _get_insert_one_stm(
+        cls, dialect: DIALECT_LITERAL, values: list[ColumnValue] | ColumnValue
+    ):
+        fields, pk_name, fks, updatedAtColumName = get_table_fields(
+            cls, dialect=dialect
+        )
+        placeholders, column_values, column_names = get_column_values(
+            table_name=cls._get_table_name(),
+            dialect=dialect,
+            fields=fields,
+            values=values,
+        )
         if dialect == "postgres" or "mysql" or "sqlite":
-            values = GetStatement(
-                dialect=dialect, model=cls, table_name=self._get_table_name()
-            )._get_insert_one_command(data=data, pk=pk)
+            sql = GetStatement(
+                dialect=dialect, model=cls, table_name=cls._get_table_name()
+            )._get_insert_one_command(
+                fields=column_names,
+                pk_name=pk_name,
+                placeholders=[
+                    "?" if dialect == "sqlite" else "%s" for _ in placeholders
+                ],
+            )
         else:
             raise UnsupportedDialectException(
                 "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
             )
-        return values
-
-    def _get_insert_bulk_attrs(self, dialect: DIALECT_LITERAL):
-        cls = self.__class__
-        fields = []
-        placeholders = []
-        values = []
-        for _name, field in inspect.getmembers(cls):
-            if isinstance(field, Column):
-                value = getattr(self, _name)
-                if not isinstance(value, Column):
-                    fields.append(_name)
-                    values.append(value)
-                    placeholders.append("?" if dialect == "sqlite" else "%s")
-            elif isinstance(field, ForeignKeyColumn):
-                value = getattr(self, _name)
-                if not isinstance(value, ForeignKeyColumn):
-                    fields.append(_name)
-                    values.append(value)
-                    placeholders.append("?" if dialect == "sqlite" else "%s")
-            elif isinstance(field, PrimaryKeyColumn):
-                value = getattr(self, _name)
-                if not isinstance(value, PrimaryKeyColumn):
-                    fields.append(_name)
-                    values.append(value)
-                    placeholders.append("?" if dialect == "sqlite" else "%s")
-        column_names = ", ".join(
-            [f'"{f}"' if dialect == "postgres" else f"`{f}`" for f in fields]
-        )
-        placeholder_values = ", ".join(placeholders)
-        return column_names, placeholder_values, values
+        return sql, column_values
 
     @classmethod
     def _get_insert_bulk_smt(
-        cls, dialect: DIALECT_LITERAL, placeholders, columns, data
+        cls, dialect: DIALECT_LITERAL, column_names: str, placeholder_values: str
     ):
         if dialect == "postgres" or "mysql" or "sqlite":
-            sql, values = GetStatement(
+            sql = GetStatement(
                 dialect=dialect, model=cls, table_name=cls._get_table_name()
-            )._get_insert_bulk_command(data=(placeholders, columns, data))
+            )._get_insert_bulk_command(
+                column_names=column_names, placeholder_values=placeholder_values
+            )
         else:
             raise UnsupportedDialectException(
                 "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
             )
-        return sql, values
+        return sql
 
     @classmethod
     def _get_select_where_stm(
@@ -285,7 +238,7 @@ class Model:
         fields, pk_name, fks, updatedAtColumName = get_table_fields(
             cls, dialect=dialect
         )
-        placeholders, column_values = get_column_values(
+        placeholders, column_values, column_names = get_column_values(
             table_name=cls._get_table_name(),
             dialect=dialect,
             fields=fields,
@@ -327,7 +280,7 @@ class Model:
             filters=filters,
         )
 
-        placeholders_of_column_values, column_values = get_column_values(
+        placeholders_of_column_values, column_values, column_names = get_column_values(
             table_name=cls._get_table_name(),
             dialect=dialect,
             fields=fields,
@@ -372,7 +325,7 @@ class Model:
             fields=fields,
             filters=filters,
         )
-        placeholders_of_column_values, column_values = get_column_values(
+        placeholders_of_column_values, column_values, column_names = get_column_values(
             table_name=cls._get_table_name(),
             dialect=dialect,
             fields=fields,
@@ -496,7 +449,7 @@ class Model:
             filters=filters,
         )
 
-        placeholders_of_column_values, column_values = get_column_values(
+        placeholders_of_column_values, column_values, column_names = get_column_values(
             table_name=cls._get_table_name(),
             dialect=dialect,
             fields=fields,

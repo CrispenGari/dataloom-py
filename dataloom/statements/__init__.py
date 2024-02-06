@@ -39,14 +39,15 @@ class GetStatement[T]:
         self.table_name = table_name
         self.ignore_exists = ignore_exists
 
-    def _get_insert_one_command(self, pk, data) -> tuple[Optional[str], list]:
-        (values, placeholders, fields) = data
+    def _get_insert_one_command(
+        self, pk_name: str, placeholders: list[str], fields: list[str]
+    ) -> tuple[Optional[str], list]:
         if self.dialect == "postgres":
             sql = PgStatements.INSERT_COMMAND_ONE.format(
                 table_name=f'"{self.table_name}"',
                 column_names=", ".join([f'"{f}"' for f in fields]),
                 placeholder_values=", ".join(placeholders),
-                pk=pk,
+                pk_name=pk_name,
             )
         elif self.dialect == "mysql":
             sql = MySqlStatements.INSERT_COMMAND_ONE.format(
@@ -64,10 +65,11 @@ class GetStatement[T]:
             raise UnsupportedDialectException(
                 "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
             )
-        return sql, values
+        return sql
 
-    def _get_insert_bulk_command(self, data) -> tuple[Optional[str], list]:
-        placeholder_values, column_names, values = data
+    def _get_insert_bulk_command(
+        self, placeholder_values: str, column_names: str
+    ) -> str:
         if self.dialect == "postgres":
             sql = PgStatements.INSERT_COMMAND_MANY.format(
                 table_name=f'"{self.table_name}"',
@@ -90,7 +92,7 @@ class GetStatement[T]:
             raise UnsupportedDialectException(
                 "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
             )
-        return sql, values
+        return sql
 
     @property
     def _get_drop_table_command(self) -> Optional[str]:

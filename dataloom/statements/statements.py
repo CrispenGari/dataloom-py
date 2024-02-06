@@ -261,7 +261,7 @@ class PgStatements:
     """
 
     # insert
-    INSERT_COMMAND_ONE = "INSERT INTO {table_name} ({column_names}) VALUES ({placeholder_values}) RETURNING {pk};"
+    INSERT_COMMAND_ONE = "INSERT INTO {table_name} ({column_names}) VALUES ({placeholder_values}) RETURNING {pk_name};"
     INSERT_COMMAND_MANY = "INSERT INTO {table_name} ({column_names}) VALUES ({placeholder_values}) RETURNING *;"
 
     # creating table

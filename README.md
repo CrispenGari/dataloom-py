@@ -6,6 +6,16 @@
 <img src="/dataloom.png" alt="dataloom" width="200">
 </p>
 
+#### Why choose `dataloom`?
+
+1. **Ease of Use**: `dataloom` offers a user-friendly interface, making it straightforward to work with.
+2. **Flexible SQL Driver**: Write one codebase and seamlessly switch between `PostgreSQL`, `MySQL`, and `SQLite3` drivers as needed.
+3. **Lightweight**: Despite its powerful features, `dataloom` remains lightweight, ensuring efficient performance.
+4. **Comprehensive Documentation**: Benefit from extensive documentation that guides users through various functionalities and use cases.
+5. **Active Maintenance**: `dataloom` is actively maintained, ensuring ongoing support and updates for a reliable development experience.
+6. **Cross-platform Compatibility**: `dataloom` works seamlessly across different operating systems, including `Windows`, `macOS`, and `Linux`.
+7. **Scalability**: Scale your application effortlessly with `dataloom`, whether it's a small project or a large-scale enterprise application.
+
 ### ⚠️ Warning
 
 > **⚠️ Experimental Status of `dataloom`**: The `dataloom` module is currently in an experimental phase. As such, we strongly advise against using it in production environments until a major version is officially released and stability is ensured. During this experimental phase, the `dataloom` module may undergo significant changes, and its features are subject to refinement. We recommend monitoring the project updates and waiting for a stable release before incorporating it into production systems. Please exercise caution and consider alternative solutions for production use until the module reaches a stable release.\*\*
@@ -13,6 +23,7 @@
 ### Table of Contents
 
 - [dataloom](#dataloom)
+  - [Why choose `dataloom`?](#why-choose-dataloom)
 - [⚠️ Warning](#️-warning)
 - [Table of Contents](#table-of-contents)
 - [Key Features:](#key-features)
@@ -27,6 +38,10 @@
   - [`ForeignKeyColumn` Class](#foreignkeycolumn-class)
   - [`CreatedAtColumn` Class](#createdatcolumn-class)
   - [`UpdatedAtColumn` Class](#updatedatcolumn-class)
+  - [`Filter` Class](#filter-class)
+  - [`ColumnValue` Class](#columnvalue-class)
+  - [`Order` Class](#order-class)
+  - [`Include`](#include)
 - [Syncing Tables](#syncing-tables)
   - [1. The `sync` method.](#1-the-sync-method)
   - [2. The `connect_and_sync` method.](#2-the-connect_and_sync-method)
@@ -90,7 +105,7 @@ pg_loom = Dataloom(
     password="root",
     user="postgres",
     host="localhost",
-    logging=True,
+    sql_logger="console",
     logs_filename="logs.sql",
     port=5432,
 )
@@ -116,7 +131,7 @@ mysql_loom = Dataloom(
     password="root",
     user="root",
     host="localhost",
-    logging=True,
+    sql_logger="console",
     logs_filename="logs.sql",
     port=3306,
 )
@@ -140,7 +155,8 @@ sqlite_loom = Dataloom(
     dialect="sqlite",
     database="hi.db",
     logs_filename="sqlite-logs.sql",
-    logging=True
+    logging=True,
+    sql_logger="console",
 )
 
 # Connect to the SQLite database
@@ -159,7 +175,7 @@ The `Dataloom` class takes in the following options:
 | `password` | Password for the database user (only for `mysql` and `postgres`) | `str` or `None` | `None` | `No` |
 | `user` | Database user (only for `mysql` and `postgres`) | `str` or `None` | `None` | `No` |
 | `host` | Database host (only for `mysql` and `postgres`) | `str` or `None` | `localhost` | `No` |
-| `logging` | Enable logging for the database queries | `bool` | `True` | `No` |
+| `sql_logger` | Enable logging for the database queries. If you don't want to see the sql logs you can set this option to `None` which is the default value. If you set it to `file` then you will see the logs in the default `dataloom.sql` file, you can overide this by passing a `logs_filename` option. Setting this option to `console`, then sql statements will be printed on the console. | `console`or `file` or `None`| `True` | `No` |
 | `logs_filename` | Filename for the query logs | `str` or `None` | `dataloom.sql` | `No` |
 | `port` | Port number for the database connection (only for `mysql` and `postgres`) | `int` or `None` | `None` | `No` |
 
@@ -180,10 +196,9 @@ from dataloom import (
     TableColumn,
     ForeignKeyColumn,
 )
-from typing import Optional
 
 class User(Model):
-    __tablename__: Optional[TableColumn] = TableColumn(name="users")
+    __tablename__:TableColumn = TableColumn(name="users")
     id = PrimaryKeyColumn(type="int", auto_increment=True)
     name = Column(type="text", nullable=False, default="Bob")
     username = Column(type="varchar", unique=True, length=255)
@@ -193,10 +208,8 @@ class User(Model):
     updatedAt = UpdatedAtColumn()
 
 
-
-
 class Post(Model):
-    __tablename__: Optional[TableColumn] = TableColumn(name="posts")
+    __tablename__: TableColumn = TableColumn(name="posts")
     id = PrimaryKeyColumn(type="int", auto_increment=True, nullable=False, unique=True)
     completed = Column(type="boolean", default=False)
     title = Column(
@@ -214,7 +227,10 @@ class Post(Model):
     )
 ```
 
-- Within the `User` model definition, the table name is explicitly specified using the `__tablename__` property, set to `"users"`. This informs `dataloom` to use the provided name instead of automatically deriving it from the class name. If `__tablename__` is not specified, the class name becomes the default table name during the synchronization of tables. To achieve this, the `TableColumn` class is used, accepting the specified table name as an argument.
+- Within the `User` model definition, the table name is explicitly specified using the `__tablename__` property, set to `"users"`. This informs `dataloom` to use the provided name instead of automatically deriving it from the class name. If `TableColumn` is not specified, the class name becomes the default table name during the synchronization of tables. To achieve this, the `TableColumn` class is used, accepting the specified table name as an argument.
+
+> 👉:**Note:** When defining a table name, it's not necessary to specify the property as `__tablename__`. However, it's considered good practice to name your table column like that to avoid potential clashes with other columns in the table.
+
 - Every table must include exactly one primary key column. To define this, the `PrimaryKeyColumn` class is employed, signaling to `dataloom` that the specified field is a primary key.
 - The `Column` class represents a regular column, allowing the inclusion of various options such as type and whether it is required.
 - The `CreatedAtColumn` and `UpdatedAt` column types are automatically generated by the database as timestamps. If timestamps are unnecessary or only one of them is needed, they can be omitted.
@@ -380,6 +396,87 @@ When a column is designated as `CreatedAtColumn`, its value will be automaticall
 #### `UpdatedAtColumn` Class
 
 When a column is designated as `UpdatedAtColumn`, its value will be automatically generated each time you create a new record or update an existing record in a database table, acting as a timestamp.
+
+#### `Filter` Class
+
+This `Filter` class in `dataloom` is designed to facilitate the application of filters when executing queries and mutations. It allows users to specify conditions that must be met for the operation to affect certain rows in a database table. Below is an example demonstrating how this class can be used:
+
+```python
+affected_rows = pg_loom.update_one(
+    Post,
+    values=[
+        ColumnValue(name="title", value="Hey"),
+        ColumnValue(name="completed", value=True),
+    ],
+    filters=[
+        Filter(column="id", value=1, join_next_filter_with="AND"),
+        Filter(column="userId", value=1, join_next_filter_with="AND"),
+    ],
+)
+```
+
+So from the above example we are applying filters while updating a `Post` here are the options that you can pass on that filter class:
+| Argument | Description | Type | Default |
+|-------------------------|------------------------------------------------------------|-------------------------------------------|------------------------|
+| `column` | The name of the column to apply the filter on | `String` | - |
+| `value` | The value to filter against | `Any` | - |
+| `operator` | The comparison operator to use for the filter | `'eq'`, `'lt'`, `'gt'`, `'leq'`, `'geq'`, `'in'`, `'notIn'`, `'like'` | `'eq'` |
+| `join_next_filter_with` | The logical operator to join this filter with the next one | `'AND'`, `'OR'` | `'AND'` |
+
+> 👉 : **Note:** You can apply either a list of filters or a single filter when filtering records.
+
+#### `ColumnValue` Class
+
+Just like the `Filter` class, `dataloom` also provides a `ColumnValue` class. This class acts as a setter to update the values of columns in your database table.
+
+The following code snippet demonstrates how the `ColumnValue` class is used to update records in the database:
+
+```py
+re = pg_loom.update_one(
+    Post,
+    values=[
+        ColumnValue(name="title", value="Hey"),
+        ColumnValue(name="completed", value=True),
+    ],
+    filters=[
+        Filter(column="id",  value=1, join_next_filter_with="AND"),
+        Filter(column="userId", value=1, join_next_filter_with="AND"),
+    ],
+)
+```
+
+It accepts two arguments: `name` and `value`. name represents the column name, while value corresponds to the new value to be assigned to that column.
+
+| Argument | Description                                                | Type  | Default |
+| -------- | ---------------------------------------------------------- | ----- | ------- |
+| `name`   | The name of the column to be updated or inserted.          | `str` | -       |
+| `value`  | The value to assign to the column during update or insert. | `Any` | -       |
+
+#### `Order` Class
+
+The `Order` class enables us to specify the desired order in which documents should be returned. Below is an example illustrating its usage:
+
+```py
+posts = pg_loom.find_all(
+    Post,
+    select=["id", "completed", "title", "createdAt"],
+    limit=3,
+    offset=0,
+    order=[
+        Order(column="createdAt", order="ASC"),
+        Order(column="id", order="DESC"),
+    ]
+)
+```
+
+> 👉 **Note:** When utilizing a list of orders, they are applied sequentially, one after the other:
+
+| Argument | Description                                                               | Type                | Default |
+| -------- | ------------------------------------------------------------------------- | ------------------- | ------- |
+| `column` | The name of the column to order by.                                       | `str`               | -       |
+| `order`  | The order direction, either `"ASC"` (ascending) or `"DESC"` (descending). | `"ASC"` or `"DESC"` | `"ASC"` |
+
+#### `Include`
 
 ### Syncing Tables
 

@@ -10,7 +10,12 @@ from dataloom.exceptions import (
 from dataloom.model import Model
 from dataloom.statements import GetStatement
 from dataloom.conn import ConnectionOptionsFactory
-from dataloom.utils import file_logger, console_logger, get_child_table_columns
+from dataloom.utils import (
+    file_logger,
+    console_logger,
+    get_child_table_columns,
+    get_insert_bulk_attrs,
+)
 from typing import Optional
 from dataloom.types import (
     Order,
@@ -266,8 +271,8 @@ class Dataloom:
         except Exception as e:
             raise Exception(e)
 
-    def insert_one(self, instance: Model):
-        sql, values = instance._get_insert_one_stm(dialect=self.dialect)
+    def insert_one(self, instance: Model, values: ColumnValue | list[ColumnValue]):
+        sql, values = instance._get_insert_one_stm(dialect=self.dialect, values=values)
         row = self._execute_sql(
             sql,
             args=tuple(values),
@@ -276,30 +281,28 @@ class Dataloom:
         )
         return row[0] if type(row) in [list, tuple] else row
 
-    def insert_bulk(self, instances: list[Model]):
+    def insert_bulk(
+        self, instance: Model, values: list[list[ColumnValue] | ColumnValue]
+    ):
         columns = None
         placeholders = None
-        data = list()
-        for instance in instances:
-            (
-                column_names,
-                placeholder_values,
-                _values,
-            ) = instance._get_insert_bulk_attrs(dialect=self.dialect)
+        data = []
+        for _value in values:
+            (column_names, placeholder_values, _values) = get_insert_bulk_attrs(
+                dialect=self.dialect, instance=instance, values=_value
+            )
             if columns is None:
                 columns = column_names
             if placeholders is None:
                 placeholders = placeholder_values
-
             data.append(_values)
-        sql, values = instance._get_insert_bulk_smt(
-            dialect=self.dialect,
-            placeholders=placeholder_values,
-            columns=columns,
-            data=data,
-        )
-        row_count = self._execute_sql(sql, args=tuple(values), fetchall=True, bulk=True)
-        return row_count
+        print(data)
+
+        # sql = instance._get_insert_bulk_smt(
+        #     dialect=self.dialect, column_names=columns, placeholder_values=placeholders
+        # )
+        # row_count = self._execute_sql(sql, args=tuple(data), fetchall=True, bulk=True)
+        # return row_count
 
     def find_many(
         self,

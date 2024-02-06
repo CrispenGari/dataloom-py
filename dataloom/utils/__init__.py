@@ -88,6 +88,7 @@ def get_column_values(
 ):
     column_values = []
     placeholders_of_column_values = []
+    column_names = []
 
     if values is not None:
         if isinstance(values, list):
@@ -102,6 +103,7 @@ def get_column_values(
                 key}` = {'%s' if dialect == 'mysql' else '?'}"
                     )
                     placeholders_of_column_values.append(_key)
+                    column_names.append(key)
                     column_values.append(v)
                 else:
                     raise UnknownColumnException(
@@ -119,12 +121,13 @@ def get_column_values(
             key}` = {'%s' if dialect == 'mysql' else '?'}"
                 )
                 placeholders_of_column_values.append(_key)
+                column_names.append(key)
                 column_values.append(v)
             else:
                 raise UnknownColumnException(
                     f"Table {table_name} does not have column '{key}'."
                 )
-    return placeholders_of_column_values, column_values
+    return placeholders_of_column_values, column_values, column_names
 
 
 def get_operator(op: OPERATOR_LITERAL) -> str:
@@ -405,3 +408,26 @@ def get_formatted_query(
                 )
 
     return sql
+
+
+def get_insert_bulk_attrs(
+    instance,
+    dialect: DIALECT_LITERAL,
+    values: list[ColumnValue] | ColumnValue,
+):
+    fields, pk_name, fks, updatedAtColumName = get_table_fields(
+        instance, dialect=dialect
+    )
+    placeholders, column_values, column_names = get_column_values(
+        table_name=instance._get_table_name(),
+        dialect=dialect,
+        fields=fields,
+        values=values,
+    )
+    _placeholders = ", ".join(
+        ["?" if dialect == "sqlite" else "%s" for _ in placeholders]
+    )
+    _column_names = ", ".join(
+        [f'"{f}"' if dialect == "postgres" else f"`{f}`" for f in column_names]
+    )
+    return _column_names, _placeholders, column_values

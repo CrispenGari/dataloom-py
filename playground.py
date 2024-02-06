@@ -9,6 +9,8 @@ from dataloom import (
     ForeignKeyColumn,
     Filter,
     ColumnValue,
+    Include,
+    Order,
 )
 from typing import Optional
 
@@ -68,15 +70,24 @@ class Post(Model):
 
 
 conn, tables = pg_loom.connect_and_sync([Post, User, Category], drop=True, force=True)
-print(tables)
-user = User(username="@miller")
-userId = pg_loom.insert_one(user)
 
-pg_loom.decrement(
+userId = pg_loom.insert_bulk(
     User,
-    filters=Filter(column="id", value=1),
-    column=ColumnValue(name="tokenVersion", value=2.6),
+    values=[
+        [
+            ColumnValue(name="username", value="@miller"),
+            ColumnValue(name="name", value="Jonh"),
+        ],
+        ColumnValue(name="username", value="@brown"),
+        ColumnValue(name="username", value="@blue"),
+    ],
 )
+
+# pg_loom.decrement(
+#     User,
+#     filters=Filter(column="id", value=1),
+#     column=ColumnValue(name="tokenVersion", value=2.6),
+# )
 
 
 # cate = Category(name="general")
@@ -119,17 +130,17 @@ pg_loom.decrement(
 #     return_dict=True,
 # )
 
-# re = pg_loom.update_one(
-#     Post,
-#     values=[
-#         ColumnValue(name="title", value="Hey"),
-#         ColumnValue(name="completed", value=True),
-#     ],
-#     filters=[
-#         Filter(column="id", value=1, join_next_filter_with="AND"),
-#         Filter(column="userId", value=1, join_next_filter_with="AND"),
-#     ],
-# )
+re = pg_loom.update_one(
+    Post,
+    values=[
+        ColumnValue(name="title", value="Hey"),
+        ColumnValue(name="completed", value=True),
+    ],
+    filters=[
+        Filter(column="id", value=1, join_next_filter_with="AND"),
+        Filter(column="userId", value=1, join_next_filter_with="AND"),
+    ],
+)
 # print(post)
 # print(post)
 
@@ -153,25 +164,28 @@ pg_loom.decrement(
 # )
 # print(posts)
 
-# posts = pg_loom.find_all(
-#     Post,
-#     select=["id", "completed", "title", "createdAt"],
-#     limit=3,
-#     offset=0,
-#     order=[
-#         Order(column="createdAt", order="ASC"),
-#         Order(column="id", order="DESC"),
-#     ],
-#     include=[
-#         Include(
-#             model=User,
-#             select=["id", "username", "name"],
-#             limit=1,
-#             offset=0,
-#         ),
-#     ],
-#     return_dict=True,
-# )
+posts = pg_loom.find_all(
+    Post,
+    select=["id", "completed", "title", "createdAt"],
+    limit=3,
+    offset=0,
+    order=[
+        Order(column="createdAt", order="ASC"),
+        Order(
+            column="id",
+            order="DESC",
+        ),
+    ],
+    include=[
+        Include(
+            model=User,
+            select=["id", "username", "name"],
+            limit=1,
+            offset=0,
+        ),
+    ],
+    return_dict=True,
+)
 # print(posts)
 # posts = pg_loom.find_many(
 #     Post,
@@ -198,6 +212,8 @@ pg_loom.decrement(
 # )
 # print(posts)
 
+
+print(max(9, 5, 3))
 
 if __name__ == "__main__":
     conn.close()
