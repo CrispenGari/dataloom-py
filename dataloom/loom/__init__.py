@@ -501,11 +501,11 @@ class Dataloom:
         filters: Optional[Filter | list[Filter]],
         column: ColumnValue[int | float],
     ):
-        sql, value = instance._get_increment_decrement_stm(
-            dialect=self.dialect, filters=filters, value=column, operation="increment"
+        sql, column_values, filter_values = instance._get_increment_decrement_stm(
+            dialect=self.dialect, filters=filters, value=column
         )
         print(sql)
-        # args = (value,)
+        # args = (column_values, filter_values)
         # affected_rows = self._execute_sql(sql, args=args, affected_rows=True)
         # return affected_rows
 

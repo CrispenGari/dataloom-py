@@ -487,7 +487,7 @@ class Model:
         fields, pk_name, fks, updatedAtColumName = get_table_fields(
             cls, dialect=dialect
         )
-        placeholder_filters, placeholder_values = get_table_filters(
+        placeholder_filters, filter_values = get_table_filters(
             table_name=cls._get_table_name(),
             dialect=dialect,
             fields=fields,
@@ -513,7 +513,7 @@ class Model:
             sql = GetStatement(
                 dialect=dialect, model=cls, table_name=cls._get_table_name()
             )._get_increment_decrement_command(
-                placeholders_values=placeholder_values,
+                placeholders_of_column_values=placeholders_of_column_values,
                 placeholder_filters=placeholder_filters,
             )
 
@@ -521,4 +521,4 @@ class Model:
             raise UnsupportedDialectException(
                 "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
             )
-        return sql, column_values
+        return sql, column_values, filter_values

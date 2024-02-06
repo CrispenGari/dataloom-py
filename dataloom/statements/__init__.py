@@ -766,10 +766,10 @@ class GetStatement[T]:
 
     def _get_increment_decrement_command(
         self,
-        placeholders_values: list = [],
+        placeholders_of_column_values: list = [],
         placeholder_filters: list = [],
     ):
-        if len(placeholders_values) == 0:
+        if len(placeholders_of_column_values) == 0:
             raise InvalidColumnValuesException(
                 f"There are no new values passed to perform the UPDATE ONE operation, or you don't have the CreatedAtColumn field in your table '{self.table_name}'."
             )
@@ -777,21 +777,25 @@ class GetStatement[T]:
             raise InvalidFiltersForTableColumnException(
                 f"There are no column filter passed to perform the UPDATE ONE operation or you passed filters that does not match columns in table '{self.table_name}'."
             )
+
+        values = str(placeholders_of_column_values[0] * 2).replace("%s", "")
+        print(placeholders_of_column_values)
+
         if self.dialect == "postgres":
             sql = PgStatements.INCREMENT_DECREMENT_COMMAND.format(
-                placeholder_values=", ".join(placeholders_values),
+                placeholder_values=", ".join(placeholders_of_column_values),
                 table_name=f'"{self.table_name}"',
                 placeholder_filters=" ".join(placeholder_filters),
             )
         elif self.dialect == "mysql":
             sql = MySqlStatements.INCREMENT_DECREMENT_COMMAND.format(
-                placeholder_values=", ".join(placeholders_values),
+                placeholder_values=", ".join(placeholders_of_column_values),
                 table_name=f"`{self.table_name}`",
                 placeholder_filters=", ".join(placeholder_filters),
             )
         elif self.dialect == "sqlite":
             sql = Sqlite3Statements.INCREMENT_DECREMENT_COMMAND.format(
-                placeholder_values=", ".join(placeholders_values),
+                placeholder_values=", ".join(placeholders_of_column_values),
                 table_name=f"`{self.table_name}`",
                 placeholder_filters=", ".join(placeholder_filters),
             )
