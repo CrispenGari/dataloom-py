@@ -251,3 +251,137 @@ class TestUpdateOnPG:
         assert res_1 == 5
         assert res_2 == 0
         conn.close()
+
+    def test_increment_fn(self):
+        from typing import Optional
+        import pytest
+        from dataloom import (
+            Column,
+            CreatedAtColumn,
+            Dataloom,
+            Model,
+            PrimaryKeyColumn,
+            TableColumn,
+            UpdatedAtColumn,
+            Filter,
+            ColumnValue,
+        )
+        from dataloom.keys import PgConfig
+
+        pg_loom = Dataloom(
+            dialect="postgres",
+            database=PgConfig.database,
+            password=PgConfig.password,
+            user=PgConfig.user,
+        )
+
+        class User(Model):
+            __tablename__: Optional[TableColumn] = TableColumn(name="users")
+            id = PrimaryKeyColumn(type="int", auto_increment=True)
+            name = Column(type="text", nullable=False, default="Bob")
+            username = Column(type="varchar", unique=True, length=255)
+            tokenVersion = Column(type="int", default=0)
+            # timestamps
+            createdAt = CreatedAtColumn()
+            updatedAt = UpdatedAtColumn()
+
+        conn, _ = pg_loom.connect_and_sync([User], drop=True, force=True)
+
+        user = User(username="@miller")
+        userId = pg_loom.insert_one(user)
+
+        affected_rows = pg_loom.increment(
+            User,
+            filters=Filter(column="id", value=1),
+            column=ColumnValue(name="tokenVersion", value=3),
+        )
+        assert affected_rows == 1
+
+        affected_rows = pg_loom.increment(
+            User,
+            filters=Filter(column="id", value=2),
+            column=ColumnValue(name="tokenVersion", value=3),
+        )
+        assert affected_rows == 0
+
+        me = pg_loom.find_by_pk(User, userId, select=["tokenVersion"])
+        assert me["tokenVersion"] == 3
+
+        with pytest.raises(Exception) as exc_info:
+            pg_loom.increment(
+                User,
+                filters=Filter(column="id", value=2),
+                column=ColumnValue(name="tokenVersion", value="3"),
+            )
+        assert (
+            str(exc_info.value)
+            == "The increment operation only works with integer and float values."
+        )
+        conn.close()
+
+    def test_decrement_fn(self):
+        from typing import Optional
+        import pytest
+        from dataloom import (
+            Column,
+            CreatedAtColumn,
+            Dataloom,
+            Model,
+            PrimaryKeyColumn,
+            TableColumn,
+            UpdatedAtColumn,
+            Filter,
+            ColumnValue,
+        )
+        from dataloom.keys import PgConfig
+
+        pg_loom = Dataloom(
+            dialect="postgres",
+            database=PgConfig.database,
+            password=PgConfig.password,
+            user=PgConfig.user,
+        )
+
+        class User(Model):
+            __tablename__: Optional[TableColumn] = TableColumn(name="users")
+            id = PrimaryKeyColumn(type="int", auto_increment=True)
+            name = Column(type="text", nullable=False, default="Bob")
+            username = Column(type="varchar", unique=True, length=255)
+            tokenVersion = Column(type="int", default=0)
+            # timestamps
+            createdAt = CreatedAtColumn()
+            updatedAt = UpdatedAtColumn()
+
+        conn, _ = pg_loom.connect_and_sync([User], drop=True, force=True)
+
+        user = User(username="@miller")
+        userId = pg_loom.insert_one(user)
+
+        affected_rows = pg_loom.decrement(
+            User,
+            filters=Filter(column="id", value=1),
+            column=ColumnValue(name="tokenVersion", value=3),
+        )
+        assert affected_rows == 1
+
+        affected_rows = pg_loom.decrement(
+            User,
+            filters=Filter(column="id", value=2),
+            column=ColumnValue(name="tokenVersion", value=3),
+        )
+        assert affected_rows == 0
+
+        me = pg_loom.find_by_pk(User, userId, select=["tokenVersion"])
+        assert me["tokenVersion"] == -3
+
+        with pytest.raises(Exception) as exc_info:
+            pg_loom.decrement(
+                User,
+                filters=Filter(column="id", value=2),
+                column=ColumnValue(name="tokenVersion", value="3"),
+            )
+        assert (
+            str(exc_info.value)
+            == "The decrement operation only works with integer and float values."
+        )
+        conn.close()

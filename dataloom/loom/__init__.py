@@ -3,7 +3,10 @@ from mysql import connector
 import sqlite3
 from dataloom.constants import instances
 
-from dataloom.exceptions import UnsupportedDialectException
+from dataloom.exceptions import (
+    UnsupportedDialectException,
+    InvalidColumnValuesException,
+)
 from dataloom.model import Model
 from dataloom.statements import GetStatement
 from dataloom.conn import ConnectionOptionsFactory
@@ -15,7 +18,6 @@ from dataloom.types import (
     DIALECT_LITERAL,
     Filter,
     ColumnValue,
-    INCREMENT_DECREMENT_LITERAL,
 )
 
 
@@ -501,13 +503,38 @@ class Dataloom:
         filters: Optional[Filter | list[Filter]],
         column: ColumnValue[int | float],
     ):
-        sql, column_values, filter_values = instance._get_increment_decrement_stm(
-            dialect=self.dialect, filters=filters, value=column
-        )
-        print(sql)
-        # args = (column_values, filter_values)
-        # affected_rows = self._execute_sql(sql, args=args, affected_rows=True)
-        # return affected_rows
+        if isinstance(column.value, float) or isinstance(column.value, int):
+            sql, column_values, filter_values = instance._get_increment_decrement_stm(
+                dialect=self.dialect,
+                filters=filters,
+                value=column,
+                operator="increment",
+            )
+        else:
+            raise InvalidColumnValuesException(
+                "The increment operation only works with integer and float values."
+            )
+        args = [*column_values, *filter_values]
+        affected_rows = self._execute_sql(sql, args=args, affected_rows=True)
+        return affected_rows
 
-    def decrement(self):
-        pass
+    def decrement(
+        self,
+        instance: Model,
+        filters: Optional[Filter | list[Filter]],
+        column: ColumnValue[int | float],
+    ):
+        if isinstance(column.value, float) or isinstance(column.value, int):
+            sql, column_values, filter_values = instance._get_increment_decrement_stm(
+                dialect=self.dialect,
+                filters=filters,
+                value=column,
+                operator="decrement",
+            )
+        else:
+            raise InvalidColumnValuesException(
+                "The decrement operation only works with integer and float values."
+            )
+        args = [*column_values, *filter_values]
+        affected_rows = self._execute_sql(sql, args=args, affected_rows=True)
+        return affected_rows

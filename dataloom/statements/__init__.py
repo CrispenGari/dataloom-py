@@ -21,7 +21,7 @@ from dataloom.statements.statements import (
     PgStatements,
     Sqlite3Statements,
 )
-from dataloom.types import DIALECT_LITERAL
+from dataloom.types import DIALECT_LITERAL, INCREMENT_DECREMENT_LITERAL
 from dataloom.utils import get_formatted_query, get_relationships
 
 
@@ -766,6 +766,7 @@ class GetStatement[T]:
 
     def _get_increment_decrement_command(
         self,
+        operator: INCREMENT_DECREMENT_LITERAL,
         placeholders_of_column_values: list = [],
         placeholder_filters: list = [],
     ):
@@ -778,24 +779,31 @@ class GetStatement[T]:
                 f"There are no column filter passed to perform the UPDATE ONE operation or you passed filters that does not match columns in table '{self.table_name}'."
             )
 
-        values = str(placeholders_of_column_values[0] * 2).replace("%s", "")
-        print(placeholders_of_column_values)
-
+        (v, placeholder) = placeholders_of_column_values[0].split("=")
+        phs = "".join(
+            [
+                v.strip(),
+                " = ",
+                v.strip(),
+                f" {'-' if operator == 'decrement' else '+'} ",
+                placeholder,
+            ]
+        )
         if self.dialect == "postgres":
             sql = PgStatements.INCREMENT_DECREMENT_COMMAND.format(
-                placeholder_values=", ".join(placeholders_of_column_values),
+                placeholder_values=", ".join([phs, *placeholders_of_column_values[1:]]),
                 table_name=f'"{self.table_name}"',
                 placeholder_filters=" ".join(placeholder_filters),
             )
         elif self.dialect == "mysql":
             sql = MySqlStatements.INCREMENT_DECREMENT_COMMAND.format(
-                placeholder_values=", ".join(placeholders_of_column_values),
+                placeholder_values=", ".join([phs, *placeholders_of_column_values[1:]]),
                 table_name=f"`{self.table_name}`",
                 placeholder_filters=", ".join(placeholder_filters),
             )
         elif self.dialect == "sqlite":
             sql = Sqlite3Statements.INCREMENT_DECREMENT_COMMAND.format(
-                placeholder_values=", ".join(placeholders_of_column_values),
+                placeholder_values=", ".join([phs, *placeholders_of_column_values[1:]]),
                 table_name=f"`{self.table_name}`",
                 placeholder_filters=", ".join(placeholder_filters),
             )

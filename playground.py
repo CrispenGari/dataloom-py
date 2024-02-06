@@ -67,10 +67,10 @@ print(tables)
 user = User(username="@miller")
 userId = pg_loom.insert_one(user)
 
-pg_loom.increment(
+pg_loom.decrement(
     User,
     filters=Filter(column="id", value=1),
-    column=ColumnValue(name="tokenVersion", value=2),
+    column=ColumnValue(name="tokenVersion", value=2.6),
 )
 
 

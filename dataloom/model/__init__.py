@@ -14,6 +14,7 @@ from dataloom.types import (
     DIALECT_LITERAL,
     Filter,
     ColumnValue,
+    INCREMENT_DECREMENT_LITERAL,
 )
 from dataloom.utils import (
     get_table_filters,
@@ -482,6 +483,7 @@ class Model:
         dialect: DIALECT_LITERAL,
         filters: Optional[Filter | list[Filter]],
         value: ColumnValue[int | float],
+        operator: INCREMENT_DECREMENT_LITERAL,
     ):
         # what is the pk name and updated column name?
         fields, pk_name, fks, updatedAtColumName = get_table_fields(
@@ -515,6 +517,7 @@ class Model:
             )._get_increment_decrement_command(
                 placeholders_of_column_values=placeholders_of_column_values,
                 placeholder_filters=placeholder_filters,
+                operator=operator,
             )
 
         else:

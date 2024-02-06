@@ -1,233 +1,389 @@
-# class TestUpdateOnMySQL:
-#     def test_update_by_pk_fn(self):
-#         import time
-#         from typing import Optional
+class TestUpdateOnMySQL:
+    def test_update_by_pk_fn(self):
+        import time
+        from typing import Optional
 
-#         import pytest
+        from dataloom import (
+            Column,
+            CreatedAtColumn,
+            Dataloom,
+            ForeignKeyColumn,
+            Model,
+            PrimaryKeyColumn,
+            TableColumn,
+            UpdatedAtColumn,
+            ColumnValue,
+        )
+        from dataloom.keys import MySQLConfig
 
-#         from dataloom import (
-#             Column,
-#             CreatedAtColumn,
-#             Dataloom,
-#             ForeignKeyColumn,
-#             Model,
-#             PrimaryKeyColumn,
-#             TableColumn,
-#             UpdatedAtColumn,
-#         )
-#         from dataloom.keys import MySQLConfig
+        mysql_loom = Dataloom(
+            dialect="mysql",
+            database=MySQLConfig.database,
+            password=MySQLConfig.password,
+            user=MySQLConfig.user,
+        )
 
-#         mysql_loom = Dataloom(
-#             dialect="mysql",
-#             database=MySQLConfig.database,
-#             password=MySQLConfig.password,
-#             user=MySQLConfig.user,
-#         )
+        class User(Model):
+            __tablename__: Optional[TableColumn] = TableColumn(name="users")
+            id = PrimaryKeyColumn(type="int", auto_increment=True)
+            name = Column(type="text", nullable=False, default="Bob")
+            username = Column(type="varchar", unique=True, length=255)
 
-#         class User(Model):
-#             __tablename__: Optional[TableColumn] = TableColumn(name="users")
-#             id = PrimaryKeyColumn(type="int", auto_increment=True)
-#             name = Column(type="text", nullable=False, default="Bob")
-#             username = Column(type="varchar", unique=True, length=255)
+            # timestamps
+            createdAt = CreatedAtColumn()
+            updatedAt = UpdatedAtColumn()
 
-#             # timestamps
-#             createdAt = CreatedAtColumn()
-#             updatedAt = UpdatedAtColumn()
+        class Post(Model):
+            __tablename__: Optional[TableColumn] = TableColumn(name="posts")
+            id = PrimaryKeyColumn(
+                type="int", auto_increment=True, nullable=False, unique=True
+            )
+            completed = Column(type="boolean", default=False)
+            title = Column(type="varchar", length=255, nullable=False)
+            # timestamps
+            createdAt = CreatedAtColumn()
+            updatedAt = UpdatedAtColumn()
+            # relations
+            userId = ForeignKeyColumn(
+                User, type="int", required=True, onDelete="CASCADE", onUpdate="CASCADE"
+            )
 
-#         class Post(Model):
-#             __tablename__: Optional[TableColumn] = TableColumn(name="posts")
-#             id = PrimaryKeyColumn(
-#                 type="int", auto_increment=True, nullable=False, unique=True
-#             )
-#             completed = Column(type="boolean", default=False)
-#             title = Column(type="varchar", length=255, nullable=False)
-#             # timestamps
-#             createdAt = CreatedAtColumn()
-#             updatedAt = UpdatedAtColumn()
-#             # relations
-#             userId = ForeignKeyColumn(
-#                 User, type="int", required=True, onDelete="CASCADE", onUpdate="CASCADE"
-#             )
+        conn, _ = mysql_loom.connect_and_sync([Post, User], drop=True, force=True)
 
-#         conn, _ = mysql_loom.connect_and_sync([Post, User], drop=True, force=True)
+        user = User(username="@miller")
+        userId = mysql_loom.insert_one(user)
+        post = Post(title="What are you doing?", userId=userId)
+        _ = mysql_loom.insert_bulk([post for i in range(5)])
+        time.sleep(0.05)
+        res_1 = mysql_loom.update_by_pk(
+            User, userId, ColumnValue(name="username", value="Gari")
+        )
+        res_2 = mysql_loom.update_by_pk(
+            User, 10, ColumnValue(name="username", value="Gari")
+        )
+        me = mysql_loom.find_by_pk(User, userId)
 
-#         user = User(username="@miller")
-#         userId = mysql_loom.insert_one(user)
-#         post = Post(title="What are you doing?", userId=userId)
-#         _ = mysql_loom.insert_bulk([post for i in range(5)])
-#         time.sleep(0.05)
-#         res_1 = mysql_loom.update_by_pk(User, userId)
-#         res_2 = mysql_loom.update_by_pk(User, 10)
-#         me = mysql_loom.find_by_pk(User, userId)
+        assert me["createdAt"] != me["updatedAt"]
+        assert res_1 == 1
+        assert res_2 == 0
+        conn.close()
 
-#         with pytest.raises(Exception) as exc_info:
-#             mysql_loom.update_by_pk(User, userId, {"id": "Gari"})
+    def test_update_one_fn(self):
+        import time
+        from typing import Optional
 
-#         assert exc_info.value.errno == 1366
-#         exc_info.value.msg = "Incorrect integer value: 'Gari' for column 'id' at row 1"
+        import pytest
 
-#         assert me["createdAt"] != me["updatedAt"]
-#         assert res_1 == 1
-#         assert res_2 == 0
-#         conn.close()
+        from dataloom import (
+            Column,
+            CreatedAtColumn,
+            Dataloom,
+            ForeignKeyColumn,
+            Model,
+            PrimaryKeyColumn,
+            TableColumn,
+            UnknownColumnException,
+            UpdatedAtColumn,
+            Filter,
+            ColumnValue,
+        )
+        from dataloom.keys import MySQLConfig
 
-#     def test_update_one_fn(self):
-#         import time
-#         from typing import Optional
+        mysql_loom = Dataloom(
+            dialect="mysql",
+            database=MySQLConfig.database,
+            password=MySQLConfig.password,
+            user=MySQLConfig.user,
+        )
 
-#         import pytest
+        class User(Model):
+            __tablename__: Optional[TableColumn] = TableColumn(name="users")
+            id = PrimaryKeyColumn(type="int", auto_increment=True)
+            name = Column(type="text", nullable=False, default="Bob")
+            username = Column(type="varchar", unique=True, length=255)
 
-#         from dataloom import (
-#             Column,
-#             CreatedAtColumn,
-#             Dataloom,
-#             ForeignKeyColumn,
-#             Model,
-#             PrimaryKeyColumn,
-#             TableColumn,
-#             UnknownColumnException,
-#             UpdatedAtColumn,
-#         )
-#         from dataloom.keys import MySQLConfig
+            # timestamps
+            createdAt = CreatedAtColumn()
+            updatedAt = UpdatedAtColumn()
 
-#         mysql_loom = Dataloom(
-#             dialect="mysql",
-#             database=MySQLConfig.database,
-#             password=MySQLConfig.password,
-#             user=MySQLConfig.user,
-#         )
+        class Post(Model):
+            __tablename__: Optional[TableColumn] = TableColumn(name="posts")
+            id = PrimaryKeyColumn(
+                type="int", auto_increment=True, nullable=False, unique=True
+            )
+            completed = Column(type="boolean", default=False)
+            title = Column(type="varchar", length=255, nullable=False)
+            # timestamps
+            createdAt = CreatedAtColumn()
+            # relations
+            userId = ForeignKeyColumn(
+                User, type="int", required=True, onDelete="CASCADE", onUpdate="CASCADE"
+            )
 
-#         class User(Model):
-#             __tablename__: Optional[TableColumn] = TableColumn(name="users")
-#             id = PrimaryKeyColumn(type="int", auto_increment=True)
-#             name = Column(type="text", nullable=False, default="Bob")
-#             username = Column(type="varchar", unique=True, length=255)
+        conn, _ = mysql_loom.connect_and_sync([Post, User], drop=True, force=True)
 
-#             # timestamps
-#             createdAt = CreatedAtColumn()
-#             updatedAt = UpdatedAtColumn()
+        user = User(username="@miller")
+        userId = mysql_loom.insert_one(user)
+        post = Post(title="What are you doing?", userId=userId)
+        _ = mysql_loom.insert_bulk([post for i in range(5)])
+        time.sleep(0.05)
+        res_1 = mysql_loom.update_one(
+            User,
+            filters=Filter(column="username", value="@miller"),
+            values=ColumnValue(name="name", value="Jonh"),
+        )
+        res_2 = mysql_loom.update_one(
+            User,
+            Filter(column="username", value="miller"),
+            values=ColumnValue(name="name", value="Jonh"),
+        )
+        me = mysql_loom.find_by_pk(User, userId)
 
-#         class Post(Model):
-#             __tablename__: Optional[TableColumn] = TableColumn(name="posts")
-#             id = PrimaryKeyColumn(
-#                 type="int", auto_increment=True, nullable=False, unique=True
-#             )
-#             completed = Column(type="boolean", default=False)
-#             title = Column(type="varchar", length=255, nullable=False)
-#             # timestamps
-#             createdAt = CreatedAtColumn()
+        with pytest.raises(UnknownColumnException) as exc_info:
+            mysql_loom.update_one(
+                Post,
+                Filter(column="wrong_key", value="@miller"),
+                values=ColumnValue(name="id", value=3),
+            )
+        assert str(exc_info.value) == "Table posts does not have column 'wrong_key'."
+        with pytest.raises(UnknownColumnException) as exc_info:
+            mysql_loom.update_one(
+                Post,
+                Filter(column="userId", value=userId),
+                values=ColumnValue(name="loca", value=3),
+            )
+        assert str(exc_info.value) == "Table posts does not have column 'loca'."
 
-#             # relations
-#             userId = ForeignKeyColumn(
-#                 User, type="int", required=True, onDelete="CASCADE", onUpdate="CASCADE"
-#             )
+        assert me["createdAt"] != me["updatedAt"]
+        assert res_1 == 1
+        assert res_2 == 0
+        conn.close()
 
-#         conn, _ = mysql_loom.connect_and_sync([Post, User], drop=True, force=True)
+    def test_update_bulk_fn(self):
+        from typing import Optional
+        import pytest
+        from dataloom import (
+            Column,
+            CreatedAtColumn,
+            Dataloom,
+            ForeignKeyColumn,
+            Model,
+            PrimaryKeyColumn,
+            TableColumn,
+            UnknownColumnException,
+            UpdatedAtColumn,
+            Filter,
+            ColumnValue,
+        )
+        from dataloom.keys import MySQLConfig
 
-#         user = User(username="@miller")
-#         userId = mysql_loom.insert_one(user)
-#         post = Post(title="What are you doing?", userId=userId)
-#         _ = mysql_loom.insert_bulk([post for i in range(5)])
-#         time.sleep(0.05)
-#         res_1 = mysql_loom.update_one(Post, {"userId": userId}, {"title": "John"})
-#         res_2 = mysql_loom.update_one(Post, {"userId": 2}, {"title": "John"})
+        mysql_loom = Dataloom(
+            dialect="mysql",
+            database=MySQLConfig.database,
+            password=MySQLConfig.password,
+            user=MySQLConfig.user,
+        )
 
-#         post = mysql_loom.find_by_pk(Post, 1)
+        class User(Model):
+            __tablename__: Optional[TableColumn] = TableColumn(name="users")
+            id = PrimaryKeyColumn(type="int", auto_increment=True)
+            name = Column(type="text", nullable=False, default="Bob")
+            username = Column(type="varchar", unique=True, length=255)
 
-#         with pytest.raises(Exception) as exc_info:
-#             mysql_loom.update_one(Post, {"userId": userId}, {"userId": "Gari"})
+            # timestamps
+            createdAt = CreatedAtColumn()
+            updatedAt = UpdatedAtColumn()
 
-#         assert exc_info.value.errno == 1366
-#         exc_info.value.msg = "Incorrect integer value: 'Gari' for column 'id' at row 1"
-#         with pytest.raises(UnknownColumnException) as exc_info:
-#             mysql_loom.update_one(Post, {"wrong_key": "@miller"}, {"userId": 3})
-#         assert str(exc_info.value) == "Table posts does not have column 'wrong_key'."
-#         with pytest.raises(UnknownColumnException) as exc_info:
-#             mysql_loom.update_one(Post, {"userId": userId}, values={"loca": "miller"})
-#         assert str(exc_info.value) == "Table posts does not have column 'loca'."
+        class Post(Model):
+            __tablename__: Optional[TableColumn] = TableColumn(name="posts")
+            id = PrimaryKeyColumn(
+                type="int", auto_increment=True, nullable=False, unique=True
+            )
+            completed = Column(type="boolean", default=False)
+            title = Column(type="varchar", length=255, nullable=False)
+            # timestamps
+            createdAt = CreatedAtColumn()
+            # relations
+            userId = ForeignKeyColumn(
+                User, type="int", required=True, onDelete="CASCADE", onUpdate="CASCADE"
+            )
 
-#         post["title"] == "John"
-#         assert res_1 == 1
-#         assert res_2 == 0
-#         conn.close()
+        conn, _ = mysql_loom.connect_and_sync([Post, User], drop=True, force=True)
 
-#     def test_update_bulk_fn(self):
-#         import time
-#         from typing import Optional
+        user = User(username="@miller")
+        userId = mysql_loom.insert_one(user)
+        post = Post(title="What are you doing?", userId=userId)
+        _ = mysql_loom.insert_bulk([post for i in range(5)])
+        res_1 = mysql_loom.update_bulk(
+            Post,
+            Filter(column="userId", value=userId),
+            ColumnValue(name="title", value="John"),
+        )
+        res_2 = mysql_loom.update_bulk(
+            Post, Filter(column="id", value=10), ColumnValue(name="title", value="John")
+        )
 
-#         import pytest
+        with pytest.raises(Exception) as exc_info:
+            mysql_loom.update_bulk(
+                Post,
+                Filter(column="userId", value=userId),
+                ColumnValue(name="userId", value="Gari"),
+            )
+        assert (
+            exc_info.value.msg
+            == "Incorrect integer value: 'Gari' for column 'userId' at row 1"
+        )
+        assert exc_info.value.errno == 1366
+        with pytest.raises(UnknownColumnException) as exc_info:
+            mysql_loom.update_one(
+                Post,
+                Filter(column="wrong_key", value="@miller"),
+                ColumnValue(name="userId", value=3),
+            )
+        assert str(exc_info.value) == "Table posts does not have column 'wrong_key'."
 
-#         from dataloom import (
-#             Column,
-#             CreatedAtColumn,
-#             Dataloom,
-#             ForeignKeyColumn,
-#             Model,
-#             PrimaryKeyColumn,
-#             TableColumn,
-#             UnknownColumnException,
-#             UpdatedAtColumn,
-#         )
-#         from dataloom.keys import MySQLConfig
+        with pytest.raises(UnknownColumnException) as exc_info:
+            mysql_loom.update_one(
+                Post,
+                Filter(column="userId", value=userId),
+                ColumnValue(name="loca", value="miller"),
+            )
+        assert str(exc_info.value) == "Table posts does not have column 'loca'."
 
-#         mysql_loom = Dataloom(
-#             dialect="mysql",
-#             database=MySQLConfig.database,
-#             password=MySQLConfig.password,
-#             user=MySQLConfig.user,
-#         )
+        assert res_1 == 5
+        assert res_2 == 0
+        conn.close()
 
-#         class User(Model):
-#             __tablename__: Optional[TableColumn] = TableColumn(name="users")
-#             id = PrimaryKeyColumn(type="int", auto_increment=True)
-#             name = Column(type="text", nullable=False, default="Bob")
-#             username = Column(type="varchar", unique=True, length=255)
+    def test_increment_fn(self):
+        from typing import Optional
+        import pytest
+        from dataloom import (
+            Column,
+            CreatedAtColumn,
+            Dataloom,
+            Model,
+            PrimaryKeyColumn,
+            TableColumn,
+            UpdatedAtColumn,
+            Filter,
+            ColumnValue,
+        )
+        from dataloom.keys import MySQLConfig
 
-#             # timestamps
-#             createdAt = CreatedAtColumn()
-#             updatedAt = UpdatedAtColumn()
+        mysql_loom = Dataloom(
+            dialect="mysql",
+            database=MySQLConfig.database,
+            password=MySQLConfig.password,
+            user=MySQLConfig.user,
+        )
 
-#         class Post(Model):
-#             __tablename__: Optional[TableColumn] = TableColumn(name="posts")
-#             id = PrimaryKeyColumn(
-#                 type="int", auto_increment=True, nullable=False, unique=True
-#             )
-#             completed = Column(type="boolean", default=False)
-#             title = Column(type="varchar", length=255, nullable=False)
-#             # timestamps
-#             createdAt = CreatedAtColumn()
+        class User(Model):
+            __tablename__: Optional[TableColumn] = TableColumn(name="users")
+            id = PrimaryKeyColumn(type="int", auto_increment=True)
+            name = Column(type="text", nullable=False, default="Bob")
+            username = Column(type="varchar", unique=True, length=255)
+            tokenVersion = Column(type="int", default=0)
+            # timestamps
+            createdAt = CreatedAtColumn()
+            updatedAt = UpdatedAtColumn()
 
-#             # relations
-#             userId = ForeignKeyColumn(
-#                 User, type="int", required=True, onDelete="CASCADE", onUpdate="CASCADE"
-#             )
+        conn, _ = mysql_loom.connect_and_sync([User], drop=True, force=True)
 
-#         conn, _ = mysql_loom.connect_and_sync([Post, User], drop=True, force=True)
+        user = User(username="@miller")
+        userId = mysql_loom.insert_one(user)
 
-#         user = User(username="@miller")
-#         userId = mysql_loom.insert_one(user)
-#         post = Post(title="What are you doing?", userId=userId)
-#         _ = mysql_loom.insert_bulk([post for i in range(5)])
-#         time.sleep(0.05)
-#         res_1 = mysql_loom.update_bulk(Post, {"userId": userId}, {"title": "John"})
-#         res_2 = mysql_loom.update_bulk(Post, {"userId": 2}, {"title": "John"})
+        affected_rows = mysql_loom.increment(
+            User,
+            filters=Filter(column="id", value=1),
+            column=ColumnValue(name="tokenVersion", value=3),
+        )
+        assert affected_rows == 1
 
-#         post = mysql_loom.find_by_pk(Post, 1)
+        affected_rows = mysql_loom.increment(
+            User,
+            filters=Filter(column="id", value=2),
+            column=ColumnValue(name="tokenVersion", value=3),
+        )
+        assert affected_rows == 0
 
-#         with pytest.raises(Exception) as exc_info:
-#             mysql_loom.update_bulk(Post, {"userId": userId}, {"userId": "Gari"})
+        me = mysql_loom.find_by_pk(User, userId, select=["tokenVersion"])
+        assert me["tokenVersion"] == 3
 
-#         assert exc_info.value.errno == 1366
-#         exc_info.value.msg = "Incorrect integer value: 'Gari' for column 'id' at row 1"
+        with pytest.raises(Exception) as exc_info:
+            mysql_loom.increment(
+                User,
+                filters=Filter(column="id", value=2),
+                column=ColumnValue(name="tokenVersion", value="3"),
+            )
+        assert (
+            str(exc_info.value)
+            == "The increment operation only works with integer and float values."
+        )
+        conn.close()
 
-#         with pytest.raises(UnknownColumnException) as exc_info:
-#             mysql_loom.update_one(Post, {"wrong_key": "@miller"}, {"userId": 3})
-#         assert str(exc_info.value) == "Table posts does not have column 'wrong_key'."
-#         with pytest.raises(UnknownColumnException) as exc_info:
-#             mysql_loom.update_one(Post, {"userId": userId}, values={"loca": "miller"})
-#         assert str(exc_info.value) == "Table posts does not have column 'loca'."
+    def test_decrement_fn(self):
+        from typing import Optional
+        import pytest
+        from dataloom import (
+            Column,
+            CreatedAtColumn,
+            Dataloom,
+            Model,
+            PrimaryKeyColumn,
+            TableColumn,
+            UpdatedAtColumn,
+            Filter,
+            ColumnValue,
+        )
+        from dataloom.keys import MySQLConfig
 
-#         post["title"] == "John"
-#         assert res_1 == 5
-#         assert res_2 == 0
-#         conn.close()
+        mysql_loom = Dataloom(
+            dialect="mysql",
+            database=MySQLConfig.database,
+            password=MySQLConfig.password,
+            user=MySQLConfig.user,
+        )
+
+        class User(Model):
+            __tablename__: Optional[TableColumn] = TableColumn(name="users")
+            id = PrimaryKeyColumn(type="int", auto_increment=True)
+            name = Column(type="text", nullable=False, default="Bob")
+            username = Column(type="varchar", unique=True, length=255)
+            tokenVersion = Column(type="int", default=0)
+            # timestamps
+            createdAt = CreatedAtColumn()
+            updatedAt = UpdatedAtColumn()
+
+        conn, _ = mysql_loom.connect_and_sync([User], drop=True, force=True)
+
+        user = User(username="@miller")
+        userId = mysql_loom.insert_one(user)
+
+        affected_rows = mysql_loom.decrement(
+            User,
+            filters=Filter(column="id", value=1),
+            column=ColumnValue(name="tokenVersion", value=3),
+        )
+        assert affected_rows == 1
+
+        affected_rows = mysql_loom.decrement(
+            User,
+            filters=Filter(column="id", value=2),
+            column=ColumnValue(name="tokenVersion", value=3),
+        )
+        assert affected_rows == 0
+
+        me = mysql_loom.find_by_pk(User, userId, select=["tokenVersion"])
+        assert me["tokenVersion"] == -3
+
+        with pytest.raises(Exception) as exc_info:
+            mysql_loom.decrement(
+                User,
+                filters=Filter(column="id", value=2),
+                column=ColumnValue(name="tokenVersion", value="3"),
+            )
+        assert (
+            str(exc_info.value)
+            == "The decrement operation only works with integer and float values."
+        )
+        conn.close()
