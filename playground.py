@@ -14,7 +14,11 @@ from typing import Optional
 
 
 pg_loom = Dataloom(
-    dialect="postgres", database="hi", password="root", user="postgres", logging=True
+    dialect="postgres",
+    database="hi",
+    password="root",
+    user="postgres",
+    sql_logger="console",
 )
 mysql_loom = Dataloom(
     dialect="mysql",
@@ -22,12 +26,13 @@ mysql_loom = Dataloom(
     password="root",
     user="root",
     host="localhost",
-    logging=True,
     logs_filename="logs.sql",
     port=3306,
 )
 sqlite_loom = Dataloom(
-    dialect="sqlite", database="hi.db", logs_filename="sqlite-logs.sql", logging=True
+    dialect="sqlite",
+    database="hi.db",
+    logs_filename="sqlite-logs.sql",
 )
 
 

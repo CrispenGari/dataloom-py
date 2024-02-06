@@ -20,6 +20,19 @@ from typing import Optional
 from dataloom.statements import MySqlStatements, PgStatements, Sqlite3Statements
 
 
+class Colors:
+    RESET = "\033[0m"
+    BLACK = "\033[30m"
+    RED = "\033[31m"
+    GREEN = "\033[32m"
+    YELLOW = "\033[33m"
+    BLUE = "\033[34m"
+    PURPLE = "\033[35m"
+    CYAN = "\033[36m"
+    WHITE = "\033[37m"
+    BOLD = "\033[1m"
+
+
 def get_table_filters(
     table_name: str,
     dialect: DIALECT_LITERAL,
@@ -144,27 +157,67 @@ def get_child_table_columns(include: Include) -> dict:
     return {alias: field if len(select) == 0 else select}
 
 
-def logger(fn):
-    def wrapper(*args, **kwargs):
-        sql_statement, file_name, dialect = fn(*args, **kwargs)
-        with open(file_name, "a+") as f:
-            f.write(
-                "[{time}] : Dataloom[{dialect}]: {sql_statement}\n".format(
-                    dialect=dialect,
-                    time=datetime.now(),
-                    sql_statement=sql_statement,
+class logger:
+    @staticmethod
+    def file(fn):
+        def wrapper(*args, **kwargs):
+            sql_statement, file_name, dialect = fn(*args, **kwargs)
+            with open(file_name, "a+") as f:
+                f.write(
+                    "[{time}] : Dataloom[{dialect}]: {sql_statement}\n".format(
+                        dialect=dialect,
+                        time=datetime.now(),
+                        sql_statement=sql_statement,
+                    )
                 )
-            )
-        return sql_statement
+            return sql_statement
 
-    return wrapper
+        return wrapper
+
+    def console(fn):
+        def wrapper(*args, **kwargs):
+            index, sql_statement, dialect = fn(*args, **kwargs)
+            if index % 2 == 0:
+                print(
+                    Colors.BOLD
+                    + Colors.CYAN
+                    + f"[{dialect}:log_{index}] "
+                    + Colors.RESET
+                    + Colors.BOLD
+                    + Colors.BLUE
+                    + f"{sql_statement}"
+                    + Colors.RESET
+                )
+            else:
+                print(
+                    Colors.BOLD
+                    + Colors.CYAN
+                    + f"[{dialect}:log_{index}] "
+                    + Colors.RESET
+                    + Colors.BOLD
+                    + Colors.GREEN
+                    + f"{sql_statement}"
+                    + Colors.RESET
+                )
+
+            print()
+            return index
+
+        return wrapper
 
 
-@logger
-def logger_function(
-    file_name: str, dialect: DIALECT_LITERAL, sql_statement: str
-) -> None:
+@logger.file
+def file_logger(file_name: str, dialect: DIALECT_LITERAL, sql_statement: str) -> None:
     return sql_statement, file_name, dialect
+
+
+@logger.console
+def console_logger(
+    index: int,
+    sql_statement: str,
+    dialect: DIALECT_LITERAL,
+):
+    return index, sql_statement, dialect
 
 
 def get_table_fields(model, dialect: DIALECT_LITERAL):

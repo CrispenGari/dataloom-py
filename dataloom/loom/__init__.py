@@ -10,7 +10,7 @@ from dataloom.exceptions import (
 from dataloom.model import Model
 from dataloom.statements import GetStatement
 from dataloom.conn import ConnectionOptionsFactory
-from dataloom.utils import logger_function, get_child_table_columns
+from dataloom.utils import file_logger, console_logger, get_child_table_columns
 from typing import Optional
 from dataloom.types import (
     Order,
@@ -18,6 +18,7 @@ from dataloom.types import (
     DIALECT_LITERAL,
     Filter,
     ColumnValue,
+    SQL_LOGGER_LITERAL,
 )
 
 
@@ -30,12 +31,13 @@ class Dataloom:
         host: Optional[str] = None,
         port: Optional[int] = None,
         password: Optional[str] = None,
-        logging: bool = True,
+        sql_logger: Optional[SQL_LOGGER_LITERAL] = None,
         logs_filename: Optional[str] = "dataloom.sql",
     ) -> None:
+        self.logger_index = 0
         self.database = database
         self.conn = None
-        self.logging = logging
+        self.sql_logger = sql_logger
         self.dialect = dialect
         self.logs_filename = logs_filename
         try:
@@ -81,10 +83,14 @@ class Dataloom:
         operation: Optional[str] = None,
     ):
         # do we need to log the executed SQL?
-        if self.logging:
-            print(sql)
-            if self.logs_filename is not None:
-                logger_function(
+        if self.sql_logger is not None:
+            if self.sql_logger == "console":
+                index = console_logger(
+                    index=self.logger_index, sql_statement=sql, dialect=self.dialect
+                )
+                self.logger_index = index + 1
+            else:
+                file_logger(
                     dialect=self.dialect,
                     file_name=self.logs_filename,
                     sql_statement=sql,

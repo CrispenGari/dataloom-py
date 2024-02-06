@@ -10,7 +10,6 @@ class TestCreatingTablePG:
             database=PgConfig.database,
             password=PgConfig.password,
             user=PgConfig.user,
-            logging=True,
         )
         conn = pg_loom.connect()
 
@@ -41,7 +40,6 @@ class TestCreatingTablePG:
             database=PgConfig.database,
             password=PgConfig.password,
             user=PgConfig.user,
-            logging=True,
         )
         conn = pg_loom.connect()
 
@@ -65,7 +63,6 @@ class TestCreatingTablePG:
             database=PgConfig.database,
             password=PgConfig.password,
             user=PgConfig.user,
-            logging=True,
         )
         conn = pg_loom.connect()
 
@@ -105,7 +102,6 @@ class TestCreatingTablePG:
             database=PgConfig.database,
             password=PgConfig.password,
             user=PgConfig.user,
-            logging=True,
         )
         conn, _ = pg_loom.connect_and_sync([User, Post], drop=True, force=True)
         assert len(_) >= 2
@@ -122,7 +118,6 @@ class TestCreatingTablePG:
             database=PgConfig.database,
             password=PgConfig.password,
             user=PgConfig.user,
-            logging=True,
         )
         conn = pg_loom.connect()
 

@@ -5,6 +5,7 @@ from typing import Optional
 OPERATOR_LITERAL = Literal["eq", "lt", "gt", "leq", "geq", "in", "notIn", "like"]
 SLQ_OPERAND_LITERAL = Literal["AND", "OR"]
 INCREMENT_DECREMENT_LITERAL = Literal["increment", "decrement"]
+SQL_LOGGER_LITERAL = Literal["console", "file"]
 
 SLQ_OPERATORS = {
     "eq": "=",
