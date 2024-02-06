@@ -11,9 +11,9 @@ class TestQueryingMySQL:
             ForeignKeyColumn,
             UnknownColumnException,
         )
+        import pytest
         from dataloom.keys import MySQLConfig
         from typing import Optional
-        import pytest
 
         mysql_loom = Dataloom(
             dialect="mysql",
@@ -116,7 +116,6 @@ class TestQueryingMySQL:
         _ = mysql_loom.insert_bulk([post for i in range(5)])
         users = mysql_loom.find_all(User)
         posts = mysql_loom.find_all(Post)
-
         paginated = mysql_loom.find_all(
             Post, select=["id", "completed"], limit=3, offset=3
         )
@@ -127,10 +126,14 @@ class TestQueryingMySQL:
             == 'The table "posts" does not have a column "location".'
         )
         assert len(paginated) == 2
-        assert paginated == [{"id": 4, "completed": 0}, {"id": 5, "completed": 0}]
+        assert paginated == [
+            {"id": 4, "completed": False},
+            {"id": 5, "completed": False},
+        ]
 
         assert len(users) == 1
         assert len(posts) == 5
+
         assert True
         conn.close()
 
@@ -145,6 +148,7 @@ class TestQueryingMySQL:
             TableColumn,
             ForeignKeyColumn,
             UnknownColumnException,
+            Filter,
         )
         from dataloom.keys import MySQLConfig
         from typing import Optional
@@ -184,17 +188,26 @@ class TestQueryingMySQL:
         post = Post(title="What are you doing?", userId=userId)
         _ = mysql_loom.insert_bulk([post for i in range(5)])
 
-        one_0 = mysql_loom.find_one(User, {"id": 5})
-        one_1 = mysql_loom.find_one(User, {"id": 1})
-        one_2 = mysql_loom.find_one(User, {"id": 1, "name": "Bob"})
-        one_3 = mysql_loom.find_one(User, {"id": 5, "username": "@miller"})
-        one_4 = mysql_loom.find_one(User, {"name": "Crispen", "username": "@miller"})
-
-        with pytest.raises(UnknownColumnException) as exc_info:
-            one_4 = mysql_loom.find_one(
-                User, {"location": "Crispen", "username": "@miller"}
-            )
-        assert str(exc_info.value) == "Table users does not have column 'location'."
+        one_0 = mysql_loom.find_one(User, filters=Filter(column="id", value=5))
+        one_1 = mysql_loom.find_one(User, filters=Filter(column="id", value=1))
+        one_2 = mysql_loom.find_one(
+            User,
+            filters=[Filter(column="name", value="Bob"), Filter(column="id", value=1)],
+        )
+        one_3 = mysql_loom.find_one(
+            User,
+            filters=[
+                Filter(column="id", value=5),
+                Filter(column="username", value="@miller"),
+            ],
+        )
+        one_4 = mysql_loom.find_one(
+            User,
+            filters=[
+                Filter(column="name", value="Crispen"),
+                Filter(column="username", value="@miller"),
+            ],
+        )
 
         posts = mysql_loom.find_one(Post, select=["id", "completed"])
         with pytest.raises(UnknownColumnException) as exc_info:
@@ -203,10 +216,21 @@ class TestQueryingMySQL:
             str(exc_info.value)
             == 'The table "posts" does not have a column "location".'
         )
+
+        with pytest.raises(UnknownColumnException) as exc_info:
+            one_4 = mysql_loom.find_one(
+                User,
+                filters=[
+                    Filter(column="location", value="Crispen"),
+                    Filter(column="username", value="@miller"),
+                ],
+            )
+        assert str(exc_info.value) == "Table users does not have column 'location'."
+
         assert one_0 is None
-        assert one_3 is None
-        assert posts == {"id": 1, "completed": 0}
         assert len(posts) == 2
+        assert posts == {"id": 1, "completed": False}
+        assert one_3 is None
         assert one_1 == {"id": 1, "name": "Bob", "username": "@miller"}
         assert one_2 == {"id": 1, "name": "Bob", "username": "@miller"}
         assert one_4 is None
@@ -224,6 +248,7 @@ class TestQueryingMySQL:
             TableColumn,
             ForeignKeyColumn,
             UnknownColumnException,
+            Filter,
         )
         from dataloom.keys import MySQLConfig
         from typing import Optional
@@ -262,24 +287,49 @@ class TestQueryingMySQL:
         userId = mysql_loom.insert_one(user)
         post = Post(title="What are you doing?", userId=userId)
         rows = mysql_loom.insert_bulk([post for i in range(5)])
-        posts = mysql_loom.find_many(Post, {"id": 1, "userId": 1})
+        posts = mysql_loom.find_many(
+            Post,
+            filters=[Filter(column="id", value=1), Filter(column="userId", value=1)],
+        )
         users = mysql_loom.find_many(User)
-        many_0 = mysql_loom.find_many(User, {"id": 5})
-        many_1 = mysql_loom.find_many(User, {"id": 1})
-        many_2 = mysql_loom.find_many(User, {"id": 1, "name": "Crispen"})
-        many_3 = mysql_loom.find_many(User, {"id": 5, "username": "@miller"})
-        many_4 = mysql_loom.find_many(User, {"name": "Bob", "username": "@miller"})
-
-        with pytest.raises(UnknownColumnException) as exc_info:
-            mysql_loom.find_many(User, {"location": "Crispen", "username": "@miller"})
-        assert str(exc_info.value) == "Table users does not have column 'location'."
+        many_0 = mysql_loom.find_many(User, filters=Filter(column="id", value=5))
+        many_1 = mysql_loom.find_many(User, filters=Filter(column="id", value=1))
+        many_2 = mysql_loom.find_many(
+            User,
+            filters=[
+                Filter(column="id", value=1),
+                Filter(column="name", value="Crispen"),
+            ],
+        )
+        many_3 = mysql_loom.find_many(
+            User,
+            filters=[
+                Filter(column="id", value=5),
+                Filter(column="username", value="@miller"),
+            ],
+        )
+        many_4 = mysql_loom.find_many(
+            User,
+            filters=[
+                Filter(column="name", value="Bob"),
+                Filter(column="username", value="@miller"),
+            ],
+        )
 
         paginated = mysql_loom.find_many(
-            Post, {"userId": 1}, select=["id", "completed"], limit=3, offset=3
+            Post,
+            Filter(column="userId", value=1),
+            select=["id", "completed"],
+            limit=3,
+            offset=3,
         )
         with pytest.raises(UnknownColumnException) as exc_info:
             mysql_loom.find_many(
-                Post, {"userId": 1}, select=["id", "location"], limit=3, offset=3
+                Post,
+                Filter(column="id", value=1),
+                select=["id", "location"],
+                limit=3,
+                offset=3,
             )
         assert (
             str(exc_info.value)
@@ -287,9 +337,19 @@ class TestQueryingMySQL:
         )
         assert len(paginated) == 2
         assert paginated == [
-            {"id": 4, "completed": 0},
-            {"id": 5, "completed": 0},
+            {"id": 4, "completed": False},
+            {"id": 5, "completed": False},
         ]
+
+        with pytest.raises(UnknownColumnException) as exc_info:
+            mysql_loom.find_many(
+                User,
+                filters=[
+                    Filter(column="username", value="@miller"),
+                    Filter(column="location", value="Crispen"),
+                ],
+            )
+        assert str(exc_info.value) == "Table users does not have column 'location'."
 
         assert len(users) == 1
         assert len(posts) == 1

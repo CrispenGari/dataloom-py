@@ -30,6 +30,12 @@ class Filter:
 
 
 @dataclass(kw_only=True, repr=False)
+class ColumnValue:
+    name: str = field(repr=False)
+    value: Any = field(repr=False)
+
+
+@dataclass(kw_only=True, repr=False)
 class Order:
     column: str = field(repr=False)
     order: Literal["ASC", "DESC"] = field(repr=False, default="ASC")

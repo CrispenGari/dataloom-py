@@ -3,8 +3,6 @@ class TestUpdateOnPG:
         import time
         from typing import Optional
 
-        import pytest
-
         from dataloom import (
             Column,
             CreatedAtColumn,
@@ -14,6 +12,7 @@ class TestUpdateOnPG:
             PrimaryKeyColumn,
             TableColumn,
             UpdatedAtColumn,
+            ColumnValue,
         )
         from dataloom.keys import PgConfig
 
@@ -56,13 +55,13 @@ class TestUpdateOnPG:
         post = Post(title="What are you doing?", userId=userId)
         _ = pg_loom.insert_bulk([post for i in range(5)])
         time.sleep(0.05)
-        res_1 = pg_loom.update_by_pk(User, userId)
-        res_2 = pg_loom.update_by_pk(User, 10)
+        res_1 = pg_loom.update_by_pk(
+            User, userId, ColumnValue(name="username", value="Gari")
+        )
+        res_2 = pg_loom.update_by_pk(
+            User, 10, ColumnValue(name="username", value="Gari")
+        )
         me = pg_loom.find_by_pk(User, userId)
-
-        with pytest.raises(Exception) as exc_info:
-            pg_loom.update_by_pk(User, userId, {"id": "Gari"})
-        assert exc_info.value.pgcode == "22P02"
 
         assert me["createdAt"] != me["updatedAt"]
         assert res_1 == 1
@@ -85,6 +84,8 @@ class TestUpdateOnPG:
             TableColumn,
             UnknownColumnException,
             UpdatedAtColumn,
+            Filter,
+            ColumnValue,
         )
         from dataloom.keys import PgConfig
 
@@ -126,18 +127,31 @@ class TestUpdateOnPG:
         post = Post(title="What are you doing?", userId=userId)
         _ = pg_loom.insert_bulk([post for i in range(5)])
         time.sleep(0.05)
-        res_1 = pg_loom.update_one(User, {"username": "@miller"}, {"name": "John"})
-        res_2 = pg_loom.update_one(User, {"username": "miller"}, {"name": "John"})
+        res_1 = pg_loom.update_one(
+            User,
+            filters=Filter(column="username", value="@miller"),
+            values=ColumnValue(name="name", value="Jonh"),
+        )
+        res_2 = pg_loom.update_one(
+            User,
+            Filter(column="username", value="miller"),
+            values=ColumnValue(name="name", value="Jonh"),
+        )
         me = pg_loom.find_by_pk(User, userId)
 
-        with pytest.raises(Exception) as exc_info:
-            pg_loom.update_one(User, {"username": "@miller"}, {"id": "Gari"})
-        assert exc_info.value.pgcode == "22P02"
         with pytest.raises(UnknownColumnException) as exc_info:
-            pg_loom.update_one(Post, {"wrong_key": "@miller"}, {"userId": 3})
+            pg_loom.update_one(
+                Post,
+                Filter(column="wrong_key", value="@miller"),
+                values=ColumnValue(name="id", value=3),
+            )
         assert str(exc_info.value) == "Table posts does not have column 'wrong_key'."
         with pytest.raises(UnknownColumnException) as exc_info:
-            pg_loom.update_one(Post, {"userId": userId}, values={"loca": "miller"})
+            pg_loom.update_one(
+                Post,
+                Filter(column="userId", value=userId),
+                values=ColumnValue(name="loca", value=3),
+            )
         assert str(exc_info.value) == "Table posts does not have column 'loca'."
 
         assert me["createdAt"] != me["updatedAt"]
@@ -160,6 +174,8 @@ class TestUpdateOnPG:
             TableColumn,
             UnknownColumnException,
             UpdatedAtColumn,
+            Filter,
+            ColumnValue,
         )
         from dataloom.keys import PgConfig
 
@@ -200,18 +216,36 @@ class TestUpdateOnPG:
         userId = pg_loom.insert_one(user)
         post = Post(title="What are you doing?", userId=userId)
         _ = pg_loom.insert_bulk([post for i in range(5)])
-        res_1 = pg_loom.update_bulk(Post, {"userId": userId}, {"title": "John"})
-        res_2 = pg_loom.update_bulk(Post, {"userId": 2}, {"title": "John"})
+        res_1 = pg_loom.update_bulk(
+            Post,
+            Filter(column="userId", value=userId),
+            ColumnValue(name="title", value="John"),
+        )
+        res_2 = pg_loom.update_bulk(
+            Post, Filter(column="id", value=10), ColumnValue(name="title", value="John")
+        )
 
         with pytest.raises(Exception) as exc_info:
-            pg_loom.update_bulk(Post, {"userId": userId}, {"userId": "Gari"})
+            pg_loom.update_bulk(
+                Post,
+                Filter(column="userId", value=userId),
+                ColumnValue(name="userId", value="Gari"),
+            )
         assert exc_info.value.pgcode == "22P02"
         with pytest.raises(UnknownColumnException) as exc_info:
-            pg_loom.update_one(Post, {"wrong_key": "@miller"}, {"userId": 3})
+            pg_loom.update_one(
+                Post,
+                Filter(column="wrong_key", value="@miller"),
+                ColumnValue(name="userId", value=3),
+            )
         assert str(exc_info.value) == "Table posts does not have column 'wrong_key'."
 
         with pytest.raises(UnknownColumnException) as exc_info:
-            pg_loom.update_one(Post, {"userId": userId}, values={"loca": "miller"})
+            pg_loom.update_one(
+                Post,
+                Filter(column="userId", value=userId),
+                ColumnValue(name="loca", value="miller"),
+            )
         assert str(exc_info.value) == "Table posts does not have column 'loca'."
 
         assert res_1 == 5

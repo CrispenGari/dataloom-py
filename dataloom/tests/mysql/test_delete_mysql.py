@@ -67,6 +67,7 @@ class TestDeletingOnMysql:
             UpdatedAtColumn,
             ForeignKeyColumn,
             UnknownColumnException,
+            Filter,
         )
         from dataloom.keys import MySQLConfig
         from typing import Optional
@@ -111,15 +112,39 @@ class TestDeletingOnMysql:
                 User(name="Crispen", username="hi"),
             ]
         )
-        mysql_loom.delete_one(User, {"name": "Crispen"})
-        rows_1 = mysql_loom.find_many(User, {"name": "Crispen"})
-        mysql_loom.delete_one(User, {"name": "Crispen", "id": 9})
-        rows_2 = mysql_loom.find_many(User, {"name": "Crispen"})
-        mysql_loom.delete_one(User, {"name": "Crispen", "id": 2})
-        rows_3 = mysql_loom.find_many(User, {"name": "Crispen"})
+        mysql_loom.delete_one(User, filters=[Filter(column="name", value="Crispen")])
+        rows_1 = mysql_loom.find_many(
+            User, filters=[Filter(column="name", value="Crispen")]
+        )
+        mysql_loom.delete_one(
+            User,
+            filters=[
+                Filter(column="name", value="Crispen"),
+                Filter(column="id", value=9),
+            ],
+        )
+        rows_2 = mysql_loom.find_many(
+            User, filters=[Filter(column="name", value="Crispen")]
+        )
+        mysql_loom.delete_one(
+            User,
+            filters=[
+                Filter(column="name", value="Crispen"),
+                Filter(column="id", value=2),
+            ],
+        )
+        rows_3 = mysql_loom.find_many(
+            User, filters=[Filter(column="name", value="Crispen")]
+        )
 
         with pytest.raises(UnknownColumnException) as exc_info:
-            mysql_loom.delete_bulk(User, {"location": "Crispen", "username": "@miller"})
+            mysql_loom.delete_bulk(
+                User,
+                filters=[
+                    Filter(column="location", value="Crispen"),
+                    Filter(column="username", value="@miller"),
+                ],
+            )
         assert str(exc_info.value) == "Table users does not have column 'location'."
 
         assert len(rows_1) == 2
@@ -139,6 +164,7 @@ class TestDeletingOnMysql:
             UpdatedAtColumn,
             ForeignKeyColumn,
             UnknownColumnException,
+            Filter,
         )
         from dataloom.keys import MySQLConfig
         from typing import Optional
@@ -183,8 +209,12 @@ class TestDeletingOnMysql:
                 User(name="Crispen", username="hie"),
             ]
         )
-        mysql_loom.delete_bulk(User, {"name": "Crispen"})
-        rows_1 = mysql_loom.find_many(User, {"name": "Crispen"})
+        mysql_loom.delete_bulk(
+            User, filters=Filter(column="name", value="Crispen", operator="eq")
+        )
+        rows_1 = mysql_loom.find_many(
+            User, filters=Filter(column="name", value="Crispen", operator="eq")
+        )
         mysql_loom.insert_bulk(
             [
                 User(name="Crispen", username="hi"),
@@ -192,13 +222,35 @@ class TestDeletingOnMysql:
                 User(name="Crispen", username="hie"),
             ]
         )
-        mysql_loom.delete_bulk(User, {"name": "Crispen", "id": 99})
-        rows_2 = mysql_loom.find_many(User, {"name": "Crispen"})
-        mysql_loom.delete_bulk(User, {"name": "Crispen", "id": 5})
-        rows_3 = mysql_loom.find_many(User, {"name": "Crispen"})
+        mysql_loom.delete_bulk(
+            User,
+            filters=[
+                Filter(column="name", value="Crispen"),
+                Filter(column="id", value=99),
+            ],
+        )
+        rows_2 = mysql_loom.find_many(
+            User, filters=Filter(column="name", value="Crispen", operator="eq")
+        )
+        mysql_loom.delete_bulk(
+            User,
+            filters=[
+                Filter(column="name", value="Crispen", operator="eq"),
+                Filter(column="id", value=5, operator="eq"),
+            ],
+        )
+        rows_3 = mysql_loom.find_many(
+            User, filters=Filter(column="name", value="Crispen", operator="eq")
+        )
 
         with pytest.raises(UnknownColumnException) as exc_info:
-            mysql_loom.delete_bulk(User, {"location": "Crispen", "username": "@miller"})
+            mysql_loom.delete_bulk(
+                User,
+                filters=[
+                    Filter(column="location", value="Crispen"),
+                    Filter(column="username", value="@miller"),
+                ],
+            )
         assert str(exc_info.value) == "Table users does not have column 'location'."
 
         assert len(rows_1) == 0

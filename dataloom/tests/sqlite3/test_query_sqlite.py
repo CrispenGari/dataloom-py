@@ -1,4 +1,4 @@
-class TestQueryingSqlite:
+class TestQueryingSQLite:
     def test_find_by_pk_fn(self):
         from dataloom import (
             Dataloom,
@@ -11,9 +11,8 @@ class TestQueryingSqlite:
             ForeignKeyColumn,
             UnknownColumnException,
         )
-
-        from typing import Optional
         import pytest
+        from typing import Optional
 
         sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
 
@@ -55,6 +54,7 @@ class TestQueryingSqlite:
         )
         assert len(posts) == 2
         assert posts == {"id": 1, "completed": 0}
+
         assert her is None
         assert me == {"id": 1, "name": "Bob", "username": "@miller"}
         conn.close()
@@ -71,7 +71,6 @@ class TestQueryingSqlite:
             ForeignKeyColumn,
             UnknownColumnException,
         )
-
         from typing import Optional
         import pytest
 
@@ -105,7 +104,6 @@ class TestQueryingSqlite:
         _ = sqlite_loom.insert_bulk([post for i in range(5)])
         users = sqlite_loom.find_all(User)
         posts = sqlite_loom.find_all(Post)
-
         paginated = sqlite_loom.find_all(
             Post, select=["id", "completed"], limit=3, offset=3
         )
@@ -116,10 +114,14 @@ class TestQueryingSqlite:
             == 'The table "posts" does not have a column "location".'
         )
         assert len(paginated) == 2
-        assert paginated == [{"id": 4, "completed": 0}, {"id": 5, "completed": 0}]
+        assert paginated == [
+            {"id": 4, "completed": False},
+            {"id": 5, "completed": False},
+        ]
 
         assert len(users) == 1
         assert len(posts) == 5
+
         assert True
         conn.close()
 
@@ -134,8 +136,8 @@ class TestQueryingSqlite:
             TableColumn,
             ForeignKeyColumn,
             UnknownColumnException,
+            Filter,
         )
-
         from typing import Optional
         import pytest
 
@@ -168,11 +170,26 @@ class TestQueryingSqlite:
         post = Post(title="What are you doing?", userId=userId)
         _ = sqlite_loom.insert_bulk([post for i in range(5)])
 
-        one_0 = sqlite_loom.find_one(User, {"id": 5})
-        one_1 = sqlite_loom.find_one(User, {"id": 1})
-        one_2 = sqlite_loom.find_one(User, {"id": 1, "name": "Bob"})
-        one_3 = sqlite_loom.find_one(User, {"id": 5, "username": "@miller"})
-        one_4 = sqlite_loom.find_one(User, {"name": "Crispen", "username": "@miller"})
+        one_0 = sqlite_loom.find_one(User, filters=Filter(column="id", value=5))
+        one_1 = sqlite_loom.find_one(User, filters=Filter(column="id", value=1))
+        one_2 = sqlite_loom.find_one(
+            User,
+            filters=[Filter(column="name", value="Bob"), Filter(column="id", value=1)],
+        )
+        one_3 = sqlite_loom.find_one(
+            User,
+            filters=[
+                Filter(column="id", value=5),
+                Filter(column="username", value="@miller"),
+            ],
+        )
+        one_4 = sqlite_loom.find_one(
+            User,
+            filters=[
+                Filter(column="name", value="Crispen"),
+                Filter(column="username", value="@miller"),
+            ],
+        )
 
         posts = sqlite_loom.find_one(Post, select=["id", "completed"])
         with pytest.raises(UnknownColumnException) as exc_info:
@@ -184,15 +201,18 @@ class TestQueryingSqlite:
 
         with pytest.raises(UnknownColumnException) as exc_info:
             one_4 = sqlite_loom.find_one(
-                User, {"location": "Crispen", "username": "@miller"}
+                User,
+                filters=[
+                    Filter(column="location", value="Crispen"),
+                    Filter(column="username", value="@miller"),
+                ],
             )
         assert str(exc_info.value) == "Table users does not have column 'location'."
 
         assert one_0 is None
-        assert one_3 is None
-        assert posts == {"completed": 0, "id": 1}
         assert len(posts) == 2
-
+        assert posts == {"id": 1, "completed": False}
+        assert one_3 is None
         assert one_1 == {"id": 1, "name": "Bob", "username": "@miller"}
         assert one_2 == {"id": 1, "name": "Bob", "username": "@miller"}
         assert one_4 is None
@@ -210,8 +230,8 @@ class TestQueryingSqlite:
             TableColumn,
             ForeignKeyColumn,
             UnknownColumnException,
+            Filter,
         )
-
         from typing import Optional
         import pytest
 
@@ -243,24 +263,49 @@ class TestQueryingSqlite:
         userId = sqlite_loom.insert_one(user)
         post = Post(title="What are you doing?", userId=userId)
         rows = sqlite_loom.insert_bulk([post for i in range(5)])
-        posts = sqlite_loom.find_many(Post, {"id": 1, "userId": 1})
+        posts = sqlite_loom.find_many(
+            Post,
+            filters=[Filter(column="id", value=1), Filter(column="userId", value=1)],
+        )
         users = sqlite_loom.find_many(User)
-        many_0 = sqlite_loom.find_many(User, {"id": 5})
-        many_1 = sqlite_loom.find_many(User, {"id": 1})
-        many_2 = sqlite_loom.find_many(User, {"id": 1, "name": "Crispen"})
-        many_3 = sqlite_loom.find_many(User, {"id": 5, "username": "@miller"})
-        many_4 = sqlite_loom.find_many(User, {"name": "Bob", "username": "@miller"})
-
-        with pytest.raises(UnknownColumnException) as exc_info:
-            sqlite_loom.find_many(User, {"location": "Crispen", "username": "@miller"})
-        assert str(exc_info.value) == "Table users does not have column 'location'."
+        many_0 = sqlite_loom.find_many(User, filters=Filter(column="id", value=5))
+        many_1 = sqlite_loom.find_many(User, filters=Filter(column="id", value=1))
+        many_2 = sqlite_loom.find_many(
+            User,
+            filters=[
+                Filter(column="id", value=1),
+                Filter(column="name", value="Crispen"),
+            ],
+        )
+        many_3 = sqlite_loom.find_many(
+            User,
+            filters=[
+                Filter(column="id", value=5),
+                Filter(column="username", value="@miller"),
+            ],
+        )
+        many_4 = sqlite_loom.find_many(
+            User,
+            filters=[
+                Filter(column="name", value="Bob"),
+                Filter(column="username", value="@miller"),
+            ],
+        )
 
         paginated = sqlite_loom.find_many(
-            Post, {"userId": 1}, select=["id", "completed"], limit=3, offset=3
+            Post,
+            Filter(column="userId", value=1),
+            select=["id", "completed"],
+            limit=3,
+            offset=3,
         )
         with pytest.raises(UnknownColumnException) as exc_info:
             sqlite_loom.find_many(
-                Post, {"userId": 1}, select=["id", "location"], limit=3, offset=3
+                Post,
+                Filter(column="id", value=1),
+                select=["id", "location"],
+                limit=3,
+                offset=3,
             )
         assert (
             str(exc_info.value)
@@ -268,9 +313,19 @@ class TestQueryingSqlite:
         )
         assert len(paginated) == 2
         assert paginated == [
-            {"id": 4, "completed": 0},
-            {"id": 5, "completed": 0},
+            {"id": 4, "completed": False},
+            {"id": 5, "completed": False},
         ]
+
+        with pytest.raises(UnknownColumnException) as exc_info:
+            sqlite_loom.find_many(
+                User,
+                filters=[
+                    Filter(column="username", value="@miller"),
+                    Filter(column="location", value="Crispen"),
+                ],
+            )
+        assert str(exc_info.value) == "Table users does not have column 'location'."
 
         assert len(users) == 1
         assert len(posts) == 1

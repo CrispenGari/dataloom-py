@@ -108,44 +108,50 @@ class TestInsertingOnPG:
         assert count == 5
         conn.close()
 
-        # # def test_relational_instances(self):
-        # from dataloom.db import Database
-        # from dataloom.model.column import Column
-        # from dataloom.model.model import (
-        #     Model,
-        #     CreatedAtColumn,
-        #     UpdatedAtColumn,
-        #     ForeignKeyColumn,
-        #     PrimaryKeyColumn,
-        # )
-        # from dataloom.keys import password, database, user
+    def test_relational_instances(self):
+        from dataloom import (
+            Model,
+            CreatedAtColumn,
+            UpdatedAtColumn,
+            ForeignKeyColumn,
+            PrimaryKeyColumn,
+            Column,
+            Dataloom,
+        )
+        from dataloom.keys import PgConfig
 
-        # db = Database(database, password=password, user=user)
+        pg_loom = Dataloom(
+            dialect="postgres",
+            database=PgConfig.database,
+            password=PgConfig.password,
+            user=PgConfig.user,
+        )
 
-        # class User(Model):
-        #     __tablename__ = "users"
-        #     id = PrimaryKeyColumn(type="bigint", auto_increment=True)
-        #     username = Column(type="text", nullable=False)
-        #     name = Column(type="varchar", unique=False, length=255)
-        #     createAt = CreatedAtColumn()
-        #     updatedAt = UpdatedAtColumn()
+        class User(Model):
+            __tablename__ = "users"
+            id = PrimaryKeyColumn(type="bigint", auto_increment=True)
+            username = Column(type="text", nullable=False)
+            name = Column(type="varchar", unique=False, length=255)
+            createAt = CreatedAtColumn()
+            updatedAt = UpdatedAtColumn()
 
-        # class Post(Model):
-        #     __tablename__ = "posts"
+        class Post(Model):
+            __tablename__ = "posts"
 
-        #     id = PrimaryKeyColumn(type="bigint", auto_increment=True)
-        #     title = Column(type="text", nullable=False, default="Hello there!!")
-        #     createAt = CreatedAtColumn()
-        #     updatedAt = UpdatedAtColumn()
-        #     userId = ForeignKeyColumn(User, onDelete="CASCADE", onUpdate="CASCADE")
+            id = PrimaryKeyColumn(type="bigint", auto_increment=True)
+            title = Column(type="text", nullable=False, default="Hello there!!")
+            createAt = CreatedAtColumn()
+            updatedAt = UpdatedAtColumn()
+            userId = ForeignKeyColumn(
+                User, type="bigint", onDelete="CASCADE", onUpdate="CASCADE"
+            )
 
-        # db = Database("hi", password="root", user="postgres")
-        # conn, _ = db.connect_and_sync([User, Post], drop=True, force=True)
-        # user = User(name="Crispen", username="heyy")
-        # userId = db.create(user)
-        # postId = db.create(
-        #     Post(userId=userId, title="What are you thinking"),
-        # )
-        # now = db.find_by_pk(Post, postId)
-        # assert userId == now.userId
-        # conn.close()
+        conn, _ = pg_loom.connect_and_sync([User, Post], drop=True, force=True)
+        user = User(name="Crispen", username="heyy")
+        userId = pg_loom.insert_one(user)
+        postId = pg_loom.insert_one(
+            Post(userId=userId, title="What are you thinking"),
+        )
+        now = pg_loom.find_by_pk(Post, postId)
+        assert userId == now["userId"]
+        conn.close()

@@ -62,6 +62,7 @@ class TestDeletingOnSqlite:
             UpdatedAtColumn,
             ForeignKeyColumn,
             UnknownColumnException,
+            Filter,
         )
 
         from typing import Optional
@@ -101,16 +102,38 @@ class TestDeletingOnSqlite:
                 User(name="Crispen", username="hi"),
             ]
         )
-        sqlite_loom.delete_one(User, {"name": "Crispen"})
-        rows_1 = sqlite_loom.find_many(User, {"name": "Crispen"})
-        sqlite_loom.delete_one(User, {"name": "Crispen", "id": 9})
-        rows_2 = sqlite_loom.find_many(User, {"name": "Crispen"})
-        sqlite_loom.delete_one(User, {"name": "Crispen", "id": 2})
-        rows_3 = sqlite_loom.find_many(User, {"name": "Crispen"})
+        sqlite_loom.delete_one(User, filters=[Filter(column="name", value="Crispen")])
+        rows_1 = sqlite_loom.find_many(
+            User, filters=[Filter(column="name", value="Crispen")]
+        )
+        sqlite_loom.delete_one(
+            User,
+            filters=[
+                Filter(column="name", value="Crispen"),
+                Filter(column="id", value=9),
+            ],
+        )
+        rows_2 = sqlite_loom.find_many(
+            User, filters=[Filter(column="name", value="Crispen")]
+        )
+        sqlite_loom.delete_one(
+            User,
+            filters=[
+                Filter(column="name", value="Crispen"),
+                Filter(column="id", value=2),
+            ],
+        )
+        rows_3 = sqlite_loom.find_many(
+            User, filters=[Filter(column="name", value="Crispen")]
+        )
 
         with pytest.raises(UnknownColumnException) as exc_info:
             sqlite_loom.delete_bulk(
-                User, {"location": "Crispen", "username": "@miller"}
+                User,
+                filters=[
+                    Filter(column="location", value="Crispen"),
+                    Filter(column="username", value="@miller"),
+                ],
             )
         assert str(exc_info.value) == "Table users does not have column 'location'."
 
@@ -131,6 +154,7 @@ class TestDeletingOnSqlite:
             UpdatedAtColumn,
             ForeignKeyColumn,
             UnknownColumnException,
+            Filter,
         )
 
         from typing import Optional
@@ -170,8 +194,12 @@ class TestDeletingOnSqlite:
                 User(name="Crispen", username="hie"),
             ]
         )
-        sqlite_loom.delete_bulk(User, {"name": "Crispen"})
-        rows_1 = sqlite_loom.find_many(User, {"name": "Crispen"})
+        sqlite_loom.delete_bulk(
+            User, filters=Filter(column="name", value="Crispen", operator="eq")
+        )
+        rows_1 = sqlite_loom.find_many(
+            User, filters=Filter(column="name", value="Crispen", operator="eq")
+        )
         sqlite_loom.insert_bulk(
             [
                 User(name="Crispen", username="hi"),
@@ -179,14 +207,34 @@ class TestDeletingOnSqlite:
                 User(name="Crispen", username="hie"),
             ]
         )
-        sqlite_loom.delete_bulk(User, {"name": "Crispen", "id": 99})
-        rows_2 = sqlite_loom.find_many(User, {"name": "Crispen"})
-        sqlite_loom.delete_bulk(User, {"name": "Crispen", "id": 5})
-        rows_3 = sqlite_loom.find_many(User, {"name": "Crispen"})
+        sqlite_loom.delete_bulk(
+            User,
+            filters=[
+                Filter(column="name", value="Crispen"),
+                Filter(column="id", value=99),
+            ],
+        )
+        rows_2 = sqlite_loom.find_many(
+            User, filters=Filter(column="name", value="Crispen", operator="eq")
+        )
+        sqlite_loom.delete_bulk(
+            User,
+            filters=[
+                Filter(column="name", value="Crispen", operator="eq"),
+                Filter(column="id", value=5, operator="eq"),
+            ],
+        )
+        rows_3 = sqlite_loom.find_many(
+            User, filters=Filter(column="name", value="Crispen", operator="eq")
+        )
 
         with pytest.raises(UnknownColumnException) as exc_info:
             sqlite_loom.delete_bulk(
-                User, {"location": "Crispen", "username": "@miller"}
+                User,
+                filters=[
+                    Filter(column="location", value="Crispen"),
+                    Filter(column="username", value="@miller"),
+                ],
             )
         assert str(exc_info.value) == "Table users does not have column 'location'."
 

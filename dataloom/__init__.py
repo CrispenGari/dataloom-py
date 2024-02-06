@@ -9,9 +9,9 @@ from dataloom.exceptions import (
     UnsupportedDialectException,
     UnsupportedTypeException,
 )
-from dataloom.types import Order, Include, Filter
+from dataloom.types import Order, Include, Filter, ColumnValue
 from dataloom.model import Model
-from dataloom.model import (
+from dataloom.columns import (
     PrimaryKeyColumn,
     CreatedAtColumn,
     ForeignKeyColumn,
@@ -21,6 +21,7 @@ from dataloom.model import (
 )
 
 __all__ = [
+    ColumnValue,
     Filter,
     Order,
     Include,

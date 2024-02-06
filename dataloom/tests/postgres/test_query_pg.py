@@ -148,6 +148,7 @@ class TestQueryingPG:
             TableColumn,
             ForeignKeyColumn,
             UnknownColumnException,
+            Filter,
         )
         from dataloom.keys import PgConfig
         from typing import Optional
@@ -187,11 +188,26 @@ class TestQueryingPG:
         post = Post(title="What are you doing?", userId=userId)
         _ = pg_loom.insert_bulk([post for i in range(5)])
 
-        one_0 = pg_loom.find_one(User, {"id": 5})
-        one_1 = pg_loom.find_one(User, {"id": 1})
-        one_2 = pg_loom.find_one(User, {"id": 1, "name": "Bob"})
-        one_3 = pg_loom.find_one(User, {"id": 5, "username": "@miller"})
-        one_4 = pg_loom.find_one(User, {"name": "Crispen", "username": "@miller"})
+        one_0 = pg_loom.find_one(User, filters=Filter(column="id", value=5))
+        one_1 = pg_loom.find_one(User, filters=Filter(column="id", value=1))
+        one_2 = pg_loom.find_one(
+            User,
+            filters=[Filter(column="name", value="Bob"), Filter(column="id", value=1)],
+        )
+        one_3 = pg_loom.find_one(
+            User,
+            filters=[
+                Filter(column="id", value=5),
+                Filter(column="username", value="@miller"),
+            ],
+        )
+        one_4 = pg_loom.find_one(
+            User,
+            filters=[
+                Filter(column="name", value="Crispen"),
+                Filter(column="username", value="@miller"),
+            ],
+        )
 
         posts = pg_loom.find_one(Post, select=["id", "completed"])
         with pytest.raises(UnknownColumnException) as exc_info:
@@ -203,7 +219,11 @@ class TestQueryingPG:
 
         with pytest.raises(UnknownColumnException) as exc_info:
             one_4 = pg_loom.find_one(
-                User, {"location": "Crispen", "username": "@miller"}
+                User,
+                filters=[
+                    Filter(column="location", value="Crispen"),
+                    Filter(column="username", value="@miller"),
+                ],
             )
         assert str(exc_info.value) == "Table users does not have column 'location'."
 
@@ -228,6 +248,7 @@ class TestQueryingPG:
             TableColumn,
             ForeignKeyColumn,
             UnknownColumnException,
+            Filter,
         )
         from dataloom.keys import PgConfig
         from typing import Optional
@@ -266,20 +287,49 @@ class TestQueryingPG:
         userId = pg_loom.insert_one(user)
         post = Post(title="What are you doing?", userId=userId)
         rows = pg_loom.insert_bulk([post for i in range(5)])
-        posts = pg_loom.find_many(Post, {"id": 1, "userId": 1})
+        posts = pg_loom.find_many(
+            Post,
+            filters=[Filter(column="id", value=1), Filter(column="userId", value=1)],
+        )
         users = pg_loom.find_many(User)
-        many_0 = pg_loom.find_many(User, {"id": 5})
-        many_1 = pg_loom.find_many(User, {"id": 1})
-        many_2 = pg_loom.find_many(User, {"id": 1, "name": "Crispen"})
-        many_3 = pg_loom.find_many(User, {"id": 5, "username": "@miller"})
-        many_4 = pg_loom.find_many(User, {"name": "Bob", "username": "@miller"})
+        many_0 = pg_loom.find_many(User, filters=Filter(column="id", value=5))
+        many_1 = pg_loom.find_many(User, filters=Filter(column="id", value=1))
+        many_2 = pg_loom.find_many(
+            User,
+            filters=[
+                Filter(column="id", value=1),
+                Filter(column="name", value="Crispen"),
+            ],
+        )
+        many_3 = pg_loom.find_many(
+            User,
+            filters=[
+                Filter(column="id", value=5),
+                Filter(column="username", value="@miller"),
+            ],
+        )
+        many_4 = pg_loom.find_many(
+            User,
+            filters=[
+                Filter(column="name", value="Bob"),
+                Filter(column="username", value="@miller"),
+            ],
+        )
 
         paginated = pg_loom.find_many(
-            Post, {"userId": 1}, select=["id", "completed"], limit=3, offset=3
+            Post,
+            Filter(column="userId", value=1),
+            select=["id", "completed"],
+            limit=3,
+            offset=3,
         )
         with pytest.raises(UnknownColumnException) as exc_info:
             pg_loom.find_many(
-                Post, {"userId": 1}, select=["id", "location"], limit=3, offset=3
+                Post,
+                Filter(column="id", value=1),
+                select=["id", "location"],
+                limit=3,
+                offset=3,
             )
         assert (
             str(exc_info.value)
@@ -292,7 +342,13 @@ class TestQueryingPG:
         ]
 
         with pytest.raises(UnknownColumnException) as exc_info:
-            pg_loom.find_many(User, {"location": "Crispen", "username": "@miller"})
+            pg_loom.find_many(
+                User,
+                filters=[
+                    Filter(column="username", value="@miller"),
+                    Filter(column="location", value="Crispen"),
+                ],
+            )
         assert str(exc_info.value) == "Table users does not have column 'location'."
 
         assert len(users) == 1

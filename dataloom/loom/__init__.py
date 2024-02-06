@@ -9,7 +9,7 @@ from dataloom.statements import GetStatement
 from dataloom.conn import ConnectionOptionsFactory
 from dataloom.utils import logger_function, get_child_table_columns
 from typing import Optional
-from dataloom.types import Order, Include, DIALECT_LITERAL, Filter
+from dataloom.types import Order, Include, DIALECT_LITERAL, Filter, ColumnValue
 
 
 class Dataloom:
@@ -289,7 +289,7 @@ class Dataloom:
     def find_many(
         self,
         instance: Model,
-        filters: dict = {},
+        filters: Optional[Filter | list[Filter]] = None,
         select: list[str] = [],
         include: list[Model] = [],
         return_dict: bool = True,
@@ -425,13 +425,20 @@ class Dataloom:
             return_dict=return_dict,
         )
 
-    def update_by_pk(self, instance: Model, pk, values: dict = {}):
-        sql, args = instance._get_update_by_pk_stm(dialect=self.dialect, args=values)
+    def update_by_pk(
+        self, instance: Model, pk, values: ColumnValue | list[ColumnValue]
+    ):
+        sql, args = instance._get_update_by_pk_stm(dialect=self.dialect, values=values)
         args.append(pk)
         affected_rows = self._execute_sql(sql, args=args, affected_rows=True)
         return affected_rows
 
-    def update_one(self, instance: Model, filters: dict = {}, values: dict = {}):
+    def update_one(
+        self,
+        instance: Model,
+        filters: Optional[Filter | list[Filter]],
+        values: ColumnValue | list[ColumnValue],
+    ):
         sql, new_values, filter_values = instance._get_update_one_stm(
             dialect=self.dialect, filters=filters, values=values
         )
@@ -439,7 +446,12 @@ class Dataloom:
         affected_rows = self._execute_sql(sql, args=args, affected_rows=True)
         return affected_rows
 
-    def update_bulk(self, instance: Model, filters: dict = {}, values: dict = {}):
+    def update_bulk(
+        self,
+        instance: Model,
+        filters: Optional[Filter | list[Filter]],
+        values: ColumnValue | list[ColumnValue],
+    ):
         sql, new_values, filter_values = instance._get_update_bulk_where_stm(
             dialect=self.dialect, filters=filters, values=values
         )
@@ -454,20 +466,30 @@ class Dataloom:
         )
         return affected_rows
 
-    def delete_one(self, instance: Model, filters: dict = {}):
+    def delete_one(
+        self, instance: Model, filters: Optional[Filter | list[Filter]] = None
+    ):
         sql, params = instance._get_delete_where_stm(
             dialect=self.dialect,
-            args=filters,
+            filters=filters,
         )
         affected_rows = self._execute_sql(sql, args=params, affected_rows=True)
         return affected_rows
 
-    def delete_bulk(self, instance: Model, filters: dict = {}):
+    def delete_bulk(
+        self, instance: Model, filters: Optional[Filter | list[Filter]] = None
+    ):
         sql, params = instance._get_delete_bulk_where_stm(
             dialect=self.dialect,
-            args=filters,
+            filters=filters,
         )
         affected_rows = self._execute_sql(
             sql, args=params, affected_rows=True, fetchall=True
         )
         return affected_rows
+
+    def increment(self):
+        pass
+
+    def decrement(self):
+        pass
