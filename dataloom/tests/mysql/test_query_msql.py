@@ -10,6 +10,7 @@ class TestQueryingMySQL:
             TableColumn,
             ForeignKeyColumn,
             UnknownColumnException,
+            ColumnValue,
         )
         import pytest
         from dataloom.keys import MySQLConfig
@@ -44,10 +45,15 @@ class TestQueryingMySQL:
             )
 
         conn, _ = mysql_loom.connect_and_sync([Post, User], drop=True, force=True)
-        user = User(username="@miller")
-        userId = mysql_loom.insert_one(user)
-        post = Post(title="What are you doing?", userId=userId)
-        _ = mysql_loom.insert_bulk([post for i in range(5)])
+
+        userId = mysql_loom.insert_one(
+            User, ColumnValue(name="username", value="@miller")
+        )
+        values = [
+            ColumnValue(name="title", value="What are you doing?"),
+            ColumnValue(name="userId", value=userId),
+        ]
+        _ = mysql_loom.insert_bulk(Post, [values for i in range(5)])
         me = mysql_loom.find_by_pk(User, 1)
         her = mysql_loom.find_by_pk(User, 2)
 
@@ -76,6 +82,7 @@ class TestQueryingMySQL:
             TableColumn,
             ForeignKeyColumn,
             UnknownColumnException,
+            ColumnValue,
         )
         from dataloom.keys import MySQLConfig
         from typing import Optional
@@ -110,10 +117,14 @@ class TestQueryingMySQL:
             )
 
         conn, _ = mysql_loom.connect_and_sync([Post, User], drop=True, force=True)
-        user = User(username="@miller")
-        userId = mysql_loom.insert_one(user)
-        post = Post(title="What are you doing?", userId=userId)
-        _ = mysql_loom.insert_bulk([post for i in range(5)])
+        userId = mysql_loom.insert_one(
+            User, ColumnValue(name="username", value="@miller")
+        )
+        values = [
+            ColumnValue(name="title", value="What are you doing?"),
+            ColumnValue(name="userId", value=userId),
+        ]
+        _ = mysql_loom.insert_bulk(Post, [values for i in range(5)])
         users = mysql_loom.find_all(User)
         posts = mysql_loom.find_all(Post)
         paginated = mysql_loom.find_all(
@@ -149,6 +160,7 @@ class TestQueryingMySQL:
             ForeignKeyColumn,
             UnknownColumnException,
             Filter,
+            ColumnValue,
         )
         from dataloom.keys import MySQLConfig
         from typing import Optional
@@ -183,10 +195,14 @@ class TestQueryingMySQL:
             )
 
         conn, _ = mysql_loom.connect_and_sync([Post, User], drop=True, force=True)
-        user = User(username="@miller")
-        userId = mysql_loom.insert_one(user)
-        post = Post(title="What are you doing?", userId=userId)
-        _ = mysql_loom.insert_bulk([post for i in range(5)])
+        userId = mysql_loom.insert_one(
+            User, ColumnValue(name="username", value="@miller")
+        )
+        values = [
+            ColumnValue(name="title", value="What are you doing?"),
+            ColumnValue(name="userId", value=userId),
+        ]
+        _ = mysql_loom.insert_bulk(Post, [values for i in range(5)])
 
         one_0 = mysql_loom.find_one(User, filters=Filter(column="id", value=5))
         one_1 = mysql_loom.find_one(User, filters=Filter(column="id", value=1))
@@ -249,6 +265,7 @@ class TestQueryingMySQL:
             ForeignKeyColumn,
             UnknownColumnException,
             Filter,
+            ColumnValue,
         )
         from dataloom.keys import MySQLConfig
         from typing import Optional
@@ -283,10 +300,15 @@ class TestQueryingMySQL:
             )
 
         conn, _ = mysql_loom.connect_and_sync([Post, User], drop=True, force=True)
-        user = User(username="@miller")
-        userId = mysql_loom.insert_one(user)
-        post = Post(title="What are you doing?", userId=userId)
-        rows = mysql_loom.insert_bulk([post for i in range(5)])
+        userId = mysql_loom.insert_one(
+            User, ColumnValue(name="username", value="@miller")
+        )
+        values = [
+            ColumnValue(name="title", value="What are you doing?"),
+            ColumnValue(name="userId", value=userId),
+        ]
+        rows = mysql_loom.insert_bulk(Post, [values for i in range(5)])
+
         posts = mysql_loom.find_many(
             Post,
             filters=[Filter(column="id", value=1), Filter(column="userId", value=1)],

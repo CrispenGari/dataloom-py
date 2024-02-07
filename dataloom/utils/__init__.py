@@ -410,6 +410,21 @@ def get_formatted_query(
     return sql
 
 
+def get_null_field_placeholder(
+    column: str,
+    dialect: DIALECT_LITERAL,
+    table_name: str,
+    pk_name: str,
+) -> str:
+    if dialect == "mysql":
+        value = f"IFNULL(%s, DEFAULT(`{column}`))"
+    if dialect == "sqlite":
+        value = "?"
+    if dialect == "postgres":
+        value = f"""COALESCE(%s, DEFAULT("{column}"))"""
+    return value
+
+
 def get_insert_bulk_attrs(
     instance,
     dialect: DIALECT_LITERAL,
@@ -418,16 +433,18 @@ def get_insert_bulk_attrs(
     fields, pk_name, fks, updatedAtColumName = get_table_fields(
         instance, dialect=dialect
     )
+
     placeholders, column_values, column_names = get_column_values(
         table_name=instance._get_table_name(),
         dialect=dialect,
         fields=fields,
         values=values,
     )
+
     _placeholders = ", ".join(
-        ["?" if dialect == "sqlite" else "%s" for _ in placeholders]
+        ["?" if dialect == "sqlite" else "%s" for f in column_names]
     )
     _column_names = ", ".join(
         [f'"{f}"' if dialect == "postgres" else f"`{f}`" for f in column_names]
     )
-    return _column_names, _placeholders, column_values
+    return (_column_names, _placeholders, column_values)

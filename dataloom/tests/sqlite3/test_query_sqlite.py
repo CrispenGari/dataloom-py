@@ -10,6 +10,7 @@ class TestQueryingSQLite:
             TableColumn,
             ForeignKeyColumn,
             UnknownColumnException,
+            ColumnValue,
         )
         import pytest
         from typing import Optional
@@ -38,10 +39,14 @@ class TestQueryingSQLite:
             )
 
         conn, _ = sqlite_loom.connect_and_sync([Post, User], drop=True, force=True)
-        user = User(username="@miller")
-        userId = sqlite_loom.insert_one(user)
-        post = Post(title="What are you doing?", userId=userId)
-        _ = sqlite_loom.insert_bulk([post for i in range(5)])
+        userId = sqlite_loom.insert_one(
+            User, ColumnValue(name="username", value="@miller")
+        )
+        values = [
+            ColumnValue(name="title", value="What are you doing?"),
+            ColumnValue(name="userId", value=userId),
+        ]
+        _ = sqlite_loom.insert_bulk(Post, [values for i in range(5)])
         me = sqlite_loom.find_by_pk(User, 1)
         her = sqlite_loom.find_by_pk(User, 2)
 
@@ -70,6 +75,7 @@ class TestQueryingSQLite:
             TableColumn,
             ForeignKeyColumn,
             UnknownColumnException,
+            ColumnValue,
         )
         from typing import Optional
         import pytest
@@ -98,10 +104,14 @@ class TestQueryingSQLite:
             )
 
         conn, _ = sqlite_loom.connect_and_sync([Post, User], drop=True, force=True)
-        user = User(username="@miller")
-        userId = sqlite_loom.insert_one(user)
-        post = Post(title="What are you doing?", userId=userId)
-        _ = sqlite_loom.insert_bulk([post for i in range(5)])
+        userId = sqlite_loom.insert_one(
+            User, ColumnValue(name="username", value="@miller")
+        )
+        values = [
+            ColumnValue(name="title", value="What are you doing?"),
+            ColumnValue(name="userId", value=userId),
+        ]
+        _ = sqlite_loom.insert_bulk(Post, [values for i in range(5)])
         users = sqlite_loom.find_all(User)
         posts = sqlite_loom.find_all(Post)
         paginated = sqlite_loom.find_all(
@@ -137,6 +147,7 @@ class TestQueryingSQLite:
             ForeignKeyColumn,
             UnknownColumnException,
             Filter,
+            ColumnValue,
         )
         from typing import Optional
         import pytest
@@ -165,10 +176,14 @@ class TestQueryingSQLite:
             )
 
         conn, _ = sqlite_loom.connect_and_sync([Post, User], drop=True, force=True)
-        user = User(username="@miller")
-        userId = sqlite_loom.insert_one(user)
-        post = Post(title="What are you doing?", userId=userId)
-        _ = sqlite_loom.insert_bulk([post for i in range(5)])
+        userId = sqlite_loom.insert_one(
+            User, ColumnValue(name="username", value="@miller")
+        )
+        values = [
+            ColumnValue(name="title", value="What are you doing?"),
+            ColumnValue(name="userId", value=userId),
+        ]
+        _ = sqlite_loom.insert_bulk(Post, [values for i in range(5)])
 
         one_0 = sqlite_loom.find_one(User, filters=Filter(column="id", value=5))
         one_1 = sqlite_loom.find_one(User, filters=Filter(column="id", value=1))
@@ -231,6 +246,7 @@ class TestQueryingSQLite:
             ForeignKeyColumn,
             UnknownColumnException,
             Filter,
+            ColumnValue,
         )
         from typing import Optional
         import pytest
@@ -259,10 +275,14 @@ class TestQueryingSQLite:
             )
 
         conn, _ = sqlite_loom.connect_and_sync([Post, User], drop=True, force=True)
-        user = User(username="@miller")
-        userId = sqlite_loom.insert_one(user)
-        post = Post(title="What are you doing?", userId=userId)
-        rows = sqlite_loom.insert_bulk([post for i in range(5)])
+        userId = sqlite_loom.insert_one(
+            User, ColumnValue(name="username", value="@miller")
+        )
+        values = [
+            ColumnValue(name="title", value="What are you doing?"),
+            ColumnValue(name="userId", value=userId),
+        ]
+        rows = sqlite_loom.insert_bulk(Post, [values for i in range(5)])
         posts = sqlite_loom.find_many(
             Post,
             filters=[Filter(column="id", value=1), Filter(column="userId", value=1)],

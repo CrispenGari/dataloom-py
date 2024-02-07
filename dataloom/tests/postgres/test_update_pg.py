@@ -1,7 +1,6 @@
 class TestUpdateOnPG:
     def test_update_by_pk_fn(self):
         import time
-        from typing import Optional
 
         from dataloom import (
             Column,
@@ -24,7 +23,7 @@ class TestUpdateOnPG:
         )
 
         class User(Model):
-            __tablename__: Optional[TableColumn] = TableColumn(name="users")
+            __tablename__: TableColumn = TableColumn(name="users")
             id = PrimaryKeyColumn(type="int", auto_increment=True)
             name = Column(type="text", nullable=False, default="Bob")
             username = Column(type="varchar", unique=True, length=255)
@@ -34,7 +33,7 @@ class TestUpdateOnPG:
             updatedAt = UpdatedAtColumn()
 
         class Post(Model):
-            __tablename__: Optional[TableColumn] = TableColumn(name="posts")
+            __tablename__: TableColumn = TableColumn(name="posts")
             id = PrimaryKeyColumn(
                 type="int", auto_increment=True, nullable=False, unique=True
             )
@@ -50,10 +49,14 @@ class TestUpdateOnPG:
 
         conn, _ = pg_loom.connect_and_sync([Post, User], drop=True, force=True)
 
-        user = User(username="@miller")
-        userId = pg_loom.insert_one(user)
-        post = Post(title="What are you doing?", userId=userId)
-        _ = pg_loom.insert_bulk([post for i in range(5)])
+        userId = pg_loom.insert_one(
+            User, values=ColumnValue(name="username", value="@miller")
+        )
+        post = [
+            ColumnValue(name="title", value="What are you doing?"),
+            ColumnValue(name="userId", value=userId),
+        ]
+        _ = pg_loom.insert_bulk(Post, [post for i in range(5)])
         time.sleep(0.05)
         res_1 = pg_loom.update_by_pk(
             User, userId, ColumnValue(name="username", value="Gari")
@@ -70,7 +73,6 @@ class TestUpdateOnPG:
 
     def test_update_one_fn(self):
         import time
-        from typing import Optional
 
         import pytest
 
@@ -97,7 +99,7 @@ class TestUpdateOnPG:
         )
 
         class User(Model):
-            __tablename__: Optional[TableColumn] = TableColumn(name="users")
+            __tablename__: TableColumn = TableColumn(name="users")
             id = PrimaryKeyColumn(type="int", auto_increment=True)
             name = Column(type="text", nullable=False, default="Bob")
             username = Column(type="varchar", unique=True, length=255)
@@ -107,7 +109,7 @@ class TestUpdateOnPG:
             updatedAt = UpdatedAtColumn()
 
         class Post(Model):
-            __tablename__: Optional[TableColumn] = TableColumn(name="posts")
+            __tablename__: TableColumn = TableColumn(name="posts")
             id = PrimaryKeyColumn(
                 type="int", auto_increment=True, nullable=False, unique=True
             )
@@ -122,10 +124,14 @@ class TestUpdateOnPG:
 
         conn, _ = pg_loom.connect_and_sync([Post, User], drop=True, force=True)
 
-        user = User(username="@miller")
-        userId = pg_loom.insert_one(user)
-        post = Post(title="What are you doing?", userId=userId)
-        _ = pg_loom.insert_bulk([post for i in range(5)])
+        userId = pg_loom.insert_one(
+            User, values=ColumnValue(name="username", value="@miller")
+        )
+        post = [
+            ColumnValue(name="title", value="What are you doing?"),
+            ColumnValue(name="userId", value=userId),
+        ]
+        _ = pg_loom.insert_bulk(Post, [post for i in range(5)])
         time.sleep(0.05)
         res_1 = pg_loom.update_one(
             User,
@@ -160,8 +166,6 @@ class TestUpdateOnPG:
         conn.close()
 
     def test_update_bulk_fn(self):
-        from typing import Optional
-
         import pytest
 
         from dataloom import (
@@ -187,7 +191,7 @@ class TestUpdateOnPG:
         )
 
         class User(Model):
-            __tablename__: Optional[TableColumn] = TableColumn(name="users")
+            __tablename__: TableColumn = TableColumn(name="users")
             id = PrimaryKeyColumn(type="int", auto_increment=True)
             name = Column(type="text", nullable=False, default="Bob")
             username = Column(type="varchar", unique=True, length=255)
@@ -197,7 +201,7 @@ class TestUpdateOnPG:
             updatedAt = UpdatedAtColumn()
 
         class Post(Model):
-            __tablename__: Optional[TableColumn] = TableColumn(name="posts")
+            __tablename__: TableColumn = TableColumn(name="posts")
             id = PrimaryKeyColumn(
                 type="int", auto_increment=True, nullable=False, unique=True
             )
@@ -212,10 +216,14 @@ class TestUpdateOnPG:
 
         conn, _ = pg_loom.connect_and_sync([Post, User], drop=True, force=True)
 
-        user = User(username="@miller")
-        userId = pg_loom.insert_one(user)
-        post = Post(title="What are you doing?", userId=userId)
-        _ = pg_loom.insert_bulk([post for i in range(5)])
+        userId = pg_loom.insert_one(
+            User, values=ColumnValue(name="username", value="@miller")
+        )
+        post = [
+            ColumnValue(name="title", value="What are you doing?"),
+            ColumnValue(name="userId", value=userId),
+        ]
+        _ = pg_loom.insert_bulk(Post, [post for i in range(5)])
         res_1 = pg_loom.update_bulk(
             Post,
             Filter(column="userId", value=userId),
@@ -253,7 +261,6 @@ class TestUpdateOnPG:
         conn.close()
 
     def test_increment_fn(self):
-        from typing import Optional
         import pytest
         from dataloom import (
             Column,
@@ -276,7 +283,7 @@ class TestUpdateOnPG:
         )
 
         class User(Model):
-            __tablename__: Optional[TableColumn] = TableColumn(name="users")
+            __tablename__: TableColumn = TableColumn(name="users")
             id = PrimaryKeyColumn(type="int", auto_increment=True)
             name = Column(type="text", nullable=False, default="Bob")
             username = Column(type="varchar", unique=True, length=255)
@@ -287,8 +294,9 @@ class TestUpdateOnPG:
 
         conn, _ = pg_loom.connect_and_sync([User], drop=True, force=True)
 
-        user = User(username="@miller")
-        userId = pg_loom.insert_one(user)
+        userId = pg_loom.insert_one(
+            User, values=ColumnValue(name="username", value="@miller")
+        )
 
         affected_rows = pg_loom.increment(
             User,
@@ -320,7 +328,6 @@ class TestUpdateOnPG:
         conn.close()
 
     def test_decrement_fn(self):
-        from typing import Optional
         import pytest
         from dataloom import (
             Column,
@@ -343,7 +350,7 @@ class TestUpdateOnPG:
         )
 
         class User(Model):
-            __tablename__: Optional[TableColumn] = TableColumn(name="users")
+            __tablename__: TableColumn = TableColumn(name="users")
             id = PrimaryKeyColumn(type="int", auto_increment=True)
             name = Column(type="text", nullable=False, default="Bob")
             username = Column(type="varchar", unique=True, length=255)
@@ -354,8 +361,9 @@ class TestUpdateOnPG:
 
         conn, _ = pg_loom.connect_and_sync([User], drop=True, force=True)
 
-        user = User(username="@miller")
-        userId = pg_loom.insert_one(user)
+        userId = pg_loom.insert_one(
+            User, values=ColumnValue(name="username", value="@miller")
+        )
 
         affected_rows = pg_loom.decrement(
             User,

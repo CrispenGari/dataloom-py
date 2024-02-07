@@ -1,9 +1,8 @@
 class TestCreatingTablePG:
     def test_2_pk_error(self):
         from dataloom import Column, PrimaryKeyColumn, Dataloom, TableColumn, Model
-        from dataloom.keys import PgConfig
         import pytest
-        from typing import Optional
+        from dataloom.keys import PgConfig
 
         pg_loom = Dataloom(
             dialect="postgres",
@@ -14,15 +13,14 @@ class TestCreatingTablePG:
         conn = pg_loom.connect()
 
         class User(Model):
-            __tablename__: Optional[TableColumn] = TableColumn(name="users")
-            _id = PrimaryKeyColumn(type="bigint", auto_increment=True)
-            id = PrimaryKeyColumn(type="bigint", auto_increment=True)
+            __tablename__: TableColumn = TableColumn(name="users")
+            _id = PrimaryKeyColumn(type="int", auto_increment=True)
+            id = PrimaryKeyColumn(type="int", auto_increment=True)
             username = Column(type="text", nullable=False, default="Hello there!!")
             name = Column(type="varchar", unique=True, length=255)
 
         with pytest.raises(Exception) as exc_info:
             _ = pg_loom.sync([User], drop=True, force=True)
-
         assert (
             str(exc_info.value)
             == 'You have defined many field as primary keys which is not allowed. Fields ("_id", "id") are primary keys.'
@@ -31,9 +29,8 @@ class TestCreatingTablePG:
 
     def test_no_pk_error(self):
         import pytest
-        from dataloom.keys import PgConfig
         from dataloom import Model, Dataloom, Column, TableColumn
-        from typing import Optional
+        from dataloom.keys import PgConfig
 
         pg_loom = Dataloom(
             dialect="postgres",
@@ -44,7 +41,7 @@ class TestCreatingTablePG:
         conn = pg_loom.connect()
 
         class User(Model):
-            __tablename__: Optional[TableColumn] = TableColumn(name="users")
+            __tablename__: TableColumn = TableColumn(name="users")
             username = Column(type="text", nullable=False, default="Hello there!!")
             name = Column(type="varchar", unique=True, length=255)
 
@@ -55,7 +52,6 @@ class TestCreatingTablePG:
 
     def test_table_name(self):
         from dataloom import Model, Dataloom, Column, PrimaryKeyColumn, TableColumn
-        from typing import Optional
         from dataloom.keys import PgConfig
 
         pg_loom = Dataloom(
@@ -67,12 +63,12 @@ class TestCreatingTablePG:
         conn = pg_loom.connect()
 
         class Posts(Model):
-            id = PrimaryKeyColumn(type="bigint", auto_increment=True)
+            id = PrimaryKeyColumn(type="int", auto_increment=True)
             completed = Column(type="boolean", default=False)
             title = Column(type="varchar", length=255, nullable=False)
 
         class User(Model):
-            __tablename__: Optional[TableColumn] = TableColumn(name="users")
+            __tablename__: TableColumn = TableColumn(name="users")
             username = Column(type="text", nullable=False, default="Hello there!!")
             name = Column(type="varchar", unique=True, length=255)
 
@@ -82,20 +78,19 @@ class TestCreatingTablePG:
 
     def test_connect_sync(self):
         from dataloom import Dataloom, Model, TableColumn, Column, PrimaryKeyColumn
-        from typing import Optional
         from dataloom.keys import PgConfig
 
         class User(Model):
-            __tablename__: Optional[TableColumn] = TableColumn(name="users")
-            id = PrimaryKeyColumn(type="bigint", nullable=False, auto_increment=True)
+            __tablename__: TableColumn = TableColumn(name="users")
+            id = PrimaryKeyColumn(type="int", nullable=False, auto_increment=True)
             username = Column(type="text", nullable=False)
             name = Column(type="varchar", unique=False, length=255)
 
         class Post(Model):
-            __tablename__: Optional[TableColumn] = TableColumn(name="posts")
+            __tablename__: TableColumn = TableColumn(name="posts")
 
-            id = PrimaryKeyColumn(type="bigint", nullable=False, auto_increment=True)
-            title = Column(type="text", nullable=False, default="Hello there!!")
+            id = PrimaryKeyColumn(type="int", nullable=False, auto_increment=True)
+            title = Column(type="text", nullable=False)
 
         pg_loom = Dataloom(
             dialect="postgres",
@@ -103,14 +98,14 @@ class TestCreatingTablePG:
             password=PgConfig.password,
             user=PgConfig.user,
         )
-        conn, _ = pg_loom.connect_and_sync([User, Post], drop=True, force=True)
-        assert len(_) >= 2
-        assert "users" in _ and "posts" in _
+        conn, tables = pg_loom.connect_and_sync([User, Post], drop=True, force=True)
+        assert len(tables) >= 2
+        assert "users" in tables and "posts" in tables
+
         conn.close()
 
-    def test_syncing__(self):
+    def test_syncing_tables(self):
         from dataloom import Model, Dataloom, Column, PrimaryKeyColumn, TableColumn
-        from typing import Optional
         from dataloom.keys import PgConfig
 
         pg_loom = Dataloom(
@@ -122,18 +117,18 @@ class TestCreatingTablePG:
         conn = pg_loom.connect()
 
         class Post(Model):
-            __tablename__: Optional[TableColumn] = TableColumn(name="posts")
-            id = PrimaryKeyColumn(type="bigint", auto_increment=True)
+            __tablename__: TableColumn = TableColumn(name="posts")
+            id = PrimaryKeyColumn(type="int", auto_increment=True)
             completed = Column(type="boolean", default=False)
             title = Column(type="varchar", length=255, nullable=False)
 
         class User(Model):
-            __tablename__: Optional[TableColumn] = TableColumn(name="users")
-            id = PrimaryKeyColumn(type="bigint", auto_increment=True)
+            __tablename__: TableColumn = TableColumn(name="users")
+            id = PrimaryKeyColumn(type="int", auto_increment=True)
             username = Column(type="text", nullable=False, default="Hello there!!")
             name = Column(type="varchar", unique=True, length=255)
 
-        _ = pg_loom.sync([User, Post], drop=True, force=True)
-        assert len(_) >= 2
-        assert "users" in _ and "posts" in _
+        tables = pg_loom.sync([User, Post], drop=True, force=True)
+        assert len(tables) >= 2
+        assert "users" in tables and "posts" in tables
         conn.close()

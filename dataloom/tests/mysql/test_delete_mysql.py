@@ -9,9 +9,9 @@ class TestDeletingOnMysql:
             CreatedAtColumn,
             UpdatedAtColumn,
             ForeignKeyColumn,
+            ColumnValue,
         )
         from dataloom.keys import MySQLConfig
-        from typing import Optional
 
         mysql_loom = Dataloom(
             dialect="mysql",
@@ -21,7 +21,7 @@ class TestDeletingOnMysql:
         )
 
         class User(Model):
-            __tablename__: Optional[TableColumn] = TableColumn(name="users")
+            __tablename__: TableColumn = TableColumn(name="users")
             id = PrimaryKeyColumn(type="int", auto_increment=True)
             name = Column(type="text", nullable=False, default="Bob")
             username = Column(type="varchar", unique=True, length=255)
@@ -31,7 +31,7 @@ class TestDeletingOnMysql:
             updatedAt = UpdatedAtColumn()
 
         class Post(Model):
-            __tablename__: Optional[TableColumn] = TableColumn(name="posts")
+            __tablename__: TableColumn = TableColumn(name="posts")
             id = PrimaryKeyColumn(
                 type="int", auto_increment=True, nullable=False, unique=True
             )
@@ -47,8 +47,10 @@ class TestDeletingOnMysql:
 
         conn, _ = mysql_loom.connect_and_sync([Post, User], drop=True, force=True)
 
-        user = User(name="Crispen", username="heyy")
-        userId = mysql_loom.insert_one(user)
+        userId = mysql_loom.insert_one(
+            User, ColumnValue(name="username", value="@miller")
+        )
+
         affected_rows_1 = mysql_loom.delete_by_pk(User, userId)
         affected_rows_2 = mysql_loom.delete_by_pk(User, 89)
         assert affected_rows_1 == 1
@@ -68,9 +70,9 @@ class TestDeletingOnMysql:
             ForeignKeyColumn,
             UnknownColumnException,
             Filter,
+            ColumnValue,
         )
         from dataloom.keys import MySQLConfig
-        from typing import Optional
 
         mysql_loom = Dataloom(
             dialect="mysql",
@@ -80,7 +82,7 @@ class TestDeletingOnMysql:
         )
 
         class User(Model):
-            __tablename__: Optional[TableColumn] = TableColumn(name="users")
+            __tablename__: TableColumn = TableColumn(name="users")
             id = PrimaryKeyColumn(type="int", auto_increment=True)
             name = Column(type="text", nullable=False, default="Bob")
             username = Column(type="varchar", unique=True, length=255)
@@ -90,7 +92,7 @@ class TestDeletingOnMysql:
             updatedAt = UpdatedAtColumn()
 
         class Post(Model):
-            __tablename__: Optional[TableColumn] = TableColumn(name="posts")
+            __tablename__: TableColumn = TableColumn(name="posts")
             id = PrimaryKeyColumn(
                 type="int", auto_increment=True, nullable=False, unique=True
             )
@@ -106,11 +108,21 @@ class TestDeletingOnMysql:
 
         conn, _ = mysql_loom.connect_and_sync([Post, User], drop=True, force=True)
         mysql_loom.insert_bulk(
-            [
-                User(name="Crispen", username="heyy"),
-                User(name="Crispen", username="who"),
-                User(name="Crispen", username="hi"),
-            ]
+            User,
+            values=[
+                [
+                    ColumnValue(name="name", value="Crispen"),
+                    ColumnValue(name="username", value="hi"),
+                ],
+                [
+                    ColumnValue(name="name", value="Crispen"),
+                    ColumnValue(name="username", value="heyy"),
+                ],
+                [
+                    ColumnValue(name="name", value="Crispen"),
+                    ColumnValue(name="username", value="who"),
+                ],
+            ],
         )
         mysql_loom.delete_one(User, filters=[Filter(column="name", value="Crispen")])
         rows_1 = mysql_loom.find_many(
@@ -165,9 +177,9 @@ class TestDeletingOnMysql:
             ForeignKeyColumn,
             UnknownColumnException,
             Filter,
+            ColumnValue,
         )
         from dataloom.keys import MySQLConfig
-        from typing import Optional
 
         mysql_loom = Dataloom(
             dialect="mysql",
@@ -177,7 +189,7 @@ class TestDeletingOnMysql:
         )
 
         class User(Model):
-            __tablename__: Optional[TableColumn] = TableColumn(name="users")
+            __tablename__: TableColumn = TableColumn(name="users")
             id = PrimaryKeyColumn(type="int", auto_increment=True)
             name = Column(type="text", nullable=False, default="Bob")
             username = Column(type="varchar", unique=True, length=255)
@@ -187,7 +199,7 @@ class TestDeletingOnMysql:
             updatedAt = UpdatedAtColumn()
 
         class Post(Model):
-            __tablename__: Optional[TableColumn] = TableColumn(name="posts")
+            __tablename__: TableColumn = TableColumn(name="posts")
             id = PrimaryKeyColumn(
                 type="int", auto_increment=True, nullable=False, unique=True
             )
@@ -203,11 +215,21 @@ class TestDeletingOnMysql:
 
         conn, _ = mysql_loom.connect_and_sync([Post, User], drop=True, force=True)
         mysql_loom.insert_bulk(
-            [
-                User(name="Crispen", username="hi"),
-                User(name="Crispen", username="heyy"),
-                User(name="Crispen", username="hie"),
-            ]
+            User,
+            values=[
+                [
+                    ColumnValue(name="name", value="Crispen"),
+                    ColumnValue(name="username", value="hi"),
+                ],
+                [
+                    ColumnValue(name="name", value="Crispen"),
+                    ColumnValue(name="username", value="heyy"),
+                ],
+                [
+                    ColumnValue(name="name", value="Crispen"),
+                    ColumnValue(name="username", value="hie"),
+                ],
+            ],
         )
         mysql_loom.delete_bulk(
             User, filters=Filter(column="name", value="Crispen", operator="eq")
@@ -216,11 +238,21 @@ class TestDeletingOnMysql:
             User, filters=Filter(column="name", value="Crispen", operator="eq")
         )
         mysql_loom.insert_bulk(
-            [
-                User(name="Crispen", username="hi"),
-                User(name="Crispen", username="heyy"),
-                User(name="Crispen", username="hie"),
-            ]
+            User,
+            values=[
+                [
+                    ColumnValue(name="name", value="Crispen"),
+                    ColumnValue(name="username", value="hi"),
+                ],
+                [
+                    ColumnValue(name="name", value="Crispen"),
+                    ColumnValue(name="username", value="heyy"),
+                ],
+                [
+                    ColumnValue(name="name", value="Crispen"),
+                    ColumnValue(name="username", value="hie"),
+                ],
+            ],
         )
         mysql_loom.delete_bulk(
             User,

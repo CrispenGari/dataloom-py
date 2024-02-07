@@ -1,4 +1,4 @@
-class TestDeletingOnSqlite:
+class TestDeletingOnSQLite:
     def test_delete_by_pk_fn(self):
         from dataloom import (
             Column,
@@ -9,6 +9,7 @@ class TestDeletingOnSqlite:
             CreatedAtColumn,
             UpdatedAtColumn,
             ForeignKeyColumn,
+            ColumnValue,
         )
 
         from typing import Optional
@@ -42,8 +43,10 @@ class TestDeletingOnSqlite:
 
         conn, _ = sqlite_loom.connect_and_sync([Post, User], drop=True, force=True)
 
-        user = User(name="Crispen", username="heyy")
-        userId = sqlite_loom.insert_one(user)
+        userId = sqlite_loom.insert_one(
+            User, ColumnValue(name="username", value="@miller")
+        )
+
         affected_rows_1 = sqlite_loom.delete_by_pk(User, userId)
         affected_rows_2 = sqlite_loom.delete_by_pk(User, 89)
         assert affected_rows_1 == 1
@@ -63,6 +66,7 @@ class TestDeletingOnSqlite:
             ForeignKeyColumn,
             UnknownColumnException,
             Filter,
+            ColumnValue,
         )
 
         from typing import Optional
@@ -96,11 +100,21 @@ class TestDeletingOnSqlite:
 
         conn, _ = sqlite_loom.connect_and_sync([Post, User], drop=True, force=True)
         sqlite_loom.insert_bulk(
-            [
-                User(name="Crispen", username="heyy"),
-                User(name="Crispen", username="who"),
-                User(name="Crispen", username="hi"),
-            ]
+            User,
+            values=[
+                [
+                    ColumnValue(name="name", value="Crispen"),
+                    ColumnValue(name="username", value="hi"),
+                ],
+                [
+                    ColumnValue(name="name", value="Crispen"),
+                    ColumnValue(name="username", value="heyy"),
+                ],
+                [
+                    ColumnValue(name="name", value="Crispen"),
+                    ColumnValue(name="username", value="who"),
+                ],
+            ],
         )
         sqlite_loom.delete_one(User, filters=[Filter(column="name", value="Crispen")])
         rows_1 = sqlite_loom.find_many(
@@ -155,6 +169,7 @@ class TestDeletingOnSqlite:
             ForeignKeyColumn,
             UnknownColumnException,
             Filter,
+            ColumnValue,
         )
 
         from typing import Optional
@@ -188,11 +203,21 @@ class TestDeletingOnSqlite:
 
         conn, _ = sqlite_loom.connect_and_sync([Post, User], drop=True, force=True)
         sqlite_loom.insert_bulk(
-            [
-                User(name="Crispen", username="hi"),
-                User(name="Crispen", username="heyy"),
-                User(name="Crispen", username="hie"),
-            ]
+            User,
+            values=[
+                [
+                    ColumnValue(name="name", value="Crispen"),
+                    ColumnValue(name="username", value="hi"),
+                ],
+                [
+                    ColumnValue(name="name", value="Crispen"),
+                    ColumnValue(name="username", value="heyy"),
+                ],
+                [
+                    ColumnValue(name="name", value="Crispen"),
+                    ColumnValue(name="username", value="hie"),
+                ],
+            ],
         )
         sqlite_loom.delete_bulk(
             User, filters=Filter(column="name", value="Crispen", operator="eq")
@@ -201,11 +226,21 @@ class TestDeletingOnSqlite:
             User, filters=Filter(column="name", value="Crispen", operator="eq")
         )
         sqlite_loom.insert_bulk(
-            [
-                User(name="Crispen", username="hi"),
-                User(name="Crispen", username="heyy"),
-                User(name="Crispen", username="hie"),
-            ]
+            User,
+            values=[
+                [
+                    ColumnValue(name="name", value="Crispen"),
+                    ColumnValue(name="username", value="hi"),
+                ],
+                [
+                    ColumnValue(name="name", value="Crispen"),
+                    ColumnValue(name="username", value="heyy"),
+                ],
+                [
+                    ColumnValue(name="name", value="Crispen"),
+                    ColumnValue(name="username", value="hie"),
+                ],
+            ],
         )
         sqlite_loom.delete_bulk(
             User,

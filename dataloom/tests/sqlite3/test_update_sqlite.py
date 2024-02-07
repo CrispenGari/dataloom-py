@@ -43,11 +43,14 @@ class TestUpdateOnSQLite:
             )
 
         conn, _ = sqlite_loom.connect_and_sync([Post, User], drop=True, force=True)
-
-        user = User(username="@miller")
-        userId = sqlite_loom.insert_one(user)
-        post = Post(title="What are you doing?", userId=userId)
-        _ = sqlite_loom.insert_bulk([post for i in range(5)])
+        userId = sqlite_loom.insert_one(
+            User, values=ColumnValue(name="username", value="@miller")
+        )
+        post = [
+            ColumnValue(name="title", value="What are you doing?"),
+            ColumnValue(name="userId", value=userId),
+        ]
+        _ = sqlite_loom.insert_bulk(Post, values=[post for i in range(5)])
         time.sleep(0.05)
         res_1 = sqlite_loom.update_by_pk(
             User, userId, ColumnValue(name="username", value="Gari")
@@ -110,10 +113,14 @@ class TestUpdateOnSQLite:
 
         conn, _ = sqlite_loom.connect_and_sync([Post, User], drop=True, force=True)
 
-        user = User(username="@miller")
-        userId = sqlite_loom.insert_one(user)
-        post = Post(title="What are you doing?", userId=userId)
-        _ = sqlite_loom.insert_bulk([post for i in range(5)])
+        userId = sqlite_loom.insert_one(
+            User, values=ColumnValue(name="username", value="@miller")
+        )
+        post = [
+            ColumnValue(name="title", value="What are you doing?"),
+            ColumnValue(name="userId", value=userId),
+        ]
+        _ = sqlite_loom.insert_bulk(Post, values=[post for i in range(5)])
         time.sleep(0.05)
         res_1 = sqlite_loom.update_one(
             User,
@@ -192,10 +199,14 @@ class TestUpdateOnSQLite:
 
         conn, _ = sqlite_loom.connect_and_sync([Post, User], drop=True, force=True)
 
-        user = User(username="@miller")
-        userId = sqlite_loom.insert_one(user)
-        post = Post(title="What are you doing?", userId=userId)
-        _ = sqlite_loom.insert_bulk([post for i in range(5)])
+        userId = sqlite_loom.insert_one(
+            User, values=ColumnValue(name="username", value="@miller")
+        )
+        post = [
+            ColumnValue(name="title", value="What are you doing?"),
+            ColumnValue(name="userId", value=userId),
+        ]
+        _ = sqlite_loom.insert_bulk(Post, values=[post for i in range(5)])
         res_1 = sqlite_loom.update_bulk(
             Post,
             Filter(column="userId", value=userId),
@@ -254,8 +265,9 @@ class TestUpdateOnSQLite:
 
         conn, _ = sqlite_loom.connect_and_sync([User], drop=True, force=True)
 
-        user = User(username="@miller")
-        userId = sqlite_loom.insert_one(user)
+        userId = sqlite_loom.insert_one(
+            User, values=ColumnValue(name="username", value="@miller")
+        )
 
         affected_rows = sqlite_loom.increment(
             User,
@@ -315,8 +327,9 @@ class TestUpdateOnSQLite:
 
         conn, _ = sqlite_loom.connect_and_sync([User], drop=True, force=True)
 
-        user = User(username="@miller")
-        userId = sqlite_loom.insert_one(user)
+        userId = sqlite_loom.insert_one(
+            User, values=ColumnValue(name="username", value="@miller")
+        )
 
         affected_rows = sqlite_loom.decrement(
             User,

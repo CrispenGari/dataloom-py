@@ -10,6 +10,7 @@ class TestQueryingPG:
             TableColumn,
             ForeignKeyColumn,
             UnknownColumnException,
+            ColumnValue,
         )
         import pytest
         from dataloom.keys import PgConfig
@@ -44,10 +45,12 @@ class TestQueryingPG:
             )
 
         conn, _ = pg_loom.connect_and_sync([Post, User], drop=True, force=True)
-        user = User(username="@miller")
-        userId = pg_loom.insert_one(user)
-        post = Post(title="What are you doing?", userId=userId)
-        _ = pg_loom.insert_bulk([post for i in range(5)])
+        userId = pg_loom.insert_one(User, ColumnValue(name="username", value="@miller"))
+        values = [
+            ColumnValue(name="title", value="What are you doing?"),
+            ColumnValue(name="userId", value=userId),
+        ]
+        _ = pg_loom.insert_bulk(Post, [values for i in range(5)])
         me = pg_loom.find_by_pk(User, 1)
         her = pg_loom.find_by_pk(User, 2)
 
@@ -76,6 +79,7 @@ class TestQueryingPG:
             TableColumn,
             ForeignKeyColumn,
             UnknownColumnException,
+            ColumnValue,
         )
         from dataloom.keys import PgConfig
         from typing import Optional
@@ -110,10 +114,12 @@ class TestQueryingPG:
             )
 
         conn, _ = pg_loom.connect_and_sync([Post, User], drop=True, force=True)
-        user = User(username="@miller")
-        userId = pg_loom.insert_one(user)
-        post = Post(title="What are you doing?", userId=userId)
-        _ = pg_loom.insert_bulk([post for i in range(5)])
+        userId = pg_loom.insert_one(User, ColumnValue(name="username", value="@miller"))
+        values = [
+            ColumnValue(name="title", value="What are you doing?"),
+            ColumnValue(name="userId", value=userId),
+        ]
+        _ = pg_loom.insert_bulk(Post, [values for i in range(5)])
         users = pg_loom.find_all(User)
         posts = pg_loom.find_all(Post)
         paginated = pg_loom.find_all(
@@ -149,6 +155,7 @@ class TestQueryingPG:
             ForeignKeyColumn,
             UnknownColumnException,
             Filter,
+            ColumnValue,
         )
         from dataloom.keys import PgConfig
         from typing import Optional
@@ -183,10 +190,12 @@ class TestQueryingPG:
             )
 
         conn, _ = pg_loom.connect_and_sync([Post, User], drop=True, force=True)
-        user = User(username="@miller")
-        userId = pg_loom.insert_one(user)
-        post = Post(title="What are you doing?", userId=userId)
-        _ = pg_loom.insert_bulk([post for i in range(5)])
+        userId = pg_loom.insert_one(User, ColumnValue(name="username", value="@miller"))
+        values = [
+            ColumnValue(name="title", value="What are you doing?"),
+            ColumnValue(name="userId", value=userId),
+        ]
+        _ = pg_loom.insert_bulk(Post, [values for i in range(5)])
 
         one_0 = pg_loom.find_one(User, filters=Filter(column="id", value=5))
         one_1 = pg_loom.find_one(User, filters=Filter(column="id", value=1))
@@ -249,6 +258,7 @@ class TestQueryingPG:
             ForeignKeyColumn,
             UnknownColumnException,
             Filter,
+            ColumnValue,
         )
         from dataloom.keys import PgConfig
         from typing import Optional
@@ -283,10 +293,12 @@ class TestQueryingPG:
             )
 
         conn, _ = pg_loom.connect_and_sync([Post, User], drop=True, force=True)
-        user = User(username="@miller")
-        userId = pg_loom.insert_one(user)
-        post = Post(title="What are you doing?", userId=userId)
-        rows = pg_loom.insert_bulk([post for i in range(5)])
+        userId = pg_loom.insert_one(User, ColumnValue(name="username", value="@miller"))
+        values = [
+            ColumnValue(name="title", value="What are you doing?"),
+            ColumnValue(name="userId", value=userId),
+        ]
+        rows = pg_loom.insert_bulk(Post, [values for i in range(5)])
         posts = pg_loom.find_many(
             Post,
             filters=[Filter(column="id", value=1), Filter(column="userId", value=1)],

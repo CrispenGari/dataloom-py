@@ -9,6 +9,7 @@ class TestDeletingOnPG:
             CreatedAtColumn,
             UpdatedAtColumn,
             ForeignKeyColumn,
+            ColumnValue,
         )
         from dataloom.keys import PgConfig
         from typing import Optional
@@ -47,8 +48,8 @@ class TestDeletingOnPG:
 
         conn, _ = pg_loom.connect_and_sync([Post, User], drop=True, force=True)
 
-        user = User(name="Crispen", username="heyy")
-        userId = pg_loom.insert_one(user)
+        userId = pg_loom.insert_one(User, ColumnValue(name="username", value="@miller"))
+
         affected_rows_1 = pg_loom.delete_by_pk(User, userId)
         affected_rows_2 = pg_loom.delete_by_pk(User, 89)
         assert affected_rows_1 == 1
@@ -68,6 +69,7 @@ class TestDeletingOnPG:
             ForeignKeyColumn,
             UnknownColumnException,
             Filter,
+            ColumnValue,
         )
         from dataloom.keys import PgConfig
         from typing import Optional
@@ -106,11 +108,21 @@ class TestDeletingOnPG:
 
         conn, _ = pg_loom.connect_and_sync([Post, User], drop=True, force=True)
         pg_loom.insert_bulk(
-            [
-                User(name="Crispen", username="heyy"),
-                User(name="Crispen", username="who"),
-                User(name="Crispen", username="hi"),
-            ]
+            User,
+            values=[
+                [
+                    ColumnValue(name="name", value="Crispen"),
+                    ColumnValue(name="username", value="hi"),
+                ],
+                [
+                    ColumnValue(name="name", value="Crispen"),
+                    ColumnValue(name="username", value="heyy"),
+                ],
+                [
+                    ColumnValue(name="name", value="Crispen"),
+                    ColumnValue(name="username", value="who"),
+                ],
+            ],
         )
         pg_loom.delete_one(User, filters=[Filter(column="name", value="Crispen")])
         rows_1 = pg_loom.find_many(
@@ -165,6 +177,7 @@ class TestDeletingOnPG:
             ForeignKeyColumn,
             UnknownColumnException,
             Filter,
+            ColumnValue,
         )
         from dataloom.keys import PgConfig
         from typing import Optional
@@ -203,11 +216,21 @@ class TestDeletingOnPG:
 
         conn, _ = pg_loom.connect_and_sync([Post, User], drop=True, force=True)
         pg_loom.insert_bulk(
-            [
-                User(name="Crispen", username="hi"),
-                User(name="Crispen", username="heyy"),
-                User(name="Crispen", username="hie"),
-            ]
+            User,
+            values=[
+                [
+                    ColumnValue(name="name", value="Crispen"),
+                    ColumnValue(name="username", value="hi"),
+                ],
+                [
+                    ColumnValue(name="name", value="Crispen"),
+                    ColumnValue(name="username", value="heyy"),
+                ],
+                [
+                    ColumnValue(name="name", value="Crispen"),
+                    ColumnValue(name="username", value="hie"),
+                ],
+            ],
         )
         pg_loom.delete_bulk(
             User, filters=Filter(column="name", value="Crispen", operator="eq")
@@ -216,11 +239,21 @@ class TestDeletingOnPG:
             User, filters=Filter(column="name", value="Crispen", operator="eq")
         )
         pg_loom.insert_bulk(
-            [
-                User(name="Crispen", username="hi"),
-                User(name="Crispen", username="heyy"),
-                User(name="Crispen", username="hie"),
-            ]
+            User,
+            values=[
+                [
+                    ColumnValue(name="name", value="Crispen"),
+                    ColumnValue(name="username", value="hi"),
+                ],
+                [
+                    ColumnValue(name="name", value="Crispen"),
+                    ColumnValue(name="username", value="heyy"),
+                ],
+                [
+                    ColumnValue(name="name", value="Crispen"),
+                    ColumnValue(name="username", value="hie"),
+                ],
+            ],
         )
         pg_loom.delete_bulk(
             User,

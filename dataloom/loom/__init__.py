@@ -281,9 +281,24 @@ class Dataloom:
         )
         return row[0] if type(row) in [list, tuple] else row
 
-    def insert_bulk(
-        self, instance: Model, values: list[list[ColumnValue] | ColumnValue]
-    ):
+    def insert_bulk(self, instance: Model, values: list[list[ColumnValue]]):
+        # ? ensure that the values that are passed is a list of a list and they inner list have the same length
+        if not isinstance(values, list):
+            raise InvalidColumnValuesException(
+                "The insert_bulk method takes in values as lists of lists."
+            )
+        all_list = [isinstance(v, list) for v in values]
+        if not all(all_list):
+            raise InvalidColumnValuesException(
+                "The insert_bulk method takes in values as lists of lists."
+            )
+        lengths = [len(v) for v in values]
+        _max = max(lengths)
+        if not all([_max == v for v in lengths]):
+            raise InvalidColumnValuesException(
+                "The insert_bulk method takes in values as lists of lists with equal ColumnValues."
+            )
+
         columns = None
         placeholders = None
         data = []
@@ -296,13 +311,13 @@ class Dataloom:
             if placeholders is None:
                 placeholders = placeholder_values
             data.append(_values)
-        print(data)
 
-        # sql = instance._get_insert_bulk_smt(
-        #     dialect=self.dialect, column_names=columns, placeholder_values=placeholders
-        # )
-        # row_count = self._execute_sql(sql, args=tuple(data), fetchall=True, bulk=True)
-        # return row_count
+        sql = instance._get_insert_bulk_smt(
+            dialect=self.dialect, column_names=columns, placeholder_values=placeholders
+        )
+
+        row_count = self._execute_sql(sql, args=tuple(data), fetchall=True, bulk=True)
+        return row_count
 
     def find_many(
         self,

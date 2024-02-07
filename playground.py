@@ -30,11 +30,13 @@ mysql_loom = Dataloom(
     host="localhost",
     logs_filename="logs.sql",
     port=3306,
+    sql_logger="console",
 )
 sqlite_loom = Dataloom(
     dialect="sqlite",
     database="hi.db",
     logs_filename="sqlite-logs.sql",
+    sql_logger="console",
 )
 
 
@@ -78,12 +80,18 @@ userId = pg_loom.insert_bulk(
             ColumnValue(name="username", value="@miller"),
             ColumnValue(name="name", value="Jonh"),
         ],
-        ColumnValue(name="username", value="@brown"),
-        ColumnValue(name="username", value="@blue"),
+        [
+            ColumnValue(name="username", value="@brown"),
+            ColumnValue(name="name", value="Jonh"),
+        ],
+        [
+            ColumnValue(name="username", value="@blue"),
+            ColumnValue(name="name", value="Jonh"),
+        ],
     ],
 )
 
-# pg_loom.decrement(
+# sqlite_loom.decrement(
 #     User,
 #     filters=Filter(column="id", value=1),
 #     column=ColumnValue(name="tokenVersion", value=2.6),
@@ -91,11 +99,11 @@ userId = pg_loom.insert_bulk(
 
 
 # cate = Category(name="general")
-# categoryId = pg_loom.insert_one(cate)
+# categoryId = mysql_loom.insert_one(cate)
 # post = Post(title="What are you doing?", userId=userId, categoryId=categoryId)
-# post_id = pg_loom.insert_bulk([post for i in range(5)])
+# post_id = mysql_loom.insert_bulk([post for i in range(5)])
 
-# post = pg_loom.find_one(
+# post = mysql_loom.find_one(
 #     Post,
 #     filters=[
 #         Filter(column="id", operator="eq", value=4, join_next_filter_with="AND"),
@@ -115,7 +123,7 @@ userId = pg_loom.insert_bulk(
 # )
 # print(post)
 
-# post = pg_loom.find_by_pk(
+# post = mysql_loom.find_by_pk(
 #     Post,
 #     pk=1,
 #     select=["id", "completed", "title", "createdAt"],
@@ -130,17 +138,17 @@ userId = pg_loom.insert_bulk(
 #     return_dict=True,
 # )
 
-re = pg_loom.update_one(
-    Post,
-    values=[
-        ColumnValue(name="title", value="Hey"),
-        ColumnValue(name="completed", value=True),
-    ],
-    filters=[
-        Filter(column="id", value=1, join_next_filter_with="AND"),
-        Filter(column="userId", value=1, join_next_filter_with="AND"),
-    ],
-)
+# re = mysql_loom.update_one(
+#     Post,
+#     values=[
+#         ColumnValue(name="title", value="Hey"),
+#         ColumnValue(name="completed", value=True),
+#     ],
+#     filters=[
+#         Filter(column="id", value=1, join_next_filter_with="AND"),
+#         Filter(column="userId", value=1, join_next_filter_with="AND"),
+#     ],
+# )
 # print(post)
 # print(post)
 
@@ -164,28 +172,28 @@ re = pg_loom.update_one(
 # )
 # print(posts)
 
-posts = pg_loom.find_all(
-    Post,
-    select=["id", "completed", "title", "createdAt"],
-    limit=3,
-    offset=0,
-    order=[
-        Order(column="createdAt", order="ASC"),
-        Order(
-            column="id",
-            order="DESC",
-        ),
-    ],
-    include=[
-        Include(
-            model=User,
-            select=["id", "username", "name"],
-            limit=1,
-            offset=0,
-        ),
-    ],
-    return_dict=True,
-)
+# posts = pg_loom.find_all(
+#     Post,
+#     select=["id", "completed", "title", "createdAt"],
+#     limit=3,
+#     offset=0,
+#     order=[
+#         Order(column="createdAt", order="ASC"),
+#         Order(
+#             column="id",
+#             order="DESC",
+#         ),
+#     ],
+#     include=[
+#         Include(
+#             model=User,
+#             select=["id", "username", "name"],
+#             limit=1,
+#             offset=0,
+#         ),
+#     ],
+#     return_dict=True,
+# )
 # print(posts)
 # posts = pg_loom.find_many(
 #     Post,
@@ -212,8 +220,6 @@ posts = pg_loom.find_all(
 # )
 # print(posts)
 
-
-print(max(9, 5, 3))
 
 if __name__ == "__main__":
     conn.close()

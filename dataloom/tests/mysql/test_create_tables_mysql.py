@@ -2,7 +2,6 @@ class TestCreatingTableMysql:
     def test_2_pk_error(self):
         from dataloom import Column, PrimaryKeyColumn, Dataloom, TableColumn, Model
         import pytest
-        from typing import Optional
         from dataloom.keys import MySQLConfig
 
         mysql_loom = Dataloom(
@@ -14,14 +13,14 @@ class TestCreatingTableMysql:
         conn = mysql_loom.connect()
 
         class User(Model):
-            __tablename__: Optional[TableColumn] = TableColumn(name="users")
+            __tablename__: TableColumn = TableColumn(name="users")
             _id = PrimaryKeyColumn(type="int", auto_increment=True)
             id = PrimaryKeyColumn(type="int", auto_increment=True)
             username = Column(type="text", nullable=False, default="Hello there!!")
             name = Column(type="varchar", unique=True, length=255)
 
         with pytest.raises(Exception) as exc_info:
-            tables = mysql_loom.sync([User], drop=True, force=True)
+            _ = mysql_loom.sync([User], drop=True, force=True)
         assert (
             str(exc_info.value)
             == "You have defined many field as primary keys which is not allowed. Fields (`_id`, `id`) are primary keys."
@@ -31,7 +30,6 @@ class TestCreatingTableMysql:
     def test_no_pk_error(self):
         import pytest
         from dataloom import Model, Dataloom, Column, TableColumn
-        from typing import Optional
         from dataloom.keys import MySQLConfig
 
         mysql_loom = Dataloom(
@@ -43,18 +41,17 @@ class TestCreatingTableMysql:
         conn = mysql_loom.connect()
 
         class User(Model):
-            __tablename__: Optional[TableColumn] = TableColumn(name="users")
+            __tablename__: TableColumn = TableColumn(name="users")
             username = Column(type="text", nullable=False, default="Hello there!!")
             name = Column(type="varchar", unique=True, length=255)
 
         with pytest.raises(Exception) as exc_info:
-            tables = mysql_loom.sync([User], drop=True, force=True)
+            _ = mysql_loom.sync([User], drop=True, force=True)
         assert str(exc_info.value) == "Your table does not have a primary key column."
         conn.close()
 
     def test_table_name(self):
         from dataloom import Model, Dataloom, Column, PrimaryKeyColumn, TableColumn
-        from typing import Optional
         from dataloom.keys import MySQLConfig
 
         mysql_loom = Dataloom(
@@ -71,7 +68,7 @@ class TestCreatingTableMysql:
             title = Column(type="varchar", length=255, nullable=False)
 
         class User(Model):
-            __tablename__: Optional[TableColumn] = TableColumn(name="users")
+            __tablename__: TableColumn = TableColumn(name="users")
             username = Column(type="text", nullable=False, default="Hello there!!")
             name = Column(type="varchar", unique=True, length=255)
 
@@ -81,17 +78,16 @@ class TestCreatingTableMysql:
 
     def test_connect_sync(self):
         from dataloom import Dataloom, Model, TableColumn, Column, PrimaryKeyColumn
-        from typing import Optional
         from dataloom.keys import MySQLConfig
 
         class User(Model):
-            __tablename__: Optional[TableColumn] = TableColumn(name="users")
+            __tablename__: TableColumn = TableColumn(name="users")
             id = PrimaryKeyColumn(type="int", nullable=False, auto_increment=True)
             username = Column(type="text", nullable=False)
             name = Column(type="varchar", unique=False, length=255)
 
         class Post(Model):
-            __tablename__: Optional[TableColumn] = TableColumn(name="posts")
+            __tablename__: TableColumn = TableColumn(name="posts")
 
             id = PrimaryKeyColumn(type="int", nullable=False, auto_increment=True)
             title = Column(type="text", nullable=False)
@@ -110,7 +106,6 @@ class TestCreatingTableMysql:
 
     def test_syncing_tables(self):
         from dataloom import Model, Dataloom, Column, PrimaryKeyColumn, TableColumn
-        from typing import Optional
         from dataloom.keys import MySQLConfig
 
         mysql_loom = Dataloom(
@@ -122,13 +117,13 @@ class TestCreatingTableMysql:
         conn = mysql_loom.connect()
 
         class Post(Model):
-            __tablename__: Optional[TableColumn] = TableColumn(name="posts")
+            __tablename__: TableColumn = TableColumn(name="posts")
             id = PrimaryKeyColumn(type="int", auto_increment=True)
             completed = Column(type="boolean", default=False)
             title = Column(type="varchar", length=255, nullable=False)
 
         class User(Model):
-            __tablename__: Optional[TableColumn] = TableColumn(name="users")
+            __tablename__: TableColumn = TableColumn(name="users")
             id = PrimaryKeyColumn(type="int", auto_increment=True)
             username = Column(type="text", nullable=False, default="Hello there!!")
             name = Column(type="varchar", unique=True, length=255)
