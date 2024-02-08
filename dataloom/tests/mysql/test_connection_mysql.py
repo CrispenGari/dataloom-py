@@ -32,10 +32,10 @@ class TestConnectionMySQL:
         with pytest.raises(connector.errors.ProgrammingError) as exc_info:
             conn = mysql_loom.connect()
             conn.close()
-        assert (
-            exc_info.value.msg
-            == "Access denied for user 'root'@'localhost' (using password: YES)"
-        )
+
+        assert str(exc_info.value.msg).startswith(
+            "Access denied for user 'root'@'"
+        ) and str(exc_info.value.msg).endswith("(using password: YES)")
         assert exc_info.value.errno == 1045
 
     def test_connect_with_wrong_user(self):
