@@ -1,4 +1,4 @@
-push = False
+push = True
 
 
 class PgConfig:
@@ -14,8 +14,8 @@ class PgConfig:
 
 class MySQLConfig:
     if push:
-        password = "root"
-        database = "test"
+        password = "testrootpass"
+        database = "testdb"
         user = "root"
     else:
         database = "hi"
