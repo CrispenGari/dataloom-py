@@ -7,6 +7,7 @@ from dataloom.types import (
     SQLITE3_SQL_TYPES_LITERAL,
     CASCADE_LITERAL,
     DIALECT_LITERAL,
+    RELATIONSHIP_LITERAL,
 )
 from dataclasses import dataclass
 from dataloom.exceptions import UnsupportedTypeException, UnsupportedDialectException
@@ -46,6 +47,7 @@ class ForeignKeyColumn:
         type: MYSQL_SQL_TYPES_LITERAL
         | POSTGRES_SQL_TYPES_LITERAL
         | SQLITE3_SQL_TYPES_LITERAL,
+        maps_to: RELATIONSHIP_LITERAL = "1-N",
         required: bool = True,
         onDelete: CASCADE_LITERAL = "NO ACTION",
         onUpdate: CASCADE_LITERAL = "NO ACTION",
@@ -55,6 +57,7 @@ class ForeignKeyColumn:
         self.onDelete = onDelete
         self.onUpdate = onUpdate
         self.type = type
+        self.maps_to = maps_to
 
     def sql_type(self, dialect: DIALECT_LITERAL):
         if dialect == "postgres":

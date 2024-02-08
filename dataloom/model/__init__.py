@@ -27,10 +27,10 @@ class Model:
 
     @classmethod
     def _create_sql(cls, dialect: DIALECT_LITERAL, ignore_exists=True):
-        sql = GetStatement(
+        sqls = GetStatement(
             dialect=dialect, model=cls, table_name=cls._get_table_name()
         )._get_create_table_command
-        return sql
+        return sqls
 
     @classmethod
     def _get_table_name(self):
@@ -124,7 +124,7 @@ class Model:
         order: Optional[list[Order]] = [],
         include: list[Include] = [],
     ):
-        orders = list()
+        orders = []
         includes = []
         # what are the foreign keys?
 
@@ -227,7 +227,7 @@ class Model:
             raise UnsupportedDialectException(
                 "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
             )
-        return sql, fields if len(select) == 0 else select
+        return sql, fields if len(select) == 0 else select, includes
 
     @classmethod
     def _get_update_by_pk_stm(
@@ -373,7 +373,11 @@ class Model:
 
     @classmethod
     def _get_delete_where_stm(
-        cls, dialect: DIALECT_LITERAL, filters: Optional[Filter | list[Filter]] = None
+        cls,
+        dialect: DIALECT_LITERAL,
+        filters: Optional[Filter | list[Filter]] = None,
+        offset: Optional[int] = None,
+        order: Optional[list[Order]] = [],
     ):
         fields, pk_name, fks, updatedAtColumName = get_table_fields(
             cls, dialect=dialect
@@ -384,17 +388,34 @@ class Model:
             fields=fields,
             filters=filters,
         )
-
+        orders = []
+        for _order in order:
+            if _order.column not in fields:
+                raise UnknownColumnException(
+                    f'The table "{cls._get_table_name()}" does not have a column "{_order.column}".'
+                )
+            orders.append(
+                f'"{_order.column}" {_order.order}'
+                if dialect == "postgres"
+                else f"`{_order.column}` {_order.order}"
+            )
         if dialect == "postgres" or "mysql" or "sqlite":
             if len(placeholder_filters) == 0:
                 sql = GetStatement(
                     dialect=dialect, model=cls, table_name=cls._get_table_name()
-                )._get_delete_first_command(pk_name=pk_name)
+                )._get_delete_first_command(
+                    pk_name=pk_name,
+                    offset=offset,
+                    orders=orders,
+                )
             else:
                 sql = GetStatement(
                     dialect=dialect, model=cls, table_name=cls._get_table_name()
                 )._get_delete_one_where_command(
-                    pk_name=pk_name, filters=placeholder_filters
+                    pk_name=pk_name,
+                    filters=placeholder_filters,
+                    offset=offset,
+                    orders=orders,
                 )
         else:
             raise UnsupportedDialectException(
@@ -404,7 +425,12 @@ class Model:
 
     @classmethod
     def _get_delete_bulk_where_stm(
-        cls, dialect: DIALECT_LITERAL, filters: Optional[Filter | list[Filter]] = None
+        cls,
+        dialect: DIALECT_LITERAL,
+        filters: Optional[Filter | list[Filter]] = None,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+        order: Optional[list[Order]] = [],
     ):
         fields, pk_name, fks, updatedAtColumName = get_table_fields(
             cls, dialect=dialect
@@ -415,15 +441,35 @@ class Model:
             fields=fields,
             filters=filters,
         )
+
+        orders = []
+        for _order in order:
+            if _order.column not in fields:
+                raise UnknownColumnException(
+                    f'The table "{cls._get_table_name()}" does not have a column "{_order.column}".'
+                )
+            orders.append(
+                f'"{_order.column}" {_order.order}'
+                if dialect == "postgres"
+                else f"`{_order.column}` {_order.order}"
+            )
         if dialect == "postgres" or "mysql" or "sqlite":
             if len(placeholder_filters) == 0:
                 sql = GetStatement(
                     dialect=dialect, model=cls, table_name=cls._get_table_name()
-                )._get_delete_all_command()
+                )._get_delete_all_command(
+                    pk_name=pk_name, offset=offset, limit=limit, orders=orders
+                )
             else:
                 sql = GetStatement(
                     dialect=dialect, model=cls, table_name=cls._get_table_name()
-                )._get_delete_bulk_where_command(filters=placeholder_filters)
+                )._get_delete_bulk_where_command(
+                    filters=placeholder_filters,
+                    pk_name=pk_name,
+                    offset=offset,
+                    limit=limit,
+                    orders=orders,
+                )
         else:
             raise UnsupportedDialectException(
                 "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"

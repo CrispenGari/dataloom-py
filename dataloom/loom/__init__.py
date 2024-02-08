@@ -1,12 +1,15 @@
 import psycopg2
 from mysql import connector
+
 import sqlite3
 from dataloom.constants import instances
 
 from dataloom.exceptions import (
     UnsupportedDialectException,
     InvalidColumnValuesException,
+    InvalidArgumentsException,
 )
+
 from dataloom.model import Model
 from dataloom.statements import GetStatement
 from dataloom.conn import ConnectionOptionsFactory
@@ -114,9 +117,9 @@ class Dataloom:
                     result = cursor.rowcount
                 else:
                     if fetchmany:
-                        result = cursor.fetchmany()
+                        result = [res for res in cursor.fetchmany()]
                     elif fetchall:
-                        result = cursor.fetchall()
+                        result = [res for res in cursor.fetchall()]
                     elif fetchone:
                         result = cursor.fetchone()
                     else:
@@ -244,13 +247,15 @@ class Dataloom:
             for model in models:
                 if drop or force:
                     self._execute_sql(model._drop_sql(dialect=self.dialect))
-                    self._execute_sql(model._create_sql(dialect=self.dialect))
+                    for sql in model._create_sql(dialect=self.dialect):
+                        if sql is not None:
+                            self._execute_sql(sql)
                 elif alter:
                     pass
                 else:
-                    self._execute_sql(
-                        model._create_sql(dialect=self.dialect, ignore_exists=True)
-                    )
+                    for sql in model._create_sql(dialect=self.dialect):
+                        if sql is not None:
+                            self._execute_sql(sql)
             return self.conn, self.tables
         except Exception as e:
             raise Exception(e)
@@ -260,13 +265,15 @@ class Dataloom:
             for model in models:
                 if drop or force:
                     self._execute_sql(model._drop_sql(dialect=self.dialect))
-                    self._execute_sql(model._create_sql(dialect=self.dialect))
+                    for sql in model._create_sql(dialect=self.dialect):
+                        if sql is not None:
+                            self._execute_sql(sql)
                 elif alter:
                     pass
                 else:
-                    self._execute_sql(
-                        model._create_sql(dialect=self.dialect, ignore_exists=True)
-                    )
+                    for sql in model._create_sql(dialect=self.dialect):
+                        if sql is not None:
+                            self._execute_sql(sql)
             return self.tables
         except Exception as e:
             raise Exception(e)
@@ -330,6 +337,8 @@ class Dataloom:
         offset: Optional[int] = None,
         order: Optional[list[Order]] = [],
     ) -> list:
+        return_dict = True
+        include = []
         sql, params, fields = instance._get_select_where_stm(
             dialect=self.dialect,
             filters=filters,
@@ -363,6 +372,7 @@ class Dataloom:
         order: Optional[list[Order]] = [],
     ) -> list:
         return_dict = True
+        include = []
         sql, params, fields = instance._get_select_where_stm(
             dialect=self.dialect,
             select=select,
@@ -389,7 +399,7 @@ class Dataloom:
         instance: Model,
         row: tuple,
         parent_fields: list,
-        include: list[Include] = [],
+        include: list[dict] = [],
         return_dict: bool = True,
     ):
         # how are relations are mapped?
@@ -414,19 +424,23 @@ class Dataloom:
         include: list[Include] = [],
         return_dict: bool = True,
     ):
+        # """
+        # This part will be added in the future version.
+        # """
         return_dict = True
+        include = []
         # what is the name of the primary key column? well we will find out
-        sql, fields = instance._get_select_by_pk_stm(
+        sql, fields, _includes = instance._get_select_by_pk_stm(
             dialect=self.dialect, select=select, include=include
         )
-        row = self._execute_sql(sql, args=(pk,), fetchone=True)
-        if row is None:
+        rows = self._execute_sql(sql, args=(pk,), fetchone=True)
+        if rows is None:
             return None
         return self.__map_relationships(
             instance=instance,
-            row=row,
+            row=rows,
             parent_fields=fields,
-            include=include,
+            include=_includes,
             return_dict=return_dict,
         )
 
@@ -440,6 +454,7 @@ class Dataloom:
         offset: Optional[int] = None,
     ):
         return_dict = True
+        include = []
         sql, params, fields = instance._get_select_where_stm(
             dialect=self.dialect,
             filters=filters,
@@ -500,24 +515,49 @@ class Dataloom:
         return affected_rows
 
     def delete_one(
-        self, instance: Model, filters: Optional[Filter | list[Filter]] = None
+        self,
+        instance: Model,
+        filters: Optional[Filter | list[Filter]] = None,
+        offset: Optional[int] = None,
+        order: Optional[list[Order]] = [],
     ):
         sql, params = instance._get_delete_where_stm(
-            dialect=self.dialect,
-            filters=filters,
+            dialect=self.dialect, filters=filters, offset=offset, order=order
         )
-        affected_rows = self._execute_sql(sql, args=params, affected_rows=True)
+        args = [*params]
+        if offset is not None:
+            args.append(offset)
+        affected_rows = self._execute_sql(sql, args=args, affected_rows=True)
         return affected_rows
 
     def delete_bulk(
-        self, instance: Model, filters: Optional[Filter | list[Filter]] = None
+        self,
+        instance: Model,
+        filters: Optional[Filter | list[Filter]] = None,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+        order: Optional[list[Order]] = [],
     ):
+        if offset is not None and limit is None and self.dialect == "mysql":
+            raise InvalidArgumentsException(
+                f"You can not apply offset without limit on dialect '{self.dialect}'."
+            )
         sql, params = instance._get_delete_bulk_where_stm(
             dialect=self.dialect,
             filters=filters,
+            offset=offset,
+            limit=limit,
+            order=order,
         )
+        args = [*params]
+
+        if limit is not None:
+            args.append(limit)
+        if offset is not None:
+            args.append(offset)
+
         affected_rows = self._execute_sql(
-            sql, args=params, affected_rows=True, fetchall=True
+            sql, args=args, affected_rows=True, fetchall=True
         )
         return affected_rows
 
@@ -562,3 +602,6 @@ class Dataloom:
         args = [*column_values, *filter_values]
         affected_rows = self._execute_sql(sql, args=args, affected_rows=True)
         return affected_rows
+
+    def inspect(self):
+        pass

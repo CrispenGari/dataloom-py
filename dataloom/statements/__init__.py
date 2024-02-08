@@ -1,5 +1,3 @@
-import inspect
-import re
 from dataclasses import dataclass
 from typing import Optional
 from dataloom.exceptions import (
@@ -9,20 +7,18 @@ from dataloom.exceptions import (
     TooManyPkException,
     UnsupportedDialectException,
 )
-from dataloom.columns import (
-    Column,
-    CreatedAtColumn,
-    ForeignKeyColumn,
-    PrimaryKeyColumn,
-    UpdatedAtColumn,
-)
 from dataloom.statements.statements import (
     MySqlStatements,
     PgStatements,
     Sqlite3Statements,
 )
 from dataloom.types import DIALECT_LITERAL, INCREMENT_DECREMENT_LITERAL
-from dataloom.utils import get_formatted_query, get_relationships
+from dataloom.utils import (
+    get_formatted_query,
+    get_relationships,
+    get_create_table_params,
+    get_table_fields,
+)
 
 
 @dataclass(kw_only=True)
@@ -125,66 +121,15 @@ class GetStatement[T]:
     @property
     def _get_create_table_command(self) -> Optional[str]:
         # is the primary key defined in this table?
-        pks = list()
-        user_fields = list()
-        predefined_fields = list()
+        _, pk_name, _, _ = get_table_fields(model=self.model, dialect=self.dialect)
+        pks, user_fields, predefined_fields, sql2 = get_create_table_params(
+            dialect=self.dialect,
+            model=self.model,
+            child_alias_name=self.model.__name__.lower(),
+            child_pk_name=pk_name,
+            child_name=self.model._get_table_name(),
+        )
         if self.dialect == "postgres":
-            for name, field in inspect.getmembers(self.model):
-                if isinstance(field, PrimaryKeyColumn):
-                    pks.append(f'"{name}"')
-                    _values = re.sub(
-                        r"\s+",
-                        " ",
-                        "{_type} PRIMARY KEY {unique} {nullable} {default} ".format(
-                            _type=field.sql_type(self.dialect),
-                            default=field.default_constraint,
-                            nullable=field.nullable_constraint,
-                            unique=field.unique_constraint,
-                        ).strip(),
-                    )
-                    user_fields.append((f'"{name}"', _values))
-                elif isinstance(field, Column):
-                    _values = re.sub(
-                        r"\s+",
-                        " ",
-                        "{_type} {unique} {nullable} {default} ".format(
-                            _type=field.sql_type(self.dialect),
-                            unique=field.unique_constraint,
-                            nullable=field.nullable_constraint,
-                            default=field.default_constraint,
-                        ).strip(),
-                    )
-                    user_fields.append((f'"{name}"', _values))
-                elif isinstance(field, CreatedAtColumn):
-                    predefined_fields.append((f'"{name}"', field.created_at))
-                elif isinstance(field, UpdatedAtColumn):
-                    predefined_fields.append((f'"{name}"', field.updated_at))
-                elif isinstance(field, ForeignKeyColumn):
-                    # qns:
-                    # 1. what is the pk in the parent table?
-                    # 2. what is the type of the parent table pk?
-                    # 3. what is the name of the parent table?
-                    pk, pk_type = field.table._get_pk_attributes(dialect=self.dialect)
-                    parent_table_name = field.table._get_table_name()
-
-                    value = (
-                        '{pk_type} {nullable} REFERENCES {parent_table_name}("{pk}") ON DELETE {onDelete} ON UPDATE {onUpdate}'.format(
-                            onDelete=field.onDelete,
-                            onUpdate=field.onUpdate,
-                            pk_type=pk_type,
-                            parent_table_name=f'"{parent_table_name}"',
-                            pk=pk,
-                            nullable="NOT NULL",
-                        )
-                        if field.required
-                        else '{pk_type} REFERENCES {parent_table_name}("{pk}") ON DELETE SET NULL'.format(
-                            pk_type=pk_type,
-                            parent_table_name=f'"{parent_table_name}"',
-                            pk=pk,
-                        )
-                    )
-                    predefined_fields.append((f'"{name}"', value))
-
             # do we have a single primary key or not?
             if len(pks) == 0:
                 raise PkNotDefinedException(
@@ -205,62 +150,8 @@ class GetStatement[T]:
                     table_name=f'"{self.table_name}"', fields_name=fields_name
                 )
             )
-            return sql
-        elif self.dialect == "mysql":
-            for name, field in inspect.getmembers(self.model):
-                if isinstance(field, PrimaryKeyColumn):
-                    pks.append(f"`{name}`")
-                    _values = re.sub(
-                        r"\s+",
-                        " ",
-                        "{_type} PRIMARY KEY {auto_increment} {unique} {nullable} {default} ".format(
-                            _type=field.sql_type(self.dialect),
-                            default=field.default_constraint,
-                            nullable=field.nullable_constraint,
-                            unique=field.unique_constraint,
-                            auto_increment=(
-                                "AUTO_INCREMENT" if field.auto_increment else ""
-                            ),
-                        ).strip(),
-                    )
-                    user_fields.append((f"`{name}`", _values))
-                elif isinstance(field, Column):
-                    _values = re.sub(
-                        r"\s+",
-                        " ",
-                        "{_type} {unique} {nullable} {default} ".format(
-                            _type=field.sql_type(self.dialect),
-                            unique=field.unique_constraint,
-                            nullable=field.nullable_constraint,
-                            default=field.default_constraint,
-                        ).strip(),
-                    )
-                    user_fields.append((f"`{name}`", _values))
-                elif isinstance(field, CreatedAtColumn):
-                    predefined_fields.append((f"`{name}`", field.created_at))
-                elif isinstance(field, UpdatedAtColumn):
-                    predefined_fields.append((f"`{name}`", field.updated_at))
-                elif isinstance(field, ForeignKeyColumn):
-                    # qns:
-                    # 1. what is the pk in the parent table?
-                    # 2. what is the type of the parent table pk?
-                    # 3. what is the name of the parent table?
-                    pk, pk_type = field.table._get_pk_attributes(dialect=self.dialect)
-                    parent_table_name = field.table._get_table_name()
-                    predefined_fields.append(
-                        (
-                            f"`{name}`",
-                            "{pk_type} {nullable} REFERENCES {parent_table_name}(`{pk}`) ON DELETE {onDelete} ON UPDATE {onUpdate}".format(
-                                onDelete=field.onDelete,
-                                onUpdate=field.onUpdate,
-                                pk_type=pk_type,
-                                parent_table_name=f"`{parent_table_name}`",
-                                pk=pk,
-                                nullable="NOT NULL" if field.required else "NULL",
-                            ),
-                        )
-                    )
 
+        elif self.dialect == "mysql":
             # do we have a single primary key or not?
             if len(pks) == 0:
                 raise PkNotDefinedException(
@@ -281,63 +172,8 @@ class GetStatement[T]:
                     table_name=f"`{self.table_name}`", fields_name=fields_name
                 )
             )
-            return sql
 
         elif self.dialect == "sqlite":
-            for name, field in inspect.getmembers(self.model):
-                if isinstance(field, PrimaryKeyColumn):
-                    pks.append(f"`{name}`")
-                    _values = re.sub(
-                        r"\s+",
-                        " ",
-                        "{_type} PRIMARY KEY {auto_increment} {unique} {nullable} {default} ".format(
-                            _type=field.sql_type(self.dialect),
-                            default=field.default_constraint,
-                            nullable=field.nullable_constraint,
-                            unique=field.unique_constraint,
-                            auto_increment=(
-                                "AUTOINCREMENT" if field.auto_increment else ""
-                            ),
-                        ).strip(),
-                    )
-                    user_fields.append((f"`{name}`", _values))
-                elif isinstance(field, Column):
-                    _values = re.sub(
-                        r"\s+",
-                        " ",
-                        "{_type} {unique} {nullable} {default} ".format(
-                            _type=field.sql_type(self.dialect),
-                            unique=field.unique_constraint,
-                            nullable=field.nullable_constraint,
-                            default=field.default_constraint,
-                        ).strip(),
-                    )
-                    user_fields.append((f"`{name}`", _values))
-                elif isinstance(field, CreatedAtColumn):
-                    predefined_fields.append((f"`{name}`", field.created_at))
-                elif isinstance(field, UpdatedAtColumn):
-                    predefined_fields.append((f"`{name}`", field.updated_at))
-                elif isinstance(field, ForeignKeyColumn):
-                    # qns:
-                    # 1. what is the pk in the parent table?
-                    # 2. what is the type of the parent table pk?
-                    # 3. what is the name of the parent table?
-                    pk, pk_type = field.table._get_pk_attributes(dialect=self.dialect)
-                    parent_table_name = field.table._get_table_name()
-                    predefined_fields.append(
-                        (
-                            f"`{name}`",
-                            "{pk_type} {nullable} REFERENCES {parent_table_name}(`{pk}`) ON DELETE {onDelete} ON UPDATE {onUpdate}".format(
-                                onDelete=field.onDelete,
-                                onUpdate=field.onUpdate,
-                                pk_type=pk_type,
-                                parent_table_name=f"`{parent_table_name}`",
-                                pk=pk,
-                                nullable="NOT NULL" if field.required else "NULL",
-                            ),
-                        )
-                    )
-
             # do we have a single primary key or not?
             if len(pks) == 0:
                 raise PkNotDefinedException(
@@ -358,11 +194,12 @@ class GetStatement[T]:
                     table_name=f"`{self.table_name}`", fields_name=fields_name
                 )
             )
-            return sql
+
         else:
             raise UnsupportedDialectException(
                 "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
             )
+        return [sql, sql2]
 
     def _get_select_where_command(
         self,
@@ -500,7 +337,12 @@ class GetStatement[T]:
         self, pk_name: str, fields: list = [], includes: list[dict] = [], fks: dict = {}
     ):
         if len(includes) != 0:
-            relationships = get_relationships(includes=includes, fks=fks)
+            from_parent = len(fks) == 0
+            relationships = get_relationships(
+                includes=includes,
+                fks=fks,
+                parent_table_name=self.table_name if from_parent else None,
+            )
             table_names = {
                 "parent_table_name": self.table_name,
                 "parent_columns": fields,
@@ -511,6 +353,7 @@ class GetStatement[T]:
                 dialect=self.dialect,
                 table_names=table_names,
                 relationships=relationships,
+                from_parent=from_parent,
             )
             return sql
 
@@ -599,14 +442,14 @@ class GetStatement[T]:
                 placeholder_values=", ".join(placeholders_of_new_values),
                 table_name=f"`{self.table_name}`",
                 pk_name=pk_name,
-                placeholder_filters=", ".join(placeholder_filters),
+                placeholder_filters=" ".join(placeholder_filters),
             )
         elif self.dialect == "sqlite":
             sql = Sqlite3Statements.UPDATE_ONE_WHERE_COMMAND.format(
                 placeholder_values=", ".join(placeholders_of_new_values),
                 table_name=f"`{self.table_name}`",
                 pk_name=pk_name,
-                placeholder_filters=", ".join(placeholder_filters),
+                placeholder_filters=" ".join(placeholder_filters),
             )
         else:
             raise UnsupportedDialectException(
@@ -631,19 +474,19 @@ class GetStatement[T]:
             sql = PgStatements.UPDATE_BULK_WHERE_COMMAND.format(
                 placeholder_values=", ".join(placeholders_of_new_values),
                 table_name=f'"{self.table_name}"',
-                placeholder_filters=", ".join(placeholder_filters),
+                placeholder_filters=" ".join(placeholder_filters),
             )
         elif self.dialect == "mysql":
             sql = MySqlStatements.UPDATE_BULK_WHERE_COMMAND.format(
                 placeholder_values=", ".join(placeholders_of_new_values),
                 table_name=f"`{self.table_name}`",
-                placeholder_filters=", ".join(placeholder_filters),
+                placeholder_filters=" ".join(placeholder_filters),
             )
         elif self.dialect == "sqlite":
             sql = Sqlite3Statements.UPDATE_BULK_WHERE_COMMAND.format(
                 placeholder_values=", ".join(placeholders_of_new_values),
                 table_name=f"`{self.table_name}`",
-                placeholder_filters=", ".join(placeholder_filters),
+                placeholder_filters=" ".join(placeholder_filters),
             )
         else:
             raise UnsupportedDialectException(
@@ -676,24 +519,36 @@ class GetStatement[T]:
             )
         return sql
 
-    def _get_delete_one_where_command(self, pk_name: str, filters: list[str] = []):
+    def _get_delete_one_where_command(
+        self,
+        pk_name: str,
+        filters: list[str] = [],
+        offset: Optional[int] = None,
+        orders: list[str] | None = [],
+    ):
         if self.dialect == "postgres":
             sql = PgStatements.DELETE_ONE_WHERE_COMMAND.format(
                 pk_name=pk_name,
                 table_name=f'"{self.table_name}"',
                 filters=" ".join(filters),
+                offset="" if offset is None else "OFFSET %s",
+                orders="" if len(orders) == 0 else f"ORDER BY {', '.join(orders)}",
             )
         elif self.dialect == "mysql":
             sql = MySqlStatements.DELETE_ONE_WHERE_COMMAND.format(
                 pk_name=pk_name,
                 table_name=f"`{self.table_name}`",
                 filters=" ".join(filters),
+                offset="" if offset is None else "OFFSET %s",
+                orders="" if len(orders) == 0 else f"ORDER BY {', '.join(orders)}",
             )
         elif self.dialect == "sqlite":
             sql = Sqlite3Statements.DELETE_ONE_WHERE_COMMAND.format(
                 pk_name=pk_name,
                 table_name=f"`{self.table_name}`",
                 filters=" ".join(filters),
+                offset="" if offset is None else "OFFSET ?",
+                orders="" if len(orders) == 0 else f"ORDER BY {', '.join(orders)}",
             )
         else:
             raise UnsupportedDialectException(
@@ -701,20 +556,32 @@ class GetStatement[T]:
             )
         return sql
 
-    def _get_delete_first_command(self, pk_name: str):
+    def _get_delete_first_command(
+        self,
+        pk_name: str,
+        offset: Optional[int] = None,
+        orders: list[str] | None = [],
+    ):
         if self.dialect == "postgres":
             sql = PgStatements.DELETE_FIRST_COMMAND.format(
                 pk_name=pk_name,
                 table_name=f'"{self.table_name}"',
+                offset="" if offset is None else "OFFSET %s",
+                orders="" if len(orders) == 0 else f"ORDER BY {', '.join(orders)}",
             )
         elif self.dialect == "mysql":
             sql = MySqlStatements.DELETE_FIRST_COMMAND.format(
-                table_name=f"`{self.table_name}`", pk_name=pk_name
+                table_name=f"`{self.table_name}`",
+                pk_name=pk_name,
+                offset="" if offset is None else "OFFSET %s",
+                orders="" if len(orders) == 0 else f"ORDER BY {', '.join(orders)}",
             )
         elif self.dialect == "sqlite":
             sql = Sqlite3Statements.DELETE_FIRST_COMMAND.format(
                 pk_name=pk_name,
                 table_name=f"`{self.table_name}`",
+                offset="" if offset is None else "OFFSET ?",
+                orders="" if len(orders) == 0 else f"ORDER BY {', '.join(orders)}",
             )
         else:
             raise UnsupportedDialectException(
@@ -724,22 +591,39 @@ class GetStatement[T]:
 
     def _get_delete_bulk_where_command(
         self,
+        pk_name: str,
         filters: list[str],
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+        orders: list[str] | None = [],
     ):
         if self.dialect == "postgres":
             sql = PgStatements.DELETE_BULK_WHERE_COMMAND.format(
                 table_name=f'"{self.table_name}"',
                 filters=" ".join(filters),
+                pk_name=pk_name,
+                limit="" if limit is None else "LIMIT %s",
+                offset="" if offset is None else "OFFSET %s",
+                orders="" if len(orders) == 0 else f"ORDER BY {', '.join(orders)}",
             )
         elif self.dialect == "mysql":
             sql = MySqlStatements.DELETE_BULK_WHERE_COMMAND.format(
                 table_name=f"`{self.table_name}`",
                 filters=" ".join(filters),
+                limit="" if limit is None else "LIMIT %s",
+                offset="" if offset is None else "OFFSET %s",
+                pk_name=pk_name,
+                orders="" if len(orders) == 0 else f"ORDER BY {', '.join(orders)}",
             )
+
         elif self.dialect == "sqlite":
             sql = Sqlite3Statements.DELETE_BULK_WHERE_COMMAND.format(
                 table_name=f"`{self.table_name}`",
                 filters=" ".join(filters),
+                limit="" if limit is None else "LIMIT ?",
+                offset="" if offset is None else "OFFSET ?",
+                pk_name=pk_name,
+                orders="" if len(orders) == 0 else f"ORDER BY {', '.join(orders)}",
             )
         else:
             raise UnsupportedDialectException(
@@ -747,18 +631,36 @@ class GetStatement[T]:
             )
         return sql
 
-    def _get_delete_all_command(self):
+    def _get_delete_all_command(
+        self,
+        pk_name: str,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+        orders: list[str] | None = [],
+    ):
         if self.dialect == "postgres":
             sql = PgStatements.DELETE_ALL_COMMAND.format(
                 table_name=f'"{self.table_name}"',
+                pk_name=pk_name,
+                limit="" if limit is None else "LIMIT %s",
+                offset="" if offset is None else "OFFSET %s",
+                orders="" if len(orders) == 0 else f"ORDER BY {', '.join(orders)}",
             )
         elif self.dialect == "mysql":
             sql = MySqlStatements.DELETE_ALL_COMMAND.format(
                 table_name=f"`{self.table_name}`",
+                pk_name=pk_name,
+                limit="" if limit is None else "LIMIT %s",
+                offset="" if offset is None else "OFFSET %s",
+                orders="" if len(orders) == 0 else f"ORDER BY {', '.join(orders)}",
             )
         elif self.dialect == "sqlite":
             sql = Sqlite3Statements.DELETE_ALL_COMMAND.format(
                 table_name=f"`{self.table_name}`",
+                pk_name=pk_name,
+                limit="" if limit is None else "LIMIT ?",
+                offset="" if offset is None else "OFFSET ?",
+                orders="" if len(orders) == 0 else f"ORDER BY {', '.join(orders)}",
             )
         else:
             raise UnsupportedDialectException(

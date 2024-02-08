@@ -7,9 +7,9 @@ from dataloom import (
     UpdatedAtColumn,
     TableColumn,
     ForeignKeyColumn,
-    Filter,
     ColumnValue,
     Include,
+    Filter,
     Order,
 )
 from typing import Optional
@@ -48,10 +48,18 @@ class User(Model):
     tokenVersion = Column(type="int", default=0)
 
 
-class Category(Model):
-    __tablename__: Optional[TableColumn] = TableColumn(name="categories")
-    id = PrimaryKeyColumn(type="int", auto_increment=True, nullable=False, unique=True)
-    name = Column(type="varchar", length=255, nullable=False)
+class Profile(Model):
+    __tablename__: Optional[TableColumn] = TableColumn(name="profiles")
+    id = PrimaryKeyColumn(type="int", auto_increment=True)
+    avatar = Column(type="text", nullable=False)
+    userId = ForeignKeyColumn(
+        User,
+        maps_to="1-1",
+        type="int",
+        required=False,
+        onDelete="CASCADE",
+        onUpdate="CASCADE",
+    )
 
 
 class Post(Model):
@@ -64,162 +72,65 @@ class Post(Model):
     updatedAt = UpdatedAtColumn()
     # relations
     userId = ForeignKeyColumn(
-        User, type="int", required=True, onDelete="CASCADE", onUpdate="CASCADE"
+        User,
+        maps_to="1-N",
+        type="int",
+        required=True,
+        onDelete="CASCADE",
+        onUpdate="CASCADE",
     )
-    categoryId = ForeignKeyColumn(
-        Category, type="int", required=True, onDelete="CASCADE", onUpdate="CASCADE"
-    )
 
 
-conn, tables = pg_loom.connect_and_sync([Post, User, Category], drop=True, force=True)
+class Category(Model):
+    __tablename__: Optional[TableColumn] = TableColumn(name="categories")
+    id = PrimaryKeyColumn(type="int", auto_increment=True, nullable=False, unique=True)
+    type = Column(type="varchar", length=255, nullable=False)
 
-userId = pg_loom.insert_bulk(
-    User,
-    values=[
-        [
-            ColumnValue(name="username", value="@miller"),
-            ColumnValue(name="name", value="Jonh"),
-        ],
-        [
-            ColumnValue(name="username", value="@brown"),
-            ColumnValue(name="name", value="Jonh"),
-        ],
-        [
-            ColumnValue(name="username", value="@blue"),
-            ColumnValue(name="name", value="Jonh"),
-        ],
-    ],
+
+conn, tables = mysql_loom.connect_and_sync(
+    [Post, User, Category, Profile], drop=True, force=True
 )
+userId = mysql_loom.insert_one(
+    instance=User,
+    values=ColumnValue(name="username", value="@miller"),
+)
+categories = ["general", "education", "sport", "culture"]
+cats = []
+for cat in categories:
+    pId = mysql_loom.insert_one(
+        instance=Post,
+        values=[
+            ColumnValue(name="title", value=f"What are you doing {cat}?"),
+            ColumnValue(name="userId", value=userId),
+        ],
+    )
+#     cats.append(
+#         [ColumnValue(name="type", value=cat), ColumnValue(name="postId", value=pId)]
+#     )
 
-# sqlite_loom.decrement(
-#     User,
-#     filters=Filter(column="id", value=1),
-#     column=ColumnValue(name="tokenVersion", value=2.6),
-# )
+# rows = sqlite_loom.insert_bulk(Category, values=cats)
+# print(rows)
 
 
-# cate = Category(name="general")
-# categoryId = mysql_loom.insert_one(cate)
-# post = Post(title="What are you doing?", userId=userId, categoryId=categoryId)
-# post_id = mysql_loom.insert_bulk([post for i in range(5)])
+users = pg_loom.update_bulk(
+    instance=User,
+    select=["id", "username"],
+    limit=3,
+    offset=0,
+    order=[Order(column="id", order="DESC")],
+    include=[],
+)
+# print("---- user", posts)
 
-# post = mysql_loom.find_one(
-#     Post,
-#     filters=[
-#         Filter(column="id", operator="eq", value=4, join_next_filter_with="AND"),
-#         Filter(column="userId", operator="eq", value=1),
-#     ],
-#     offset=2,
-#     select=["id", "completed", "title", "createdAt"],
-#     include=[
-#         Include(
-#             model=User,
-#             select=["id", "username", "name"],
-#             limit=1,
-#             offset=0,
-#         ),
-#     ],
-#     return_dict=True,
-# )
-# print(post)
 
 # post = mysql_loom.find_by_pk(
 #     Post,
 #     pk=1,
-#     select=["id", "completed", "title", "createdAt"],
-#     include=[
-#         Include(
-#             model=User,
-#             select=["id", "username", "name"],
-#             limit=1,
-#             offset=0,
-#         ),
-#     ],
-#     return_dict=True,
+#     include=[Include(model=User, select=["id", "username"], maps_to="N-1")],
+#     select=["title", "completed"],
 # )
-
-# re = mysql_loom.update_one(
-#     Post,
-#     values=[
-#         ColumnValue(name="title", value="Hey"),
-#         ColumnValue(name="completed", value=True),
-#     ],
-#     filters=[
-#         Filter(column="id", value=1, join_next_filter_with="AND"),
-#         Filter(column="userId", value=1, join_next_filter_with="AND"),
-#     ],
-# )
-# print(post)
-# print(post)
+# print("---- post", post)
 
 
-# posts = pg_loom.find_one(
-#     Post,
-#     filters=[
-#         Filter(column="id", operator="eq", value=1, join_next_filter_with="AND"),
-#         Filter(column="userId", operator="eq", value=1),
-#     ],
-#     select=["id", "completed", "title", "createdAt"],
-#     include=[
-#         Include(
-#             model=User,
-#             select=["id", "username", "name"],
-#             limit=1,
-#             offset=0,
-#         ),
-#     ],
-#     return_dict=True,
-# )
-# print(posts)
-
-# posts = pg_loom.find_all(
-#     Post,
-#     select=["id", "completed", "title", "createdAt"],
-#     limit=3,
-#     offset=0,
-#     order=[
-#         Order(column="createdAt", order="ASC"),
-#         Order(
-#             column="id",
-#             order="DESC",
-#         ),
-#     ],
-#     include=[
-#         Include(
-#             model=User,
-#             select=["id", "username", "name"],
-#             limit=1,
-#             offset=0,
-#         ),
-#     ],
-#     return_dict=True,
-# )
-# print(posts)
-# posts = pg_loom.find_many(
-#     Post,
-#     filters=[
-#         Filter(column="id", operator="eq", value=1, join_next_filter_with="AND"),
-#         Filter(column="userId", operator="eq", value=1),
-#     ],
-#     select=["id", "completed", "title", "createdAt"],
-#     limit=10,
-#     offset=0,
-#     order=[
-#         Order(column="createdAt", order="ASC"),
-#         Order(column="id", order="DESC"),
-#     ],
-#     include=[
-#         Include(
-#             model=User,
-#             select=["id", "username", "name"],
-#             limit=1,
-#             offset=0,
-#         ),
-#     ],
-#     return_dict=True,
-# )
-# print(posts)
-
-
-if __name__ == "__main__":
-    conn.close()
+# if __name__ == "__main__":
+#     conn.close()

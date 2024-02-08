@@ -47,15 +47,26 @@
   - [2. The `connect_and_sync` method.](#2-the-connect_and_sync-method)
 - [CRUD Operations with Dataloom](#crud-operations-with-dataloom)
   - [1. Creating a Record](#1-creating-a-record)
+    - [1. `insert_one()`](#1-insert_one)
+    - [2. `insert_bulk()`.](#2-insert_bulk)
   - [2. Getting records](#2-getting-records)
-  - [3. Getting a single record](#3-getting-a-single-record)
-  - [4. Deleting a record](#4-deleting-a-record)
-  - [Warning: Potential Risk with `delete_bulk()`](#warning-potential-risk-with-delete_bulk)
-    - [Guidelines for Safe Usage](#guidelines-for-safe-usage)
-  - [5. Updating a record](#5-updating-a-record)
-- [Associations](#associations)
-- [Pagination](#pagination)
+    - [1. `find_all()`](#1-find_all)
+    - [2. `find_many()`](#2-find_many)
+    - [3. `find_one()`](#3-find_one)
+    - [4. `find_by_pk()`](#4-find_by_pk)
+  - [3. Deleting a record](#3-deleting-a-record)
+    - [1. `delete_by_pk()`](#1-delete_by_pk)
+    - [2. `delete_one()`](#2-delete_one)
+    - [3. `delete_bulk()`](#3-delete_bulk)
+      - [Warning: Potential Risk with `delete_bulk()`](#warning-potential-risk-with-delete_bulk)
+      - [Guidelines for Safe Usage](#guidelines-for-safe-usage)
+  - [4. Updating a record](#4-updating-a-record)
+    - [1. `update_by_pk()`](#1-update_by_pk)
+    - [2. `update_one()`](#2-update_one)
+    - [3. `update_bulk()`](#3-update_bulk)
 - [Ordering](#ordering)
+- [Filters](#filters)
+- [What is coming next?](#what-is-coming-next)
 
 ### Key Features:
 
@@ -527,89 +538,248 @@ In this section of the documentation, we will illustrate how to perform basic `C
 
 #### 1. Creating a Record
 
-The `insert_one` method allows you to save a single row in a specific table. Upon saving, it will return the primary key (`pk`) value of the inserted document.
+To insert a single or multiple records in a database you make use of the following functions:
+
+1. `insert_one()`
+2. `insert_bulk()`
+
+##### 1. `insert_one()`
+
+The `insert_one` method allows you to save a single row in a specific table. Upon saving, it will return the primary key (`pk`) value of the inserted document. The following example shows how the `insert_one()` method works.
 
 ```python
 # Example: Creating a user record
-user = User(username="@miller")
-user_id = sqlite_loom.insert_one(user)
+userId = pg_loom.insert_one(
+    instance=User, values=ColumnValue(name="username", value="@miller")
+)
+
+userId = pg_loom.insert_one(
+    instance=User,
+    values=[
+        ColumnValue(name="username", value="@miller"),
+        ColumnValue(name="name", value="Jonh"),
+    ],
+)
 ```
+
+This function takes in two arguments which are `instance` and `values`. Where values are the column values that you are inserting in a user table or a single column value.
+
+| Argument   | Description                                                                                                  | `Type`                               | `Required` | `Default` |
+| ---------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------ | ---------- | --------- |
+| `instance` | The instance of the table where the row will be inserted.                                                    | `Model`                              | `Yes`      | `None`    |
+| `values`   | The column values to be inserted into the table. It can be a single column value or a list of column values. | `list[ColumnValue]` or `ColumnValue` | `Yes`      | `None`    |
+
+##### 2. `insert_bulk()`.
 
 The `insert_bulk` method facilitates the bulk insertion of records, as its name suggests. The following example illustrates how you can add `3` posts to the database table simultaneously.
 
 ```python
 # Example: Inserting multiple posts
-posts = [
-    Post(userId=userId, title="What are you thinking"),
-    Post(userId=userId, title="What are you doing?"),
-    Post(userId=userId, title="What are we?"),
-]
-row_count = sqlite_loom.insert_bulk(posts)
+rows = pg_loom.insert_bulk(
+    User,
+    values=[
+        [
+            ColumnValue(name="username", value="@miller"),
+            ColumnValue(name="name", value="Jonh"),
+        ],
+        [
+            ColumnValue(name="username", value="@brown"),
+            ColumnValue(name="name", value="Jonh"),
+        ],
+        [
+            ColumnValue(name="username", value="@blue"),
+            ColumnValue(name="name", value="Jonh"),
+        ],
+    ],
+)
 ```
+
+The argument parameters for the `insert_bulk` methods are as follows.
+
+| Argument   | Description                                                                                                                                                                                                 | `Type`                                     | `Required` | `Default` |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ | ---------- | --------- |
+| `instance` | The instance of the table where the row will be inserted.                                                                                                                                                   | `Model`                                    | `Yes`      | `None`    |
+| `values`   | The column values to be inserted into the table. **It must be a list of list of column values with the same length, otherwise dataloom will fail to map the values correctly during the insert operation.** | `list[list[ColumnValue]]` or `ColumnValue` | `Yes`      | `None`    |
 
 > In contrast to the `insert_one` method, the `insert_bulk` method returns the row count of the inserted documents rather than the individual primary keys (`pks`) of those documents.
 
 #### 2. Getting records
 
-To retrieve records from the database, you can utilize the `find_all()` and `find_many()` methods.
+To retrieve documents or a document from the database, you can make use of the following functions:
+
+1. `find_all()`: This function is used to retrieve all documents from the database.
+2. `find_by_pk()`: This function is used to retrieve a document by its primary key (or ID).
+3. `find_one()`: This function is used to retrieve a single document based on a specific condition.
+4. `find_many()`: This function is used to retrieve multiple documents based on a specific condition.
+
+##### 1. `find_all()`
+
+This method is used to retrieve all the records that are in the database table. Below are examples demonstrating how to do it:
 
 ```py
-users = sqlite_loom.find_all(User)
-print([u for u in users])
+users = pg_loom.find_all(
+    instance=User,
+    select=["id", "username"],
+    limit=3,
+    offset=0,
+    order=[Order(column="id", order="DESC")],
+)
+print(users) # ? [{'id': 1, 'username': '@miller'}]
 ```
+
+The `find_all()` method takes in the following arguments:
+
+| Argument   | Description                                    | Type          | Default | Required |
+| ---------- | ---------------------------------------------- | ------------- | ------- | -------- |
+| `instance` | The model class to retrieve documents from.    | `Model`       | `None`  | `Yes`    |
+| `select`   | List of fields to select from the documents.   | `list[str]`   | `None`  | `No`     |
+| `limit`    | Maximum number of documents to retrieve.       | `int`         | `None`  | `No`     |
+| `offset`   | Number of documents to skip before retrieving. | `int`         | `0`     | `No`     |
+| `order`    | List of columns to order the documents by.     | `list[Order]` | `None`  | `No`     |
+| `include`  | List of related models to eagerly load.        | `list[Model]` | `None`  | `No`     |
+
+> 👉 **Note:** Note that the `include` argument is not working at the moment. This argument allows us to eagerly load child relationships from the parent model.
+
+##### 2. `find_many()`
 
 Here is an example demonstrating the usage of the `find_many()` function with specific filters.
 
 ```py
-many = sqlite_loom.find_many(Post, {"userId": 5})
-print([u for u in many])
+users = mysql_loom.find_many(
+    User,
+    filters=[Filter(column="username", value="@miller")],
+    select=["id", "username"],
+    offset=0,
+    limit=10,
+)
+
+print(users) # ? [{'id': 1, 'username': '@miller'}]
 ```
 
-The distinction between the `find_all()` and `find_many()` methods lies in the fact that `find_many()` enables you to apply specific filters, whereas `find_all()` retrieves all the documents within the specified model.
+The `find_many()` method takes in the following arguments:
 
-#### 3. Getting a single record
+| Argument   | Description                                    | Type                     | Default | Required |
+| ---------- | ---------------------------------------------- | ------------------------ | ------- | -------- |
+| `instance` | The model class to retrieve documents from.    | `Model`                  | `None`  | `Yes`    |
+| `filters`  | List of filters to apply to the query.         | `list[Filter] \| Filter` | `None`  | `No`     |
+| `select`   | List of fields to select from the documents.   | `list[str]`              | `None`  | `No`     |
+| `limit`    | Maximum number of documents to retrieve.       | `int`                    | `None`  | `No`     |
+| `offset`   | Number of documents to skip before retrieving. | `int`                    | `0`     | `No`     |
+| `order`    | List of columns to order the documents by.     | `list[Order]`            | `None`  | `No`     |
+| `include`  | List of related models to eagerly load.        | `list[Model]`            | `None`  | `No`     |
 
-The `find_by_pk()` and `find_one()` methods are employed to locate a single record in the database.
+> The distinction between the `find_all()` and `find_many()` methods lies in the fact that `find_many()` enables you to apply specific filters, whereas `find_all()` retrieves all the documents within the specified model.
+
+##### 3. `find_one()`
+
+Here is an example showing you how you can use `find_by_pk()` locate a single record in the database.
 
 ```py
-user = User(name="Crispen", username="heyy")
-me = sqlite_loom.find_by_pk(User, 1)
-print(me)
-
+user = mysql_loom.find_one(
+    User,
+    filters=[Filter(column="username", value="@miller")],
+    select=["id", "username"],
+)
+print(user) # ? {'id': 1, 'username': '@miller'}
 ```
 
-With the `find_one()` method, you can specify the filters of your query as follows:
+This method take the following as arguments
+
+| Argument      | Description                                                          | Type                             | Default | Required |
+| ------------- | -------------------------------------------------------------------- | -------------------------------- | ------- | -------- |
+| `instance`    | The model class to retrieve instances from.                          | `Model`                          |         | `Yes`    |
+| `filters`     | Filter or list of filters to apply to the query.                     | `Filter \| list[Filter] \| None` | `None`  | `No`     |
+| `select`      | List of fields to select from the instances.                         | `list[str]`                      | `[]`    | `No`     |
+| `include`     | List of related models to eagerly load.                              | `list[Include]`                  | `[]`    | `No`     |
+| `return_dict` | Flag indicating whether to return the result as a dictionary or not. | `bool`                           | `True`  | `No`     |
+| `offset`      | Number of instances to skip before retrieving.                       | `int \| None`                    | `None`  | `No`     |
+
+##### 4. `find_by_pk()`
+
+Here is an example showing how you can use the `find_by_pk()` to locate a single record in the database.
 
 ```py
-him = sqlite_loom.find_one(User, filters={"id": 1})
-print(him)
+user = mysql_loom.find_by_pk(User, pk=userId, select=["id", "username"])
+print(user) # ? {'id': 1, 'username': '@miller'}
 ```
 
-#### 4. Deleting a record
+The method takes the following as arguments:
+
+| Argument      | Description                                                          | Type            | Default | Required |
+| ------------- | -------------------------------------------------------------------- | --------------- | ------- | -------- |
+| `instance`    | The model class to retrieve instances from.                          | `Model`         |         | `Yes`    |
+| `pk`          | The primary key value to use for retrieval.                          | `Any`           |         | `Yes`    |
+| `select`      | List of fields to select from the instances.                         | `list[str]`     | `[]`    | `No`     |
+| `include`     | List of related models to eagerly load.                              | `list[Include]` | `[]`    | `No`     |
+| `return_dict` | Flag indicating whether to return the result as a dictionary or not. | `bool`          | `True`  | `No`     |
+
+#### 3. Deleting a record
+
+To delete a record or records in a database table you make use of the following functions:
+
+1. `delete_by_pk()`
+2. `delete_one()`
+3. `delete_bulk()`
+
+##### 1. `delete_by_pk()`
 
 Using the `delete_by_pk()` method, you can delete a record in a database based on the primary-key value.
 
 ```py
-affected_rows = sqlite_loom.delete_by_pk(User, userId)
+affected_rows = mysql_loom.delete_by_pk(instance=User, pk=1)
 ```
+
+The above take the following as arguments:
+
+| Argument   | Description                                        | Type    | Default | Required |
+| ---------- | -------------------------------------------------- | ------- | ------- | -------- |
+| `instance` | The model class from which to delete the instance. | `Model` |         | `Yes`    |
+| `pk`       | The primary key value of the instance to delete.   | `Any`   |         | `Yes`    |
+
+##### 2. `delete_one()`
 
 You can also use `filters` to delete a record in a database. The `delete_one()` function enables you to delete a single record in a database that matches a filter.
 
 ```py
-affected_rows = sqlite_loom.delete_one(User, {"name": "Crispen"})
+affected_rows = mysql_loom.delete_one(
+    instance=User, filters=[Filter(column="username", value="@miller")]
+)
 ```
+
+The method takes in the following arguments:
+
+| Argument   | Description                                                | Type                             | Default | Required |
+| ---------- | ---------------------------------------------------------- | -------------------------------- | ------- | -------- |
+| `instance` | The model class from which to delete the instance(s).      | `Model`                          |         | `Yes`    |
+| `filters`  | Filter or list of filters to apply to the deletion query.  | `Filter \| list[Filter] \| None` | `None`  | `No`     |
+| `offset`   | Number of instances to skip before deleting.               | `int \| None`                    | `None`  | `No`     |
+| `order`    | List of columns to order the instances by before deletion. | `list[Order] \| None`            | `[]`    | `No`     |
+
+##### 3. `delete_bulk()`
 
 You can also use the `delete_bulk()` method to delete a multitude of records that match a given filter:
 
 ```py
-affected_rows = sqlite_loom.delete_bulk(User, {"name": "Crispen"})
+affected_rows = mysql_loom.delete_bulk(
+    instance=User, filters=[Filter(column="username", value="@miller")]
+)
 ```
 
-#### Warning: Potential Risk with `delete_bulk()`
+The method takes the following as arguments:
+
+| Argument   | Description                                                | Type                             | Default | Required |
+| ---------- | ---------------------------------------------------------- | -------------------------------- | ------- | -------- |
+| `instance` | The model class from which to delete instances.            | `Model`                          |         | `Yes`    |
+| `filters`  | Filter or list of filters to apply to the deletion query.  | `Filter \| list[Filter] \| None` | `None`  | `No`     |
+| `limit`    | Maximum number of instances to delete.                     | `int \| None`                    | `None`  | `No`     |
+| `offset`   | Number of instances to skip before deleting.               | `int \| None`                    | `None`  | `No`     |
+| `order`    | List of columns to order the instances by before deletion. | `list[Order] \| None`            | `[]`    | `No`     |
+
+###### Warning: Potential Risk with `delete_bulk()`
 
 ⚠️ **Warning:** When using the `delete_bulk()` function, exercise caution as it can be aggressive. If the filter is not explicitly provided, there is a risk of mistakenly deleting all records in the table.
 
-##### Guidelines for Safe Usage
+###### Guidelines for Safe Usage
 
 To mitigate the potential risks associated with `delete_bulk()`, follow these guidelines:
 
@@ -626,79 +796,127 @@ To mitigate the potential risks associated with `delete_bulk()`, follow these gu
 
 - When contemplating data deletion, it is advisable to consider more targeted methods before resorting to `delete_bulk()`. Prioritize the use of `delete_one()` or `delete_by_pk()` methods to remove specific records based on your needs. This ensures a more precise and controlled approach to data deletion.
 
-By following these guidelines, you can use the `delete_bulk()` function safely and minimize the risk of unintended data loss. Always exercise caution and adhere to best practices when performing bulk deletion operations.
+3. **Use limit and offsets options**
 
-#### 5. Updating a record
-
-To update a record in a database table, you can utilize the methods `update_by_pk()`, `update_one()`, and `update_bulk()`. The `update_pk()` method can be used as follows:
+- You can consider using the `limit` and offset options during invocation of `delete_bulk`
 
 ```py
-affected_rows = sqlite_loom.update_by_pk(User, 1, {"name": "Gari"})
+affected_rows = mysql_loom.delete_bulk(
+    instance=Post,
+    order=[Order(column="id", order="DESC"), Order(column="createdAt", order="ASC")],
+    filters=[Filter(column="id", operator="gt", value=0)],
+    offset=0,
+    limit=10,
+)
 ```
+
+By following these guidelines, you can use the `delete_bulk()` function safely and minimize the risk of unintended data loss. Always exercise caution and adhere to best practices when performing bulk deletion operations.
+
+#### 4. Updating a record
+
+To update records in your database table you make use of the following functions:
+
+1. `update_by_pk()`
+2. `update_one()`
+3. `update_bulk()`
+
+##### 1. `update_by_pk()`
+
+The `update_pk()` method can be used as follows:
+
+```py
+affected_rows = mysql_loom.update_by_pk(
+    instance=Post,
+    pk=1,
+    values=[
+        ColumnValue(name="title", value="Updated?"),
+    ],
+)
+```
+
+The above method takes in the following as arguments:
+
+| Argument   | Description                                                     | Type                               | Default | Required |
+| ---------- | --------------------------------------------------------------- | ---------------------------------- | ------- | -------- |
+| `instance` | The model class for which to update the instance.               | `Model`                            |         | `Yes`    |
+| `pk`       | The primary key value of the instance to update.                | `Any`                              |         | `Yes`    |
+| `values`   | Single or list of column-value pairs to update in the instance. | `ColumnValue \| list[ColumnValue]` |         | `Yes`    |
+
+##### 2. `update_one()`
 
 Here is an example illustrating how to use the `update_one()` method:
 
 ```py
-affected_rows = sqlite_loom.update_one(User, {"name": "Crispen"}, {"name": "Gari"})
+affected_rows = mysql_loom.update_one(
+    instance=Post,
+    filters=[
+        Filter(column="id", value=8, join_next_filter_with="OR"),
+        Filter(column="userId", value=1, join_next_filter_with="OR"),
+    ],
+    values=[
+        ColumnValue(name="title", value="Updated?"),
+    ],
+)
 ```
+
+The method takes the following as arguments:
+
+| Argument   | Description                                                     | Type                               | Default | Required |
+| ---------- | --------------------------------------------------------------- | ---------------------------------- | ------- | -------- |
+| `instance` | The model class for which to update the instance(s).            | `Model`                            |         | `Yes`    |
+| `filters`  | Filter or list of filters to apply to the update query.         | `Filter \| list[Filter] \| None`   |         | `Yes`    |
+| `values`   | Single or list of column-value pairs to update in the instance. | `ColumnValue \| list[ColumnValue]` |         | `Yes`    |
+
+##### 3. `update_bulk()`
 
 The `update_bulk()` method updates all records that match a filter in a database table.
 
 ```py
-affected_rows = sqlite_loom.update_bulk(User, {"name": "Crispen"}, {"name": "Tinashe Gari"})
+affected_rows = mysql_loom.update_bulk(
+    instance=Post,
+    filters=[
+        Filter(column="id", value=8, join_next_filter_with="OR"),
+        Filter(column="userId", value=1, join_next_filter_with="OR"),
+    ],
+    values=[
+        ColumnValue(name="title", value="Updated?"),
+    ],
+)
 ```
 
-### Associations
+The above method takes in the following as argument:
 
-With `dataloom` you can define models that have relationships. Let's say we have a model called `Post` and every post should belong to a single `User`. Here is how you can define model mappings between a `Post` and a `User` using the `ForeignKeyColumn()`
-
-```py
-
-from dataloom import Column, CreatedAtColumn, UpdatedAtColumn, ForeignKeyColumn
-
-class User(Model):
-    __tablename__ = "users"
-    id = PrimaryKeyColumn(type="bigint", auto_increment=True)
-    username = Column(type="text", nullable=False)
-    name = Column(type="varchar", unique=False, length=255)
-    createAt = CreatedAtColumn()
-    updatedAt = UpdatedAtColumn()
-
-    def __str__(self) -> str:
-        return f"User<{self.id}>"
-
-    def __repr__(self) -> str:
-        return f"User<{self.id}>"
-
-
-class Post(Model):
-    __tablename__ = "posts"
-    id = PrimaryKeyColumn(type="bigint", auto_increment=True)
-    title = Column(type="text", nullable=False, default="Hello there!!")
-    createAt = CreatedAtColumn()
-    updatedAt = UpdatedAtColumn()
-
-    userId = ForeignKeyColumn(User, onDelete="CASCADE", onUpdate="CASCADE")
-
-
-```
-
-So to insert a single post you first need to have a user that will create a post. Here is an example on how it is done:
-
-```py
-user = User(name="Crispen", username="heyy")
-userId = db.create(user)
-
-post = Post(userId=userId, title="What are you thinking")
-db.create(post)
-post = Post(userId=userId, title="What are you thinking")
-db.create(post)
-post = Post(userId=userId, title="What are we?")
-db.create(post)
-```
-
-> We have created `3` posts that belongs to `Crispen`.
-
-### Pagination
+| Argument   | Description                                                     | Type                               | Default | Required |
+| ---------- | --------------------------------------------------------------- | ---------------------------------- | ------- | -------- |
+| `instance` | The model class for which to update instances.                  | `Model`                            |         | `Yes`    |
+| `filters`  | Filter or list of filters to apply to the update query.         | `Filter \| list[Filter] \| None`   |         | `Yes`    |
+| `values`   | Single or list of column-value pairs to update in the instance. | `ColumnValue \| list[ColumnValue]` |         | `Yes`    |
 
 ### Ordering
+
+In dataloom you can order documents in either `DESC` (descending) or `ASC` (ascending) order using the helper class `Order`.
+
+```py
+posts = mysql_loom.find_all(
+    instance=Post,
+    order=[Order(column="id", order="DESC")],
+)
+```
+
+You can apply multiple and these orders will ba applied in sequence of application here is an example:
+
+```py
+posts = mysql_loom.find_all(
+    instance=Post,
+    order=[Order(column="id", order="DESC"), Order(column="createdAt", order="ASC")],
+)
+```
+
+### Filters
+
+There are different find of filters that you can use when filtering documents for mutations and queries.
+
+### What is coming next?
+
+1. Associations
+2. Pagination

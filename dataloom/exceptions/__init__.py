@@ -2,6 +2,10 @@ class PkNotDefinedException(Exception):
     pass
 
 
+class InvalidArgumentsException(Exception):
+    pass
+
+
 class TooManyPkException(Exception):
     pass
 

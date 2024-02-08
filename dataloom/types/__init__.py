@@ -7,6 +7,11 @@ SLQ_OPERAND_LITERAL = Literal["AND", "OR"]
 INCREMENT_DECREMENT_LITERAL = Literal["increment", "decrement"]
 SQL_LOGGER_LITERAL = Literal["console", "file"]
 
+CASCADE_LITERAL = Literal["NO ACTION", "CASCADE", "SET NULL"]
+DIALECT_LITERAL = Literal["postgres", "mysql", "sqlite"]
+RELATIONSHIP_LITERAL = Literal["1-1", "1-N", "N-1", "N-N"]
+
+
 SLQ_OPERATORS = {
     "eq": "=",
     "lt": "<",
@@ -49,7 +54,8 @@ class Include[Model]:
     order: list[Order] = field(repr=False, default_factory=list)
     limit: Optional[int] = field(default=None)
     offset: Optional[int] = field(default=None)
-    select: Optional[list[str]] = field(default_factory=list())
+    select: Optional[list[str]] = field(default_factory=list)
+    maps_to: RELATIONSHIP_LITERAL = field(default="1-N")
 
 
 POSTGRES_SQL_TYPES = {
@@ -196,7 +202,3 @@ SQLITE3_SQL_TYPES_LITERAL = Literal[
     "json",
     "blob",
 ]
-
-
-CASCADE_LITERAL = Literal["NO ACTION", "CASCADE", "SET NULL"]
-DIALECT_LITERAL = Literal["postgres", "mysql", "sqlite"]

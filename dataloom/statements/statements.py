@@ -4,19 +4,32 @@ class MySqlStatements:
     DELETE_ONE_WHERE_COMMAND = """
     DELETE FROM {table_name} WHERE {pk_name} IN (
        SELECT {pk_name} FROM  (
-                SELECT {pk_name} FROM {table_name} WHERE {filters} LIMIT 1
+                SELECT {pk_name} FROM {table_name} WHERE {filters} {orders} LIMIT 1 {offset}
         ) AS subquery
     );
     """
     DELETE_FIRST_COMMAND = """
     DELETE FROM {table_name} WHERE {pk_name} IN (
        SELECT {pk_name} FROM  (
-                SELECT {pk_name} FROM {table_name} LIMIT 1
+                SELECT {pk_name} FROM {table_name} {orders} LIMIT 1 {offset}
         ) AS subquery
     );
     """
-    DELETE_BULK_WHERE_COMMAND = "DELETE FROM {table_name} WHERE {filters};"
-    DELETE_ALL_COMMAND = "DELETE FROM {table_name};"
+    DELETE_BULK_WHERE_COMMAND = """
+         DELETE FROM {table_name} WHERE {pk_name} IN (
+            SELECT {pk_name} FROM (
+                SELECT {pk_name} FROM  {table_name} WHERE {filters} {orders} {limit} {offset}
+            ) AS subquery
+        );
+    """
+
+    DELETE_ALL_COMMAND = """
+        DELETE FROM {table_name} WHERE {pk_name} IN (
+             SELECT {pk_name} FROM (
+                SELECT {pk_name} FROM {table_name} {orders} {limit} {offset}
+            ) AS subquery
+        );
+    """
     # updates
     INCREMENT_DECREMENT_COMMAND = (
         "UPDATE {table_name} SET {placeholder_values} WHERE {placeholder_filters};"
@@ -101,16 +114,24 @@ class Sqlite3Statements:
     DELETE_BY_PK = "DELETE FROM {table_name} WHERE {pk_name} = {pk};"
     DELETE_ONE_WHERE_COMMAND = """
     DELETE FROM {table_name} WHERE {pk_name} = (
-        SELECT {pk_name} FROM  {table_name} WHERE {filters} LIMIT 1
+        SELECT {pk_name} FROM  {table_name} WHERE {filters} {orders} LIMIT 1 {offset}
     );
     """
     DELETE_FIRST_COMMAND = """
     DELETE FROM {table_name} WHERE {pk_name} = (
-        SELECT {pk_name} FROM  {table_name}LIMIT 1
+        SELECT {pk_name} FROM  {table_name} {orders} LIMIT 1 {offset}
     );
     """
-    DELETE_BULK_WHERE_COMMAND = "DELETE FROM {table_name} WHERE {filters};"
-    DELETE_ALL_COMMAND = "DELETE FROM {table_name};"
+    DELETE_BULK_WHERE_COMMAND = """
+         DELETE FROM {table_name} WHERE {pk_name} IN (
+            SELECT {pk_name} FROM {table_name} WHERE {filters} {orders} {limit} {offset}
+        );
+    """
+    DELETE_ALL_COMMAND = """
+        DELETE FROM {table_name} WHERE {pk_name} IN (
+            SELECT {pk_name} FROM {table_name} {orders} {limit} {offset}
+        );
+    """
 
     # updates
     INCREMENT_DECREMENT_COMMAND = (
@@ -209,16 +230,25 @@ class PgStatements:
     DELETE_BY_PK = "DELETE FROM {table_name} WHERE {pk_name} = {pk};"
     DELETE_ONE_WHERE_COMMAND = """
     DELETE FROM {table_name} WHERE {pk_name} = (
-        SELECT {pk_name} FROM  {table_name} WHERE {filters} LIMIT 1
+        SELECT {pk_name} FROM  {table_name} WHERE {filters} {orders} LIMIT 1 {offset}
     );
     """
     DELETE_FIRST_COMMAND = """
     DELETE FROM {table_name} WHERE {pk_name} = (
-        SELECT {pk_name} FROM  {table_name}LIMIT 1
+        SELECT {pk_name} FROM  {table_name} {orders} LIMIT 1 {offset}
     );
     """
-    DELETE_BULK_WHERE_COMMAND = "DELETE FROM {table_name} WHERE {filters};"
-    DELETE_ALL_COMMAND = "DELETE FROM {table_name};"
+    DELETE_BULK_WHERE_COMMAND = """
+         DELETE FROM {table_name} WHERE {pk_name} IN (
+            SELECT {pk_name} FROM {table_name} WHERE {filters} {orders} {limit} {offset}
+        );
+    """
+    DELETE_ALL_COMMAND = """
+        DELETE FROM {table_name} WHERE {pk_name} IN (
+            SELECT {pk_name} FROM {table_name} {orders} {limit} {offset}
+        );
+    """
+
     # select
     SELECT_COMMAND = "SELECT {column_names} FROM {table_name} {options};".strip()
     SELECT_BY_PK = "SELECT {column_names} FROM {table_name} WHERE {pk_name} = {pk};"
