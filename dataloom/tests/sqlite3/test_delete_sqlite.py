@@ -277,3 +277,168 @@ class TestDeletingOnSQLite:
         assert len(rows_2) == 3
         assert len(rows_3) == 2
         conn.close()
+
+    def test_delete_with_limit(self):
+        from dataloom import (
+            Column,
+            PrimaryKeyColumn,
+            Dataloom,
+            TableColumn,
+            Model,
+            CreatedAtColumn,
+            UpdatedAtColumn,
+            ForeignKeyColumn,
+            ColumnValue,
+            Filter,
+            Order,
+        )
+
+        sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
+
+        class User(Model):
+            __tablename__: TableColumn = TableColumn(name="users")
+            id = PrimaryKeyColumn(type="int", auto_increment=True)
+            name = Column(type="text", nullable=False, default="Bob")
+            username = Column(type="varchar", unique=True, length=255)
+
+            # timestamps
+            createdAt = CreatedAtColumn()
+            updatedAt = UpdatedAtColumn()
+
+        class Post(Model):
+            __tablename__: TableColumn = TableColumn(name="posts")
+            id = PrimaryKeyColumn(
+                type="int", auto_increment=True, nullable=False, unique=True
+            )
+            completed = Column(type="boolean", default=False)
+            title = Column(type="varchar", length=255, nullable=False)
+            # timestamps
+            createdAt = CreatedAtColumn()
+            updatedAt = UpdatedAtColumn()
+            # relations
+            userId = ForeignKeyColumn(
+                User, type="int", required=True, onDelete="CASCADE", onUpdate="CASCADE"
+            )
+
+        conn, _ = sqlite_loom.connect_and_sync([Post, User], drop=True, force=True)
+        userId = sqlite_loom.insert_one(
+            instance=User,
+            values=ColumnValue(name="username", value="@miller"),
+        )
+        categories = ["general", "education", "sport", "culture"]
+        for cat in categories:
+            sqlite_loom.insert_one(
+                instance=Post,
+                values=[
+                    ColumnValue(name="title", value=f"What are you doing {cat}?"),
+                    ColumnValue(name="userId", value=userId),
+                ],
+            )
+
+        res1 = sqlite_loom.delete_bulk(
+            instance=Post,
+            offset=3,
+            order=[Order(column="id", order="DESC")],
+            filters=[Filter(column="id", value=1)],
+            limit=1,
+        )
+        res2 = sqlite_loom.delete_bulk(
+            instance=Post,
+            offset=0,
+            order=[Order(column="id", order="DESC")],
+            filters=[Filter(column="id", value=1, operator="gt")],
+            limit=3,
+        )
+        res3 = sqlite_loom.delete_one(
+            instance=Post,
+            offset=0,
+            order=[Order(column="id", order="DESC")],
+            filters=[Filter(column="id", value=1, operator="gt")],
+        )
+        assert res1 == 0
+        assert res2 == 3
+        assert res3 == 0
+
+        conn.close()
+
+    def test_delete_with_filters(self):
+        from dataloom import (
+            Column,
+            PrimaryKeyColumn,
+            Dataloom,
+            TableColumn,
+            Model,
+            CreatedAtColumn,
+            UpdatedAtColumn,
+            ForeignKeyColumn,
+            ColumnValue,
+            Order,
+            Filter,
+        )
+
+        sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
+
+        class User(Model):
+            __tablename__: TableColumn = TableColumn(name="users")
+            id = PrimaryKeyColumn(type="int", auto_increment=True)
+            name = Column(type="text", nullable=False, default="Bob")
+            username = Column(type="varchar", unique=True, length=255)
+
+            # timestamps
+            createdAt = CreatedAtColumn()
+            updatedAt = UpdatedAtColumn()
+
+        class Post(Model):
+            __tablename__: TableColumn = TableColumn(name="posts")
+            id = PrimaryKeyColumn(
+                type="int", auto_increment=True, nullable=False, unique=True
+            )
+            completed = Column(type="boolean", default=False)
+            title = Column(type="varchar", length=255, nullable=False)
+            # timestamps
+            createdAt = CreatedAtColumn()
+            updatedAt = UpdatedAtColumn()
+            # relations
+            userId = ForeignKeyColumn(
+                User, type="int", required=True, onDelete="CASCADE", onUpdate="CASCADE"
+            )
+
+        conn, _ = sqlite_loom.connect_and_sync([Post, User], drop=True, force=True)
+        userId = sqlite_loom.insert_one(
+            instance=User,
+            values=ColumnValue(name="username", value="@miller"),
+        )
+        categories = ["general", "education", "sport", "culture"]
+        for cat in categories:
+            sqlite_loom.insert_one(
+                instance=Post,
+                values=[
+                    ColumnValue(name="title", value=f"What are you doing {cat}?"),
+                    ColumnValue(name="userId", value=userId),
+                ],
+            )
+
+        res1 = sqlite_loom.delete_bulk(
+            instance=Post,
+            offset=3,
+            order=[Order(column="id", order="DESC")],
+            filters=[Filter(column="id", value=1)],
+            limit=1,
+        )
+        res2 = sqlite_loom.delete_bulk(
+            instance=Post,
+            offset=0,
+            order=[Order(column="id", order="DESC")],
+            filters=[Filter(column="id", value=1, operator="gt")],
+            limit=3,
+        )
+        res3 = sqlite_loom.delete_one(
+            instance=Post,
+            offset=0,
+            order=[Order(column="id", order="DESC")],
+            filters=[Filter(column="id", value=1, operator="gt")],
+        )
+        assert res1 == 0
+        assert res2 == 3
+        assert res3 == 0
+        conn.close()

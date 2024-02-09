@@ -517,14 +517,16 @@ class Dataloom:
     def delete_one(
         self,
         instance: Model,
-        filters: Optional[Filter | list[Filter]] = None,
+        filters: Optional[Filter | list[Filter]] = [],
         offset: Optional[int] = None,
         order: Optional[list[Order]] = [],
     ):
         sql, params = instance._get_delete_where_stm(
             dialect=self.dialect, filters=filters, offset=offset, order=order
         )
+
         args = [*params]
+        print(sql, params)
         if offset is not None:
             args.append(offset)
         affected_rows = self._execute_sql(sql, args=args, affected_rows=True)

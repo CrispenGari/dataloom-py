@@ -8,6 +8,7 @@ from dataloom.exceptions import (
     UnknownColumnException,
     UnsupportedDialectException,
     UnsupportedTypeException,
+    InvalidArgumentsException,
 )
 from dataloom.types import Order, Include, Filter, ColumnValue
 from dataloom.model import Model
@@ -27,6 +28,7 @@ __all__ = [
     Include,
     MySQLConfig,
     PgConfig,
+    InvalidArgumentsException,
     InvalidColumnValuesException,
     InvalidFiltersForTableColumnException,
     PkNotDefinedException,

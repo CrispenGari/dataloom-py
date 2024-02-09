@@ -112,16 +112,21 @@ for cat in categories:
 # print(rows)
 
 
-users = pg_loom.update_bulk(
-    instance=User,
-    select=["id", "username"],
-    limit=3,
+# res = mysql_loom.delete_bulk(
+#     instance=User,
+#     offset=3,
+#     order=[Order(column="id", order="DESC")],
+#     filters=[Filter(column="id", value=1)],
+# )
+
+res2 = res3 = mysql_loom.delete_one(
+    instance=Post,
     offset=0,
     order=[Order(column="id", order="DESC")],
-    include=[],
+    filters=[Filter(column="id", value=1, operator="gt")],
 )
-# print("---- user", posts)
 
+print(6, res2)
 
 # post = mysql_loom.find_by_pk(
 #     Post,
