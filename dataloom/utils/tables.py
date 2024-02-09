@@ -40,11 +40,22 @@ def get_table_filters(
                     if len(filters) == idx + 1
                     else f" {filter.join_next_filter_with}"
                 )
-                _key = (
-                    f'"{key}" {op} %s {join}'
-                    if dialect == "postgres"
-                    else f"`{key}` {op} {'%s' if dialect == 'mysql' else '?'} {join}"
-                )
+
+                if op == "IN" or op == "NOT IN":
+                    _list = ", ".join(
+                        ["?" if dialect == "sqlite" else "%s" for i in filter.value]
+                    )
+                    _key = (
+                        f'"{key}" {op} ({_list}) {join}'
+                        if dialect == "postgres"
+                        else f"`{key}` {op} ({_list}) {join}"
+                    )
+                else:
+                    _key = (
+                        f'"{key}" {op} %s {join}'
+                        if dialect == "postgres"
+                        else f"`{key}` {op} {'%s' if dialect == 'mysql' else '?'} {join}"
+                    )
                 placeholder_filter_values.append(filter.value)
                 placeholder_filters.append(_key)
         else:
@@ -55,11 +66,21 @@ def get_table_filters(
                     f"Table {table_name} does not have column '{key}'."
                 )
             op = get_operator(filter.operator)
-            _key = (
-                f'"{key}" {op} %s'
-                if dialect == "postgres"
-                else f"`{key}` {op} {'%s' if dialect == 'mysql' else '?'}"
-            )
+            if op == "IN" or op == "NOT IN":
+                _list = ", ".join(
+                    ["?" if dialect == "sqlite" else "%s" for i in filter.value]
+                )
+                _key = (
+                    f'"{key}" {op} ({_list})'
+                    if dialect == "postgres"
+                    else f"`{key}` {op} ({_list})"
+                )
+            else:
+                _key = (
+                    f'"{key}" {op} %s'
+                    if dialect == "postgres"
+                    else f"`{key}` {op} {'%s' if dialect == 'mysql' else '?'}"
+                )
             placeholder_filter_values.append(filter.value)
             placeholder_filters.append(_key)
     return placeholder_filters, placeholder_filter_values

@@ -119,14 +119,18 @@ for cat in categories:
 #     filters=[Filter(column="id", value=1)],
 # )
 
-res2 = res3 = mysql_loom.delete_one(
+res4 = mysql_loom.update_bulk(
     instance=Post,
-    offset=0,
-    order=[Order(column="id", order="DESC")],
-    filters=[Filter(column="id", value=1, operator="gt")],
+    filters=Filter(
+        column="id",
+        value=3,
+        operator="lt",
+    ),
+    values=[ColumnValue(name="title", value="Bob")],
 )
 
-print(6, res2)
+print(res4)
+
 
 # post = mysql_loom.find_by_pk(
 #     Post,

@@ -18,6 +18,7 @@ from dataloom.utils import (
     console_logger,
     get_child_table_columns,
     get_insert_bulk_attrs,
+    get_args,
 )
 from typing import Optional
 from dataloom.types import (
@@ -349,7 +350,8 @@ class Dataloom:
             include=include,
         )
         data = []
-        rows = self._execute_sql(sql, fetchall=True, args=params)
+        args = get_args(params)
+        rows = self._execute_sql(sql, fetchall=True, args=args)
         for row in rows:
             res = self.__map_relationships(
                 instance=instance,
@@ -462,7 +464,8 @@ class Dataloom:
             offset=offset,
             include=include,
         )
-        row = self._execute_sql(sql, args=params, fetchone=True)
+        args = get_args(params)
+        row = self._execute_sql(sql, args=args, fetchone=True)
         if row is None:
             return None
         return self.__map_relationships(
@@ -490,7 +493,7 @@ class Dataloom:
         sql, new_values, filter_values = instance._get_update_one_stm(
             dialect=self.dialect, filters=filters, values=values
         )
-        args = [*new_values, *filter_values]
+        args = [*new_values, *get_args(filter_values)]
         affected_rows = self._execute_sql(sql, args=args, affected_rows=True)
         return affected_rows
 
@@ -503,7 +506,7 @@ class Dataloom:
         sql, new_values, filter_values = instance._get_update_bulk_where_stm(
             dialect=self.dialect, filters=filters, values=values
         )
-        args = [*new_values, *filter_values]
+        args = [*new_values, *get_args(filter_values)]
         affected_rows = self._execute_sql(sql, args=args, affected_rows=True)
         return affected_rows
 
@@ -525,8 +528,8 @@ class Dataloom:
             dialect=self.dialect, filters=filters, offset=offset, order=order
         )
 
-        args = [*params]
-        print(sql, params)
+        args = [*get_args(params)]
+
         if offset is not None:
             args.append(offset)
         affected_rows = self._execute_sql(sql, args=args, affected_rows=True)
@@ -551,7 +554,7 @@ class Dataloom:
             limit=limit,
             order=order,
         )
-        args = [*params]
+        args = [*get_args(params)]
 
         if limit is not None:
             args.append(limit)
@@ -580,7 +583,7 @@ class Dataloom:
             raise InvalidColumnValuesException(
                 "The increment operation only works with integer and float values."
             )
-        args = [*column_values, *filter_values]
+        args = [*column_values, *get_args(filter_values)]
         affected_rows = self._execute_sql(sql, args=args, affected_rows=True)
         return affected_rows
 
@@ -601,7 +604,7 @@ class Dataloom:
             raise InvalidColumnValuesException(
                 "The decrement operation only works with integer and float values."
             )
-        args = [*column_values, *filter_values]
+        args = [*column_values, *get_args(filter_values)]
         affected_rows = self._execute_sql(sql, args=args, affected_rows=True)
         return affected_rows
 

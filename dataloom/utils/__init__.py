@@ -13,6 +13,7 @@ from dataloom.utils.tables import (
     get_relationships,
     get_column_values,
 )
+from dataloom.utils.loom import get_args
 
 
 def get_formatted_query(
@@ -154,4 +155,5 @@ __all__ = [
     console_logger,
     file_logger,
     get_create_table_params,
+    get_args,
 ]

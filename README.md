@@ -431,7 +431,7 @@ So from the above example we are applying filters while updating a `Post` here a
 |-------------------------|------------------------------------------------------------|-------------------------------------------|------------------------|
 | `column` | The name of the column to apply the filter on | `String` | - |
 | `value` | The value to filter against | `Any` | - |
-| `operator` | The comparison operator to use for the filter | `'eq'`, `'lt'`, `'gt'`, `'leq'`, `'geq'`, `'in'`, `'notIn'`, `'like'` | `'eq'` |
+| `operator` | The comparison operator to use for the filter | `'eq'`, `'neq'`. `'lt'`, `'gt'`, `'leq'`, `'geq'`, `'in'`, `'notIn'`, `'like'` | `'eq'` |
 | `join_next_filter_with` | The logical operator to join this filter with the next one | `'AND'`, `'OR'` | `'AND'` |
 
 > 👉 : **Note:** You can apply either a list of filters or a single filter when filtering records.
@@ -914,7 +914,203 @@ posts = mysql_loom.find_all(
 
 ### Filters
 
-There are different find of filters that you can use when filtering documents for mutations and queries.
+There are different find of filters that you can use when filtering documents for mutations and queries. Filters are very important to use when updating and deleting documents as they give you control on which documents should be updated or deleted. When doing a mutation you can use a single or multiple filters. Bellow is an example that shows you how you can use a single filter in deleting a single record that has an `id` greater than `1` from the database.
+
+```py
+res2 = mysql_loom.delete_one(
+    instance=Post,
+    offset=0,
+    order=[Order(column="id", order="DESC")],
+    filters=Filter(column="id", value=1, operator="gt"),
+)
+```
+
+Or you can use it as follows:
+
+```py
+res2 = mysql_loom.delete_one(
+    instance=Post,
+    offset=0,
+    order=[Order(column="id", order="DESC")],
+    filters=[Filter(column="id", value=1, operator="gt")],
+)
+```
+
+As you have noticed, you can join your filters together and they will be applied sequentially using the [`join_next_filter_with`](#filter-class) which can be either `OR` or `AND` te default value is `AND`. Here is an of filter usage in sequential.
+
+```py
+res2 = mysql_loom.delete_one(
+    instance=Post,
+    offset=0,
+    order=[Order(column="id", order="DESC")],
+    filters=[
+        Filter(column="id", value=1, operator="gt"),
+        Filter(column="userId", value=1, operator="eq", join_next_filter_with="OR"),
+        Filter(
+            column="title",
+            value='"What are you doing general?"',
+            operator="=",
+            join_next_filter_with="AND",
+        ),
+    ],
+)
+```
+
+You can use the `operator` to match the values. Here is the table of description for these filters.
+
+| Operator  | Explanation                                                                                                  | Expect                |
+| --------- | ------------------------------------------------------------------------------------------------------------ | --------------------- |
+| `'eq'`    | Indicates equality. It checks if the value is equal to the specified criteria.                               | Value == Criteria     |
+| `'lt'`    | Denotes less than. It checks if the value is less than the specified criteria.                               | Value < Criteria      |
+| `'gt'`    | Denotes greater than. It checks if the value is greater than the specified criteria.                         | Value > Criteria      |
+| `'leq'`   | Denotes less than or equal to. It checks if the value is less than or equal to the specified criteria.       | Value <= Criteria     |
+| `'geq'`   | Denotes greater than or equal to. It checks if the value is greater than or equal to the specified criteria. | Value >= Criteria     |
+| `'in'`    | Checks if the value is included in a specified list of values.                                               | Value in List         |
+| `'notIn'` | Checks if the value is not included in a specified list of values.                                           | Value not in List     |
+| `'like'`  | Performs a pattern matching operation. It checks if the value is similar to a specified pattern.             | Value matches Pattern |
+| `'neq'`   | Indicates non-equality. It checks if the value is not equal to the specified criteria.                       | Value != Criteria     |
+
+Let's talk about these filters in detail of code by example. Let's say you want to update a `Post` where the `id` matches `1` you can do it as follows:
+
+```py
+res2 = mysql_loom.update_one(
+    instance=Post,
+    filters=Filter(
+        column="id",
+        value=1,
+        operator="eq",
+    ),
+    values=[ColumnValue(name="title", value="Bob")],
+)
+```
+
+What if you want to update a post where `id` is not equal to `1` you can do it as follows
+
+```py
+res2 = mysql_loom.update_bulk(
+    instance=Post,
+    filters=Filter(
+        column="id",
+        value=1,
+        operator="neq",
+    ),
+    values=[ColumnValue(name="title", value="Bob")],
+)
+```
+
+What if i want to update the records that have an `id` less than `3`?
+
+```py
+res2 = mysql_loom.update_bulk(
+    instance=Post,
+    filters=Filter(
+        column="id",
+        value=3,
+        operator="lt",
+    ),
+    values=[ColumnValue(name="title", value="Bob")],
+)
+```
+
+What if i want to update the records that have an `id` less than or equal `3`?
+
+```py
+res2 = mysql_loom.update_bulk(
+    instance=Post,
+    filters=Filter(
+        column="id",
+        value=1,
+        operator="neq",
+    ),
+    values=[ColumnValue(name="title", value="Bob")],
+)
+```
+
+What if i want to update the records that have an `id` greater than `3`?
+
+```py
+res = mysql_loom.update_bulk(
+    instance=Post,
+    filters=Filter(
+        column="id",
+        value=3,
+        operator="gt",
+    ),
+    values=[ColumnValue(name="title", value="Bob")],
+)
+```
+
+What if i want to update the records that have an `id` greater or equal to `3`?
+
+```py
+res = mysql_loom.update_bulk(
+    instance=Post,
+    filters=Filter(
+        column="id",
+        value=3,
+        operator="geq",
+    ),
+    values=[ColumnValue(name="title", value="Bob")],
+)
+```
+
+You can use the `in` to update or query records that matches values in a specified `list` of values or `tuple`. Here is an example showing you how you can update records that does matches `id` in `[1, 2]`.
+
+```py
+res = mysql_loom.update_bulk(
+    instance=Post,
+    filters=Filter(
+        column="id",
+        value=[1, 2],
+        operator="in",
+    ),
+    values=[ColumnValue(name="title", value="Bob")],
+)
+```
+
+You can use the `notIn` to update or query records that does not matches values in a specified `list` of values or `tuple`. Here is an example showing you how you can update records that does not matches `id` in `[1, 2]`.
+
+```py
+
+res = mysql_loom.update_bulk(
+    instance=Post,
+    filters=Filter(
+        column="id",
+        value=[1, 2],
+        operator="notIn",
+    ),
+    values=[ColumnValue(name="title", value="Bob")],
+)
+```
+
+You can use the `like` operator to match some patens in your query filters. Let's say we want to match a post that has the title ends with `general` we can use the `like` operator as follows
+
+```py
+general = mysql_loom.find_one(
+    instance=Post,
+    filters=Filter(
+        column="title",
+        value="% general?",
+        operator="like",
+    ),
+    select=["id", "title"],
+)
+
+print(general) # ?  {'id': 1, 'title': 'What are you doing general?'}
+```
+
+The following table show you some expression that you can use with this `like` operator.
+
+| Value          | Description                                                                                                              |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `%pattern`     | Finds values that end with the specified pattern.                                                                        |
+| `pattern%`     | Finds values that start with the specified pattern.                                                                      |
+| `%pattern%`    | Finds values that contain the specified pattern anywhere within the string.                                              |
+| `_pattern`     | Finds values that have any single character followed by the specified pattern.                                           |
+| `pattern_`     | Finds values that have the specified pattern followed by any single character.                                           |
+| `[charlist]%`  | Finds values that start with any character in the specified character list.                                              |
+| `[!charlist]%` | Finds values that start with any character not in the specified character list.                                          |
+| `_pattern_`    | Finds values that have any single character followed by the specified pattern and then followed by any single character. |
 
 ### What is coming next?
 
