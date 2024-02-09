@@ -66,6 +66,8 @@
     - [3. `update_bulk()`](#3-update_bulk)
 - [Ordering](#ordering)
 - [Filters](#filters)
+- [Utilities](#utilities)
+  - [`inspect`](#inspect)
 - [What is coming next?](#what-is-coming-next)
 
 ### Key Features:
@@ -777,7 +779,7 @@ The method takes the following as arguments:
 
 ###### Warning: Potential Risk with `delete_bulk()`
 
-⚠️ **Warning:** When using the `delete_bulk()` function, exercise caution as it can be aggressive. If the filter is not explicitly provided, there is a risk of mistakenly deleting all records in the table.
+> ⚠️ **Warning:** When using the `delete_bulk()` function, exercise caution as it can be aggressive. If the filter is not explicitly provided, there is a risk of mistakenly deleting all records in the table.
 
 ###### Guidelines for Safe Usage
 
@@ -1112,7 +1114,48 @@ The following table show you some expression that you can use with this `like` o
 | `[!charlist]%` | Finds values that start with any character not in the specified character list.                                          |
 | `_pattern_`    | Finds values that have any single character followed by the specified pattern and then followed by any single character. |
 
+### Utilities
+
+Dataloom comes up with some utility functions that works on an instance of a model. This is very useful when debuging your tables to see how do they look like. These function include:
+
+1. `inspect()`
+
+#### `inspect`
+
+This function takes in a model as argument and inspect the model fields or columns. The following examples show how we can use this handy function in inspecting table names.
+
+```py
+table = mysql_loom.inspect(instance=User, fields=["name", "type"], print_table=False)
+print(table)
+```
+
+The above snippet returns a list of dictionaries containing the column name and the arguments that were passed.
+
+```shell
+[{'id': {'type': 'int'}}, {'name': {'type': 'varchar'}}, {'tokenVersion': {'type': 'int'}}, {'username': {'type': 'varchar'}}]
+```
+
+You can print table format these fields with their types as follows
+
+```py
+mysql_loom.inspect(instance=User)
+```
+
+Output:
+
+```shell
++--------------+---------+----------+---------+
+| name         | type    | nullable | default |
++--------------+---------+----------+---------+
+| id           | int     | NO       | None    |
+| name         | varchar | NO       | Bob     |
+| tokenVersion | int     | YES      | 0       |
+| username     | varchar | YES      | None    |
++--------------+---------+----------+---------+
+```
+
+The `inspect` function take the following arguments.
+
 ### What is coming next?
 
 1. Associations
-2. Pagination

@@ -108,28 +108,10 @@ for cat in categories:
 #         [ColumnValue(name="type", value=cat), ColumnValue(name="postId", value=pId)]
 #     )
 
-# rows = sqlite_loom.insert_bulk(Category, values=cats)
-# print(rows)
 
+table = mysql_loom.inspect(instance=User)
 
-# res = mysql_loom.delete_bulk(
-#     instance=User,
-#     offset=3,
-#     order=[Order(column="id", order="DESC")],
-#     filters=[Filter(column="id", value=1)],
-# )
-
-res4 = mysql_loom.update_bulk(
-    instance=Post,
-    filters=Filter(
-        column="id",
-        value=3,
-        operator="lt",
-    ),
-    values=[ColumnValue(name="title", value="Bob")],
-)
-
-print(res4)
+print(table)
 
 
 # post = mysql_loom.find_by_pk(

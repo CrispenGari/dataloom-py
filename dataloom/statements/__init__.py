@@ -35,6 +35,34 @@ class GetStatement[T]:
         self.table_name = table_name
         self.ignore_exists = ignore_exists
 
+    def _get_describe_command(
+        self,
+        fields: list[str] = [],
+    ):
+        if self.dialect == "postgres":
+            sql = PgStatements.DESCRIBE_TABLE_COMMAND.format(
+                table_name="%s",
+                fields=", ".join([f'"{f}"' for f in fields]),
+                db_name="%s",
+                table_schema="%s",
+            )
+        elif self.dialect == "mysql":
+            sql = MySqlStatements.DESCRIBE_TABLE_COMMAND.format(
+                table_name="%s",
+                fields=", ".join([f"`{f}`" for f in fields]),
+                db_name="%s",
+            )
+
+        elif self.dialect == "sqlite":
+            sql = Sqlite3Statements.DESCRIBE_TABLE_COMMAND.format(
+                table_name=self.table_name
+            )
+        else:
+            raise UnsupportedDialectException(
+                "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
+            )
+        return sql
+
     def _get_insert_one_command(
         self, pk_name: str, placeholders: list[str], fields: list[str]
     ) -> tuple[Optional[str], list]:

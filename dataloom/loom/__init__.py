@@ -8,6 +8,7 @@ from dataloom.exceptions import (
     UnsupportedDialectException,
     InvalidColumnValuesException,
     InvalidArgumentsException,
+    UnknownColumnException,
 )
 
 from dataloom.model import Model
@@ -19,6 +20,7 @@ from dataloom.utils import (
     get_child_table_columns,
     get_insert_bulk_attrs,
     get_args,
+    print_pretty_table,
 )
 from typing import Optional
 from dataloom.types import (
@@ -81,7 +83,7 @@ class Dataloom:
 
     def _execute_sql(
         self,
-        sql,
+        sql: str,
         args=None,
         fetchone=False,
         fetchmany=False,
@@ -95,14 +97,16 @@ class Dataloom:
         if self.sql_logger is not None:
             if self.sql_logger == "console":
                 index = console_logger(
-                    index=self.logger_index, sql_statement=sql, dialect=self.dialect
+                    index=self.logger_index,
+                    sql_statement=sql.strip(),
+                    dialect=self.dialect,
                 )
                 self.logger_index = index + 1
             else:
                 file_logger(
                     dialect=self.dialect,
                     file_name=self.logs_filename,
-                    sql_statement=sql,
+                    sql_statement=sql.strip(),
                 )
         if self.dialect == "postgres":
             with self.conn.cursor() as cursor:
@@ -608,5 +612,60 @@ class Dataloom:
         affected_rows = self._execute_sql(sql, args=args, affected_rows=True)
         return affected_rows
 
-    def inspect(self):
-        pass
+    def inspect(
+        self,
+        instance: Model,
+        fields: list[str] = ["name", "type", "nullable", "default"],
+        print_table: bool = True,
+    ):
+        # The column name should be first and required.
+        allowed = {
+            "name": "column_name",
+            "type": "data_type",
+            "nullable": "is_nullable",
+            "default": "column_default",
+        }
+        modified_fields = ["column_name"]
+        for field in fields:
+            if field not in allowed.keys():
+                raise UnknownColumnException(
+                    f"You can not select '{field}' when inspecting table '{instance._get_table_name()}' allowed fields are ({', '.join(allowed.keys())})."
+                )
+            else:
+                cl_name = allowed.get(field)
+                if cl_name not in modified_fields:
+                    modified_fields.append(cl_name)
+
+        sql = instance._get_describe_stm(dialect=self.dialect, fields=modified_fields)
+        args = None
+        if self.dialect == "mysql":
+            args = (self.database, instance._get_table_name())
+        elif self.dialect == "postgres":
+            args = ("public", instance._get_table_name())
+        elif self.dialect == "sqlite":
+            args = ()
+
+        rows = self._execute_sql(sql, args=args, fetchall=True)
+
+        if print_table:
+            headers = ["name"]
+            for header in fields:
+                if header not in headers:
+                    headers.append(header)
+            if self.dialect == "sqlite":
+                _rows = [row[1 : 1 + len(headers)] for row in rows]
+                print_pretty_table(headers, _rows)
+            else:
+                print_pretty_table(headers, rows)
+            return None
+        description = []
+        for row in rows:
+            if self.dialect == "sqlite":
+                column_name = row[1]
+                val = dict(zip(fields[1:], row[2:]))
+            else:
+                val = dict(zip(fields[1:], row[1:]))
+                column_name = row[0]
+            obj = {column_name: val}
+            description.append(obj)
+        return description

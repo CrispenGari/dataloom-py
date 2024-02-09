@@ -524,3 +524,16 @@ class Model:
                 "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
             )
         return sql, column_values, filter_values
+
+    @classmethod
+    def _get_describe_stm(cls, dialect: DIALECT_LITERAL, fields: list[str] = []):
+        if dialect == "postgres" or "mysql" or "sqlite":
+            sql = GetStatement(
+                dialect=dialect, model=cls, table_name=cls._get_table_name()
+            )._get_describe_command(fields=fields)
+
+        else:
+            raise UnsupportedDialectException(
+                "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
+            )
+        return sql

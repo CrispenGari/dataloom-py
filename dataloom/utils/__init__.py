@@ -14,6 +14,7 @@ from dataloom.utils.tables import (
     get_column_values,
 )
 from dataloom.utils.loom import get_args
+from dataloom.utils.table import print_pretty_table
 
 
 def get_formatted_query(
@@ -156,4 +157,5 @@ __all__ = [
     file_logger,
     get_create_table_params,
     get_args,
+    print_pretty_table,
 ]

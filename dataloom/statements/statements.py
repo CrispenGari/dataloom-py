@@ -1,4 +1,13 @@
 class MySqlStatements:
+    # describing tables
+
+    DESCRIBE_TABLE_COMMAND = """
+        SELECT {fields}
+        FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE table_schema = {db_name} 
+        AND table_name = {table_name};
+    """
+
     # delete
     DELETE_BY_PK = "DELETE FROM {table_name} WHERE {pk_name} = {pk};"
     DELETE_ONE_WHERE_COMMAND = """
@@ -110,6 +119,9 @@ class MySqlStatements:
 
 
 class Sqlite3Statements:
+    # describing table
+
+    DESCRIBE_TABLE_COMMAND = """PRAGMA table_info({table_name});"""
     # delete
     DELETE_BY_PK = "DELETE FROM {table_name} WHERE {pk_name} = {pk};"
     DELETE_ONE_WHERE_COMMAND = """
@@ -211,6 +223,13 @@ class Sqlite3Statements:
 
 
 class PgStatements:
+    # describing table
+    DESCRIBE_TABLE_COMMAND = """
+    SELECT {fields}
+        FROM information_schema.columns
+        WHERE table_schema = {table_schema}
+        AND table_name = {table_name};
+    """
     # updates
     INCREMENT_DECREMENT_COMMAND = (
         "UPDATE {table_name} SET {placeholder_values} WHERE {placeholder_filters};"
