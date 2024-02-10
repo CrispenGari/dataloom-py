@@ -8,10 +8,10 @@ class TestInspectTableOnMysql:
             Model,
             CreatedAtColumn,
             UpdatedAtColumn,
-            UnknownColumnException,
         )
         from dataloom.keys import MySQLConfig
         import pytest
+        from dataloom.exceptions import UnknownColumnException
 
         mysql_loom = Dataloom(
             dialect="mysql",

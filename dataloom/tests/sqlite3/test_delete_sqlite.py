@@ -64,11 +64,10 @@ class TestDeletingOnSQLite:
             CreatedAtColumn,
             UpdatedAtColumn,
             ForeignKeyColumn,
-            UnknownColumnException,
             Filter,
             ColumnValue,
         )
-
+        from dataloom.exceptions import UnknownColumnException
         from typing import Optional
 
         sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
@@ -167,12 +166,12 @@ class TestDeletingOnSQLite:
             CreatedAtColumn,
             UpdatedAtColumn,
             ForeignKeyColumn,
-            UnknownColumnException,
             Filter,
             ColumnValue,
         )
 
         from typing import Optional
+        from dataloom.exceptions import UnknownColumnException
 
         sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
 

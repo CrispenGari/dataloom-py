@@ -9,11 +9,11 @@ class TestQueryingSQLite:
             UpdatedAtColumn,
             TableColumn,
             ForeignKeyColumn,
-            UnknownColumnException,
             ColumnValue,
         )
         import pytest
         from typing import Optional
+        from dataloom.exceptions import UnknownColumnException
 
         sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
 
@@ -74,10 +74,10 @@ class TestQueryingSQLite:
             UpdatedAtColumn,
             TableColumn,
             ForeignKeyColumn,
-            UnknownColumnException,
             ColumnValue,
         )
         from typing import Optional
+        from dataloom.exceptions import UnknownColumnException
         import pytest
 
         sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
@@ -145,12 +145,12 @@ class TestQueryingSQLite:
             UpdatedAtColumn,
             TableColumn,
             ForeignKeyColumn,
-            UnknownColumnException,
             Filter,
             ColumnValue,
         )
         from typing import Optional
         import pytest
+        from dataloom.exceptions import UnknownColumnException
 
         sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
 
@@ -244,11 +244,11 @@ class TestQueryingSQLite:
             UpdatedAtColumn,
             TableColumn,
             ForeignKeyColumn,
-            UnknownColumnException,
             Filter,
             ColumnValue,
         )
         from typing import Optional
+        from dataloom.exceptions import UnknownColumnException
         import pytest
 
         sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")

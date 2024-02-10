@@ -181,8 +181,8 @@ class TestInsertingOnPG:
             TableColumn,
             ForeignKeyColumn,
             ColumnValue,
-            InvalidColumnValuesException,
         )
+        from dataloom.exceptions import InvalidColumnValuesException
         from dataloom.keys import PgConfig
         import pytest
 

@@ -3,7 +3,8 @@ import pytest
 
 class TestConnectionSQLite:
     def test_connect_with_wrong_dialect(self):
-        from dataloom import Dataloom, UnsupportedDialectException
+        from dataloom import Dataloom
+        from dataloom.exceptions import UnsupportedDialectException
 
         with pytest.raises(UnsupportedDialectException) as exc_info:
             sqlite_loom = Dataloom(dialect="hay", database="hi.db")

@@ -85,12 +85,12 @@ class TestUpdateOnMySQL:
             Model,
             PrimaryKeyColumn,
             TableColumn,
-            UnknownColumnException,
             UpdatedAtColumn,
             Filter,
             ColumnValue,
         )
         from dataloom.keys import MySQLConfig
+        from dataloom.exceptions import UnknownColumnException
 
         mysql_loom = Dataloom(
             dialect="mysql",
@@ -177,12 +177,12 @@ class TestUpdateOnMySQL:
             Model,
             PrimaryKeyColumn,
             TableColumn,
-            UnknownColumnException,
             UpdatedAtColumn,
             Filter,
             ColumnValue,
         )
         from dataloom.keys import MySQLConfig
+        from dataloom.exceptions import UnknownColumnException
 
         mysql_loom = Dataloom(
             dialect="mysql",

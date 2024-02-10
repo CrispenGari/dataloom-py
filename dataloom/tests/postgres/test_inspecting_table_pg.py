@@ -8,9 +8,9 @@ class TestInspectTableOnPG:
             Model,
             CreatedAtColumn,
             UpdatedAtColumn,
-            UnknownColumnException,
         )
         from dataloom.keys import PgConfig
+        from dataloom.exceptions import UnknownColumnException
         import pytest
 
         pg_loom = Dataloom(

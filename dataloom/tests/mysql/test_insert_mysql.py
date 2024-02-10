@@ -185,10 +185,10 @@ class TestInsertingOnMySQL:
             TableColumn,
             ForeignKeyColumn,
             ColumnValue,
-            InvalidColumnValuesException,
         )
         from dataloom.keys import MySQLConfig
         import pytest
+        from dataloom.exceptions import InvalidColumnValuesException
 
         mysql_loom = Dataloom(
             dialect="mysql",

@@ -59,6 +59,7 @@ class TestDeletingOnMysql:
 
     def test_delete_one_fn(self):
         import pytest
+        from dataloom.exceptions import UnknownColumnException
         from dataloom import (
             Column,
             PrimaryKeyColumn,
@@ -68,7 +69,6 @@ class TestDeletingOnMysql:
             CreatedAtColumn,
             UpdatedAtColumn,
             ForeignKeyColumn,
-            UnknownColumnException,
             Filter,
             ColumnValue,
         )
@@ -166,6 +166,7 @@ class TestDeletingOnMysql:
 
     def test_delete_bulk_fn(self):
         import pytest
+        from dataloom.exceptions import UnknownColumnException
         from dataloom import (
             Column,
             PrimaryKeyColumn,
@@ -175,7 +176,6 @@ class TestDeletingOnMysql:
             CreatedAtColumn,
             UpdatedAtColumn,
             ForeignKeyColumn,
-            UnknownColumnException,
             Filter,
             ColumnValue,
         )
@@ -301,12 +301,12 @@ class TestDeletingOnMysql:
             UpdatedAtColumn,
             ForeignKeyColumn,
             ColumnValue,
-            InvalidArgumentsException,
             Filter,
             Order,
         )
         from dataloom.keys import MySQLConfig
         import pytest
+        from dataloom.exceptions import InvalidArgumentsException
 
         mysql_loom = Dataloom(
             dialect="mysql",

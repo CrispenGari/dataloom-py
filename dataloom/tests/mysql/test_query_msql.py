@@ -9,10 +9,10 @@ class TestQueryingMySQL:
             UpdatedAtColumn,
             TableColumn,
             ForeignKeyColumn,
-            UnknownColumnException,
             ColumnValue,
         )
         import pytest
+        from dataloom.exceptions import UnknownColumnException
         from dataloom.keys import MySQLConfig
         from typing import Optional
 
@@ -81,12 +81,12 @@ class TestQueryingMySQL:
             UpdatedAtColumn,
             TableColumn,
             ForeignKeyColumn,
-            UnknownColumnException,
             ColumnValue,
         )
         from dataloom.keys import MySQLConfig
         from typing import Optional
         import pytest
+        from dataloom.exceptions import UnknownColumnException
 
         mysql_loom = Dataloom(
             dialect="mysql",
@@ -158,13 +158,13 @@ class TestQueryingMySQL:
             UpdatedAtColumn,
             TableColumn,
             ForeignKeyColumn,
-            UnknownColumnException,
             Filter,
             ColumnValue,
         )
         from dataloom.keys import MySQLConfig
         from typing import Optional
         import pytest
+        from dataloom.exceptions import UnknownColumnException
 
         mysql_loom = Dataloom(
             dialect="mysql",
@@ -263,13 +263,13 @@ class TestQueryingMySQL:
             UpdatedAtColumn,
             TableColumn,
             ForeignKeyColumn,
-            UnknownColumnException,
             Filter,
             ColumnValue,
         )
         from dataloom.keys import MySQLConfig
         from typing import Optional
         import pytest
+        from dataloom.exceptions import UnknownColumnException
 
         mysql_loom = Dataloom(
             dialect="mysql",

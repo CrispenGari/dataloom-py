@@ -59,7 +59,8 @@ class TestConnectionPG:
         )
 
     def test_connect_with_wrong_dialect(self):
-        from dataloom import Dataloom, UnsupportedDialectException
+        from dataloom import Dataloom
+        from dataloom.exceptions import UnsupportedDialectException
         from dataloom.keys import PgConfig
 
         with pytest.raises(UnsupportedDialectException) as exc_info:

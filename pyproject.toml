@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dataloom"
+version = "1.0.0"
+authors = [
+    {name = "Crispen Gari", email = "crispengari@gmail.com"},
+]
+description = "dataloom stands as a bespoke Object-Relational Mapping (ORM) solution meticulously crafted to empower Python developers in efficiently managing diverse databases. Unlike conventional ORMs, Dataloom has been built from the ground up, providing native support for SQLite3, PostgreSQL, and MySQL. Navigate effortlessly between database engines while enjoying a tailored and performant ORM experience."
+readme = "README.md"
+license = {file = "LICENSE"}
+requires-python = ">=3.12"
+dependencies  =[
+    "mysql-connector-python==8.3.0",
+    "psycopg2==2.9.9",
+    "typing_extensions==4.9.0"
+]
+keywords = ["ORM", "database", "data management", "SQLAlchemy" ]
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: Unix",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: Unix",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: Microsoft :: Windows",
+    'Natural Language :: English'
+]
+
+
+[project.urls]
+homepage = "https://github.com/CrispenGari/dataloom"
+repository = "https://github.com/CrispenGari/dataloom"
+documentation = "https://github.com/CrispenGari/dataloom/blob/main/README.md"
+changelog = "https://github.com/CrispenGari/dataloom/blob/main/CHANGELOG.md"
+issues = "https://github.com/CrispenGari/dataloom/issues"
+
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["dataloom"]
+exclude = ["dataloom.tests*", 'images', 'tests*', 'dataloom/tests', "tests", 'playground.py', "todo.txt" , '*.sql', 'dataloom/keys.py']  
+namespaces = false
+

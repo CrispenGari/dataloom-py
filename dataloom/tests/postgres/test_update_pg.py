@@ -84,11 +84,11 @@ class TestUpdateOnPG:
             Model,
             PrimaryKeyColumn,
             TableColumn,
-            UnknownColumnException,
             UpdatedAtColumn,
             Filter,
             ColumnValue,
         )
+        from dataloom.exceptions import UnknownColumnException
         from dataloom.keys import PgConfig
 
         pg_loom = Dataloom(
@@ -176,11 +176,11 @@ class TestUpdateOnPG:
             Model,
             PrimaryKeyColumn,
             TableColumn,
-            UnknownColumnException,
             UpdatedAtColumn,
             Filter,
             ColumnValue,
         )
+        from dataloom.exceptions import UnknownColumnException
         from dataloom.keys import PgConfig
 
         pg_loom = Dataloom(

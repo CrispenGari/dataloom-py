@@ -9,10 +9,10 @@ class TestQueryingPG:
             UpdatedAtColumn,
             TableColumn,
             ForeignKeyColumn,
-            UnknownColumnException,
             ColumnValue,
         )
         import pytest
+        from dataloom.exceptions import UnknownColumnException
         from dataloom.keys import PgConfig
         from typing import Optional
 
@@ -78,12 +78,12 @@ class TestQueryingPG:
             UpdatedAtColumn,
             TableColumn,
             ForeignKeyColumn,
-            UnknownColumnException,
             ColumnValue,
         )
         from dataloom.keys import PgConfig
         from typing import Optional
         import pytest
+        from dataloom.exceptions import UnknownColumnException
 
         pg_loom = Dataloom(
             dialect="postgres",
@@ -153,13 +153,13 @@ class TestQueryingPG:
             UpdatedAtColumn,
             TableColumn,
             ForeignKeyColumn,
-            UnknownColumnException,
             Filter,
             ColumnValue,
         )
         from dataloom.keys import PgConfig
         from typing import Optional
         import pytest
+        from dataloom.exceptions import UnknownColumnException
 
         pg_loom = Dataloom(
             dialect="postgres",
@@ -256,13 +256,13 @@ class TestQueryingPG:
             UpdatedAtColumn,
             TableColumn,
             ForeignKeyColumn,
-            UnknownColumnException,
             Filter,
             ColumnValue,
         )
         from dataloom.keys import PgConfig
         from typing import Optional
         import pytest
+        from dataloom.exceptions import UnknownColumnException
 
         pg_loom = Dataloom(
             dialect="postgres",

@@ -57,8 +57,9 @@ class TestConnectionMySQL:
         assert exc_info.value.errno == 1045
 
     def test_connect_with_wrong_dialect(self):
-        from dataloom import Dataloom, UnsupportedDialectException
+        from dataloom import Dataloom
         from dataloom.keys import MySQLConfig
+        from dataloom.exceptions import UnsupportedDialectException
 
         with pytest.raises(UnsupportedDialectException) as exc_info:
             mysql_loom = Dataloom(

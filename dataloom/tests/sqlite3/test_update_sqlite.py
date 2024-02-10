@@ -79,11 +79,11 @@ class TestUpdateOnSQLite:
             Model,
             PrimaryKeyColumn,
             TableColumn,
-            UnknownColumnException,
             UpdatedAtColumn,
             Filter,
             ColumnValue,
         )
+        from dataloom.exceptions import UnknownColumnException
 
         sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
 
@@ -165,11 +165,11 @@ class TestUpdateOnSQLite:
             Model,
             PrimaryKeyColumn,
             TableColumn,
-            UnknownColumnException,
             UpdatedAtColumn,
             Filter,
             ColumnValue,
         )
+        from dataloom.exceptions import UnknownColumnException
 
         sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
 

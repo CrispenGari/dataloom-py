@@ -8,9 +8,9 @@ class TestInspectTableOnSqlite:
             Model,
             CreatedAtColumn,
             UpdatedAtColumn,
-            UnknownColumnException,
         )
         import pytest
+        from dataloom.exceptions import UnknownColumnException
 
         sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
 

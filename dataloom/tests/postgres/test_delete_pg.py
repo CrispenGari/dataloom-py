@@ -58,6 +58,7 @@ class TestDeletingOnPG:
 
     def test_delete_one_fn(self):
         import pytest
+        from dataloom.exceptions import UnknownColumnException
         from dataloom import (
             Column,
             PrimaryKeyColumn,
@@ -67,7 +68,6 @@ class TestDeletingOnPG:
             CreatedAtColumn,
             UpdatedAtColumn,
             ForeignKeyColumn,
-            UnknownColumnException,
             Filter,
             ColumnValue,
         )
@@ -175,10 +175,10 @@ class TestDeletingOnPG:
             CreatedAtColumn,
             UpdatedAtColumn,
             ForeignKeyColumn,
-            UnknownColumnException,
             Filter,
             ColumnValue,
         )
+        from dataloom.exceptions import UnknownColumnException
         from dataloom.keys import PgConfig
         from typing import Optional
 
