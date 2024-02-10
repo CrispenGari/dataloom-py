@@ -1,14 +1,15 @@
 import psycopg2
 from mysql import connector
-
 import sqlite3
 from dataloom.constants import instances
+from dataloom.loom.inspect import inspect
+from dataloom.loom.update import update
+from dataloom.loom.delete import delete
+from dataloom.loom.query import query
+from dataloom.loom.insert import insert
 
 from dataloom.exceptions import (
     UnsupportedDialectException,
-    InvalidColumnValuesException,
-    InvalidArgumentsException,
-    UnknownColumnException,
 )
 
 from dataloom.model import Model
@@ -17,10 +18,6 @@ from dataloom.conn import ConnectionOptionsFactory
 from dataloom.utils import (
     file_logger,
     console_logger,
-    get_child_table_columns,
-    get_insert_bulk_attrs,
-    get_args,
-    print_pretty_table,
 )
 from typing import Optional
 from dataloom.types import (
@@ -72,6 +69,181 @@ class Dataloom:
                 "database": self.database,
                 "dialect": self.dialect,
             }
+
+    def insert_one(self, instance: Model, values: ColumnValue | list[ColumnValue]):
+        return insert(dialect=self.dialect, _execute_sql=self._execute_sql).insert_one(
+            instance=instance, values=values
+        )
+
+    def insert_bulk(self, instance: Model, values: list[list[ColumnValue]]):
+        return insert(dialect=self.dialect, _execute_sql=self._execute_sql).insert_bulk(
+            instance=instance, values=values
+        )
+
+    def find_many(
+        self,
+        instance: Model,
+        filters: Optional[Filter | list[Filter]] = None,
+        select: list[str] = [],
+        include: list[Model] = [],
+        return_dict: bool = True,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+        order: Optional[list[Order]] = [],
+    ) -> list:
+        return query(dialect=self.dialect, _execute_sql=self._execute_sql).find_many(
+            instance=instance,
+            limit=limit,
+            select=select,
+            include=include,
+            offset=offset,
+            filters=filters,
+            return_dict=return_dict,
+            order=order,
+        )
+
+    def find_all(
+        self,
+        instance: Model,
+        select: list[str] = [],
+        include: list[Include] = [],
+        return_dict: bool = True,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+        order: Optional[list[Order]] = [],
+    ) -> list:
+        return query(dialect=self.dialect, _execute_sql=self._execute_sql).find_all(
+            instance=instance,
+            select=select,
+            include=include,
+            return_dict=return_dict,
+            limit=limit,
+            offset=offset,
+            order=order,
+        )
+
+    def find_by_pk(
+        self,
+        instance: Model,
+        pk,
+        select: list[str] = [],
+        include: list[Include] = [],
+        return_dict: bool = True,
+    ):
+        return query(dialect=self.dialect, _execute_sql=self._execute_sql).find_by_pk(
+            include=include,
+            pk=pk,
+            return_dict=return_dict,
+            select=select,
+            instance=instance,
+        )
+
+    def find_one(
+        self,
+        instance: Model,
+        filters: Optional[Filter | list[Filter]] = None,
+        select: list[str] = [],
+        include: list[Include] = [],
+        return_dict: bool = True,
+        offset: Optional[int] = None,
+    ):
+        return query(dialect=self.dialect, _execute_sql=self._execute_sql).find_one(
+            instance=instance,
+            select=select,
+            filters=filters,
+            offset=offset,
+            include=include,
+            return_dict=return_dict,
+        )
+
+    def update_by_pk(
+        self, instance: Model, pk, values: ColumnValue | list[ColumnValue]
+    ):
+        return update(
+            dialect=self.dialect, _execute_sql=self._execute_sql
+        ).update_by_pk(instance=instance, pk=pk, values=values)
+
+    def update_one(
+        self,
+        instance: Model,
+        filters: Optional[Filter | list[Filter]],
+        values: ColumnValue | list[ColumnValue],
+    ):
+        return update(dialect=self.dialect, _execute_sql=self._execute_sql).update_one(
+            instance=instance, filters=filters, values=values
+        )
+
+    def update_bulk(
+        self,
+        instance: Model,
+        filters: Optional[Filter | list[Filter]],
+        values: ColumnValue | list[ColumnValue],
+    ):
+        return update(dialect=self.dialect, _execute_sql=self._execute_sql).update_bulk(
+            instance=instance, filters=filters, values=values
+        )
+
+    def delete_by_pk(self, instance: Model, pk):
+        return delete(
+            dialect=self.dialect, _execute_sql=self._execute_sql
+        ).delete_by_pk(instance=instance, pk=pk)
+
+    def delete_one(
+        self,
+        instance: Model,
+        filters: Optional[Filter | list[Filter]] = [],
+        offset: Optional[int] = None,
+        order: Optional[list[Order]] = [],
+    ):
+        return delete(dialect=self.dialect, _execute_sql=self._execute_sql).delete_one(
+            instance=instance, offset=offset, order=order, filters=filters
+        )
+
+    def delete_bulk(
+        self,
+        instance: Model,
+        filters: Optional[Filter | list[Filter]] = None,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+        order: Optional[list[Order]] = [],
+    ):
+        return delete(dialect=self.dialect, _execute_sql=self._execute_sql).delete_bulk(
+            instance=instance, offset=offset, order=order, filters=filters, limit=limit
+        )
+
+    def increment(
+        self,
+        instance: Model,
+        filters: Optional[Filter | list[Filter]],
+        column: ColumnValue[int | float],
+    ):
+        return update(dialect=self.dialect, _execute_sql=self._execute_sql).increment(
+            column=column,
+            filters=filters,
+            instance=instance,
+        )
+
+    def decrement(
+        self,
+        instance: Model,
+        filters: Optional[Filter | list[Filter]],
+        column: ColumnValue[int | float],
+    ):
+        return update(dialect=self.dialect, _execute_sql=self._execute_sql).decrement(
+            column=column,
+            filters=filters,
+            instance=instance,
+        )
+
+    def inspect(
+        self,
+        instance: Model,
+        fields: list[str] = ["name", "type", "nullable", "default"],
+        print_table: bool = True,
+    ):
+        return inspect(
+            dialect=self.dialect, database=self.database, _execute_sql=self._execute_sql
+        ).inspect(instance=instance, fields=fields, print_table=print_table)
 
     @property
     def tables(self):
@@ -282,390 +454,3 @@ class Dataloom:
             return self.tables
         except Exception as e:
             raise Exception(e)
-
-    def insert_one(self, instance: Model, values: ColumnValue | list[ColumnValue]):
-        sql, values = instance._get_insert_one_stm(dialect=self.dialect, values=values)
-        row = self._execute_sql(
-            sql,
-            args=tuple(values),
-            fetchone=self.dialect == "postgres",
-            operation="insert",
-        )
-        return row[0] if type(row) in [list, tuple] else row
-
-    def insert_bulk(self, instance: Model, values: list[list[ColumnValue]]):
-        # ? ensure that the values that are passed is a list of a list and they inner list have the same length
-        if not isinstance(values, list):
-            raise InvalidColumnValuesException(
-                "The insert_bulk method takes in values as lists of lists."
-            )
-        all_list = [isinstance(v, list) for v in values]
-        if not all(all_list):
-            raise InvalidColumnValuesException(
-                "The insert_bulk method takes in values as lists of lists."
-            )
-        lengths = [len(v) for v in values]
-        _max = max(lengths)
-        if not all([_max == v for v in lengths]):
-            raise InvalidColumnValuesException(
-                "The insert_bulk method takes in values as lists of lists with equal ColumnValues."
-            )
-
-        columns = None
-        placeholders = None
-        data = []
-        for _value in values:
-            (column_names, placeholder_values, _values) = get_insert_bulk_attrs(
-                dialect=self.dialect, instance=instance, values=_value
-            )
-            if columns is None:
-                columns = column_names
-            if placeholders is None:
-                placeholders = placeholder_values
-            data.append(_values)
-
-        sql = instance._get_insert_bulk_smt(
-            dialect=self.dialect, column_names=columns, placeholder_values=placeholders
-        )
-
-        row_count = self._execute_sql(sql, args=tuple(data), fetchall=True, bulk=True)
-        return row_count
-
-    def find_many(
-        self,
-        instance: Model,
-        filters: Optional[Filter | list[Filter]] = None,
-        select: list[str] = [],
-        include: list[Model] = [],
-        return_dict: bool = True,
-        limit: Optional[int] = None,
-        offset: Optional[int] = None,
-        order: Optional[list[Order]] = [],
-    ) -> list:
-        return_dict = True
-        include = []
-        sql, params, fields = instance._get_select_where_stm(
-            dialect=self.dialect,
-            filters=filters,
-            select=select,
-            limit=limit,
-            offset=offset,
-            order=order,
-            include=include,
-        )
-        data = []
-        args = get_args(params)
-        rows = self._execute_sql(sql, fetchall=True, args=args)
-        for row in rows:
-            res = self.__map_relationships(
-                instance=instance,
-                row=row,
-                parent_fields=fields,
-                include=include,
-                return_dict=return_dict,
-            )
-            data.append(res)
-        return data
-
-    def find_all(
-        self,
-        instance: Model,
-        select: list[str] = [],
-        include: list[Include] = [],
-        return_dict: bool = True,
-        limit: Optional[int] = None,
-        offset: Optional[int] = None,
-        order: Optional[list[Order]] = [],
-    ) -> list:
-        return_dict = True
-        include = []
-        sql, params, fields = instance._get_select_where_stm(
-            dialect=self.dialect,
-            select=select,
-            limit=limit,
-            offset=offset,
-            order=order,
-            include=include,
-        )
-        data = []
-        rows = self._execute_sql(sql, fetchall=True)
-        for row in rows:
-            res = self.__map_relationships(
-                instance=instance,
-                row=row,
-                parent_fields=fields,
-                include=include,
-                return_dict=return_dict,
-            )
-            data.append(res)
-        return data
-
-    def __map_relationships(
-        self,
-        instance: Model,
-        row: tuple,
-        parent_fields: list,
-        include: list[dict] = [],
-        return_dict: bool = True,
-    ):
-        # how are relations are mapped?
-        json = dict(zip(parent_fields, row[: len(parent_fields)]))
-        result = json if return_dict else instance(**json)
-        row = row[len(parent_fields) :]
-        for _include in include:
-            alias, selected = [v for v in get_child_table_columns(_include).items()][0]
-            child_json = dict(zip(selected, row[: len(selected)]))
-            row = row[len(selected) :]
-            if return_dict:
-                result[alias] = child_json
-            else:
-                result[alias] = _include.model(**child_json)
-        return result
-
-    def find_by_pk(
-        self,
-        instance: Model,
-        pk,
-        select: list[str] = [],
-        include: list[Include] = [],
-        return_dict: bool = True,
-    ):
-        # """
-        # This part will be added in the future version.
-        # """
-        return_dict = True
-        include = []
-        # what is the name of the primary key column? well we will find out
-        sql, fields, _includes = instance._get_select_by_pk_stm(
-            dialect=self.dialect, select=select, include=include
-        )
-        rows = self._execute_sql(sql, args=(pk,), fetchone=True)
-        if rows is None:
-            return None
-        return self.__map_relationships(
-            instance=instance,
-            row=rows,
-            parent_fields=fields,
-            include=_includes,
-            return_dict=return_dict,
-        )
-
-    def find_one(
-        self,
-        instance: Model,
-        filters: Optional[Filter | list[Filter]] = None,
-        select: list[str] = [],
-        include: list[Include] = [],
-        return_dict: bool = True,
-        offset: Optional[int] = None,
-    ):
-        return_dict = True
-        include = []
-        sql, params, fields = instance._get_select_where_stm(
-            dialect=self.dialect,
-            filters=filters,
-            select=select,
-            offset=offset,
-            include=include,
-        )
-        args = get_args(params)
-        row = self._execute_sql(sql, args=args, fetchone=True)
-        if row is None:
-            return None
-        return self.__map_relationships(
-            instance=instance,
-            row=row,
-            parent_fields=fields,
-            include=include,
-            return_dict=return_dict,
-        )
-
-    def update_by_pk(
-        self, instance: Model, pk, values: ColumnValue | list[ColumnValue]
-    ):
-        sql, args = instance._get_update_by_pk_stm(dialect=self.dialect, values=values)
-        args.append(pk)
-        affected_rows = self._execute_sql(sql, args=args, affected_rows=True)
-        return affected_rows
-
-    def update_one(
-        self,
-        instance: Model,
-        filters: Optional[Filter | list[Filter]],
-        values: ColumnValue | list[ColumnValue],
-    ):
-        sql, new_values, filter_values = instance._get_update_one_stm(
-            dialect=self.dialect, filters=filters, values=values
-        )
-        args = [*new_values, *get_args(filter_values)]
-        affected_rows = self._execute_sql(sql, args=args, affected_rows=True)
-        return affected_rows
-
-    def update_bulk(
-        self,
-        instance: Model,
-        filters: Optional[Filter | list[Filter]],
-        values: ColumnValue | list[ColumnValue],
-    ):
-        sql, new_values, filter_values = instance._get_update_bulk_where_stm(
-            dialect=self.dialect, filters=filters, values=values
-        )
-        args = [*new_values, *get_args(filter_values)]
-        affected_rows = self._execute_sql(sql, args=args, affected_rows=True)
-        return affected_rows
-
-    def delete_by_pk(self, instance: Model, pk):
-        sql = instance._get_delete_by_pk_stm(dialect=self.dialect)
-        affected_rows = self._execute_sql(
-            sql, args=(pk,), affected_rows=True, fetchall=True
-        )
-        return affected_rows
-
-    def delete_one(
-        self,
-        instance: Model,
-        filters: Optional[Filter | list[Filter]] = [],
-        offset: Optional[int] = None,
-        order: Optional[list[Order]] = [],
-    ):
-        sql, params = instance._get_delete_where_stm(
-            dialect=self.dialect, filters=filters, offset=offset, order=order
-        )
-
-        args = [*get_args(params)]
-
-        if offset is not None:
-            args.append(offset)
-        affected_rows = self._execute_sql(sql, args=args, affected_rows=True)
-        return affected_rows
-
-    def delete_bulk(
-        self,
-        instance: Model,
-        filters: Optional[Filter | list[Filter]] = None,
-        limit: Optional[int] = None,
-        offset: Optional[int] = None,
-        order: Optional[list[Order]] = [],
-    ):
-        if offset is not None and limit is None and self.dialect == "mysql":
-            raise InvalidArgumentsException(
-                f"You can not apply offset without limit on dialect '{self.dialect}'."
-            )
-        sql, params = instance._get_delete_bulk_where_stm(
-            dialect=self.dialect,
-            filters=filters,
-            offset=offset,
-            limit=limit,
-            order=order,
-        )
-        args = [*get_args(params)]
-
-        if limit is not None:
-            args.append(limit)
-        if offset is not None:
-            args.append(offset)
-
-        affected_rows = self._execute_sql(
-            sql, args=args, affected_rows=True, fetchall=True
-        )
-        return affected_rows
-
-    def increment(
-        self,
-        instance: Model,
-        filters: Optional[Filter | list[Filter]],
-        column: ColumnValue[int | float],
-    ):
-        if isinstance(column.value, float) or isinstance(column.value, int):
-            sql, column_values, filter_values = instance._get_increment_decrement_stm(
-                dialect=self.dialect,
-                filters=filters,
-                value=column,
-                operator="increment",
-            )
-        else:
-            raise InvalidColumnValuesException(
-                "The increment operation only works with integer and float values."
-            )
-        args = [*column_values, *get_args(filter_values)]
-        affected_rows = self._execute_sql(sql, args=args, affected_rows=True)
-        return affected_rows
-
-    def decrement(
-        self,
-        instance: Model,
-        filters: Optional[Filter | list[Filter]],
-        column: ColumnValue[int | float],
-    ):
-        if isinstance(column.value, float) or isinstance(column.value, int):
-            sql, column_values, filter_values = instance._get_increment_decrement_stm(
-                dialect=self.dialect,
-                filters=filters,
-                value=column,
-                operator="decrement",
-            )
-        else:
-            raise InvalidColumnValuesException(
-                "The decrement operation only works with integer and float values."
-            )
-        args = [*column_values, *get_args(filter_values)]
-        affected_rows = self._execute_sql(sql, args=args, affected_rows=True)
-        return affected_rows
-
-    def inspect(
-        self,
-        instance: Model,
-        fields: list[str] = ["name", "type", "nullable", "default"],
-        print_table: bool = True,
-    ):
-        # The column name should be first and required.
-        allowed = {
-            "name": "column_name",
-            "type": "data_type",
-            "nullable": "is_nullable",
-            "default": "column_default",
-        }
-        modified_fields = ["column_name"]
-        for field in fields:
-            if field not in allowed.keys():
-                raise UnknownColumnException(
-                    f"You can not select '{field}' when inspecting table '{instance._get_table_name()}' allowed fields are ({', '.join(allowed.keys())})."
-                )
-            else:
-                cl_name = allowed.get(field)
-                if cl_name not in modified_fields:
-                    modified_fields.append(cl_name)
-
-        sql = instance._get_describe_stm(dialect=self.dialect, fields=modified_fields)
-        args = None
-        if self.dialect == "mysql":
-            args = (self.database, instance._get_table_name())
-        elif self.dialect == "postgres":
-            args = ("public", instance._get_table_name())
-        elif self.dialect == "sqlite":
-            args = ()
-
-        rows = self._execute_sql(sql, args=args, fetchall=True)
-
-        if print_table:
-            headers = ["name"]
-            for header in fields:
-                if header not in headers:
-                    headers.append(header)
-            if self.dialect == "sqlite":
-                _rows = [row[1 : 1 + len(headers)] for row in rows]
-                print_pretty_table(headers, _rows)
-            else:
-                print_pretty_table(headers, rows)
-            return None
-        description = []
-        for row in rows:
-            if self.dialect == "sqlite":
-                column_name = row[1]
-                val = dict(zip(fields[1:], row[2:]))
-            else:
-                val = dict(zip(fields[1:], row[1:]))
-                column_name = row[0]
-            obj = {column_name: val}
-            description.append(obj)
-        return description
