@@ -18,7 +18,7 @@
 
 ### ⚠️ Warning
 
-> **⚠️ Experimental Status of `dataloom`**: The `dataloom` module is currently in an experimental phase. As such, we strongly advise against using it in production environments until a major version is officially released and stability is ensured. During this experimental phase, the `dataloom` module may undergo significant changes, and its features are subject to refinement. We recommend monitoring the project updates and waiting for a stable release before incorporating it into production systems. Please exercise caution and consider alternative solutions for production use until the module reaches a stable release.\*\*
+> **⚠️ Experimental Status of `dataloom`**: The `dataloom` module is currently in an experimental phase. As such, we strongly advise against using it in production environments until a major version is officially released and stability is ensured. During this experimental phase, the `dataloom` module may undergo significant changes, and its features are subject to refinement. We recommend monitoring the project updates and waiting for a stable release before incorporating it into production systems. Please exercise caution and consider alternative solutions for production use until the module reaches a stable release.
 
 ### Table of Contents
 
@@ -49,21 +49,21 @@
   - [1. Creating a Record](#1-creating-a-record)
     - [1. `insert_one()`](#1-insert_one)
     - [2. `insert_bulk()`.](#2-insert_bulk)
-  - [2. Getting records](#2-getting-records)
+  - [2. Reading records](#2-reading-records)
     - [1. `find_all()`](#1-find_all)
     - [2. `find_many()`](#2-find_many)
     - [3. `find_one()`](#3-find_one)
     - [4. `find_by_pk()`](#4-find_by_pk)
-  - [3. Deleting a record](#3-deleting-a-record)
+  - [3. Updating a record](#3-updating-a-record)
+    - [1. `update_by_pk()`](#1-update_by_pk)
+    - [2. `update_one()`](#2-update_one)
+    - [3. `update_bulk()`](#3-update_bulk)
+  - [4. Deleting a record](#4-deleting-a-record)
     - [1. `delete_by_pk()`](#1-delete_by_pk)
     - [2. `delete_one()`](#2-delete_one)
     - [3. `delete_bulk()`](#3-delete_bulk)
       - [Warning: Potential Risk with `delete_bulk()`](#warning-potential-risk-with-delete_bulk)
       - [Guidelines for Safe Usage](#guidelines-for-safe-usage)
-  - [4. Updating a record](#4-updating-a-record)
-    - [1. `update_by_pk()`](#1-update_by_pk)
-    - [2. `update_one()`](#2-update_one)
-    - [3. `update_bulk()`](#3-update_bulk)
 - [Ordering](#ordering)
 - [Filters](#filters)
 - [Utilities](#utilities)
@@ -108,7 +108,7 @@ In this section we are going to go through how you can use our `orm` package in 
 
 ### Connection
 
-To use Dataloom, you need to establish a connection with a specific database dialect. The available dialect options are `mysql`, `postgres`, and `sqlite`. In this example, we'll demonstrate how to set up a connection to a PostgreSQL database named "hi" using the `postgres` dialect. The following is an example of how you can establish a connection with postgres database.
+To use Dataloom, you need to establish a connection with a specific database `dialect`. The available dialect options are `mysql`, `postgres`, and `sqlite`. The following is an example of how you can establish a connection with postgres database.
 
 ```python
 from dataloom import Dataloom
@@ -607,7 +607,7 @@ The argument parameters for the `insert_bulk` methods are as follows.
 
 > In contrast to the `insert_one` method, the `insert_bulk` method returns the row count of the inserted documents rather than the individual primary keys (`pks`) of those documents.
 
-#### 2. Getting records
+#### 2. Reading records
 
 To retrieve documents or a document from the database, you can make use of the following functions:
 
@@ -717,7 +717,87 @@ The method takes the following as arguments:
 | `include`     | List of related models to eagerly load.                              | `list[Include]` | `[]`    | `No`     |
 | `return_dict` | Flag indicating whether to return the result as a dictionary or not. | `bool`          | `True`  | `No`     |
 
-#### 3. Deleting a record
+#### 3. Updating a record
+
+To update records in your database table you make use of the following functions:
+
+1. `update_by_pk()`
+2. `update_one()`
+3. `update_bulk()`
+
+##### 1. `update_by_pk()`
+
+The `update_pk()` method can be used as follows:
+
+```py
+affected_rows = mysql_loom.update_by_pk(
+    instance=Post,
+    pk=1,
+    values=[
+        ColumnValue(name="title", value="Updated?"),
+    ],
+)
+```
+
+The above method takes in the following as arguments:
+
+| Argument   | Description                                                     | Type                               | Default | Required |
+| ---------- | --------------------------------------------------------------- | ---------------------------------- | ------- | -------- |
+| `instance` | The model class for which to update the instance.               | `Model`                            |         | `Yes`    |
+| `pk`       | The primary key value of the instance to update.                | `Any`                              |         | `Yes`    |
+| `values`   | Single or list of column-value pairs to update in the instance. | `ColumnValue \| list[ColumnValue]` |         | `Yes`    |
+
+##### 2. `update_one()`
+
+Here is an example illustrating how to use the `update_one()` method:
+
+```py
+affected_rows = mysql_loom.update_one(
+    instance=Post,
+    filters=[
+        Filter(column="id", value=8, join_next_filter_with="OR"),
+        Filter(column="userId", value=1, join_next_filter_with="OR"),
+    ],
+    values=[
+        ColumnValue(name="title", value="Updated?"),
+    ],
+)
+```
+
+The method takes the following as arguments:
+
+| Argument   | Description                                                     | Type                               | Default | Required |
+| ---------- | --------------------------------------------------------------- | ---------------------------------- | ------- | -------- |
+| `instance` | The model class for which to update the instance(s).            | `Model`                            |         | `Yes`    |
+| `filters`  | Filter or list of filters to apply to the update query.         | `Filter \| list[Filter] \| None`   |         | `Yes`    |
+| `values`   | Single or list of column-value pairs to update in the instance. | `ColumnValue \| list[ColumnValue]` |         | `Yes`    |
+
+##### 3. `update_bulk()`
+
+The `update_bulk()` method updates all records that match a filter in a database table.
+
+```py
+affected_rows = mysql_loom.update_bulk(
+    instance=Post,
+    filters=[
+        Filter(column="id", value=8, join_next_filter_with="OR"),
+        Filter(column="userId", value=1, join_next_filter_with="OR"),
+    ],
+    values=[
+        ColumnValue(name="title", value="Updated?"),
+    ],
+)
+```
+
+The above method takes in the following as argument:
+
+| Argument   | Description                                                     | Type                               | Default | Required |
+| ---------- | --------------------------------------------------------------- | ---------------------------------- | ------- | -------- |
+| `instance` | The model class for which to update instances.                  | `Model`                            |         | `Yes`    |
+| `filters`  | Filter or list of filters to apply to the update query.         | `Filter \| list[Filter] \| None`   |         | `Yes`    |
+| `values`   | Single or list of column-value pairs to update in the instance. | `ColumnValue \| list[ColumnValue]` |         | `Yes`    |
+
+#### 4. Deleting a record
 
 To delete a record or records in a database table you make use of the following functions:
 
@@ -815,86 +895,6 @@ affected_rows = mysql_loom.delete_bulk(
 ```
 
 By following these guidelines, you can use the `delete_bulk()` function safely and minimize the risk of unintended data loss. Always exercise caution and adhere to best practices when performing bulk deletion operations.
-
-#### 4. Updating a record
-
-To update records in your database table you make use of the following functions:
-
-1. `update_by_pk()`
-2. `update_one()`
-3. `update_bulk()`
-
-##### 1. `update_by_pk()`
-
-The `update_pk()` method can be used as follows:
-
-```py
-affected_rows = mysql_loom.update_by_pk(
-    instance=Post,
-    pk=1,
-    values=[
-        ColumnValue(name="title", value="Updated?"),
-    ],
-)
-```
-
-The above method takes in the following as arguments:
-
-| Argument   | Description                                                     | Type                               | Default | Required |
-| ---------- | --------------------------------------------------------------- | ---------------------------------- | ------- | -------- |
-| `instance` | The model class for which to update the instance.               | `Model`                            |         | `Yes`    |
-| `pk`       | The primary key value of the instance to update.                | `Any`                              |         | `Yes`    |
-| `values`   | Single or list of column-value pairs to update in the instance. | `ColumnValue \| list[ColumnValue]` |         | `Yes`    |
-
-##### 2. `update_one()`
-
-Here is an example illustrating how to use the `update_one()` method:
-
-```py
-affected_rows = mysql_loom.update_one(
-    instance=Post,
-    filters=[
-        Filter(column="id", value=8, join_next_filter_with="OR"),
-        Filter(column="userId", value=1, join_next_filter_with="OR"),
-    ],
-    values=[
-        ColumnValue(name="title", value="Updated?"),
-    ],
-)
-```
-
-The method takes the following as arguments:
-
-| Argument   | Description                                                     | Type                               | Default | Required |
-| ---------- | --------------------------------------------------------------- | ---------------------------------- | ------- | -------- |
-| `instance` | The model class for which to update the instance(s).            | `Model`                            |         | `Yes`    |
-| `filters`  | Filter or list of filters to apply to the update query.         | `Filter \| list[Filter] \| None`   |         | `Yes`    |
-| `values`   | Single or list of column-value pairs to update in the instance. | `ColumnValue \| list[ColumnValue]` |         | `Yes`    |
-
-##### 3. `update_bulk()`
-
-The `update_bulk()` method updates all records that match a filter in a database table.
-
-```py
-affected_rows = mysql_loom.update_bulk(
-    instance=Post,
-    filters=[
-        Filter(column="id", value=8, join_next_filter_with="OR"),
-        Filter(column="userId", value=1, join_next_filter_with="OR"),
-    ],
-    values=[
-        ColumnValue(name="title", value="Updated?"),
-    ],
-)
-```
-
-The above method takes in the following as argument:
-
-| Argument   | Description                                                     | Type                               | Default | Required |
-| ---------- | --------------------------------------------------------------- | ---------------------------------- | ------- | -------- |
-| `instance` | The model class for which to update instances.                  | `Model`                            |         | `Yes`    |
-| `filters`  | Filter or list of filters to apply to the update query.         | `Filter \| list[Filter] \| None`   |         | `Yes`    |
-| `values`   | Single or list of column-value pairs to update in the instance. | `ColumnValue \| list[ColumnValue]` |         | `Yes`    |
 
 ### Ordering
 
