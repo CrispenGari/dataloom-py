@@ -120,7 +120,11 @@ class TestUpdateOnMySQL:
             createdAt = CreatedAtColumn()
             # relations
             userId = ForeignKeyColumn(
-                User, type="int", required=True, onDelete="CASCADE", onUpdate="CASCADE"
+                User,
+                type="int",
+                required=True,
+                onDelete="CASCADE",
+                onUpdate="NO ACTION",
             )
 
         conn, _ = mysql_loom.connect_and_sync([Post, User], drop=True, force=True)
