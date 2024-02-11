@@ -22,3 +22,6 @@
     * sqlite3 ✅
 
 
+
+---------- bugs
+1. fixing logger index

@@ -30,6 +30,8 @@ class SQL(ABC):
 
 
 class sql(SQL):
+    __logger_index: int = 0
+
     def __init__(
         self,
         conn: Any | PooledMySQLConnection | MySQLConnectionAbstract | Connection,
@@ -41,6 +43,11 @@ class sql(SQL):
         self.dialect = dialect
         self.sql_logger = sql_logger
         self.logs_filename = logs_filename
+
+        if self.__logger_index == 0:
+            self.__logger_index = 0
+        else:
+            pass
 
     def execute_sql(
         self,
@@ -58,11 +65,11 @@ class sql(SQL):
         if self.sql_logger is not None:
             if self.sql_logger == "console":
                 index = console_logger(
-                    index=self.logger_index,
+                    index=self.__logger_index,
                     sql_statement=sql.strip(),
                     dialect=self.dialect,
                 )
-                self.logger_index = index + 1
+                self.__logger_index = index + 1
             else:
                 file_logger(
                     dialect=self.dialect,

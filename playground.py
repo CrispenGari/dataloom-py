@@ -7,6 +7,8 @@ from dataloom import (
     UpdatedAtColumn,
     TableColumn,
     ForeignKeyColumn,
+    Filter,
+    ColumnValue,
 )
 from typing import Optional
 
@@ -26,7 +28,7 @@ mysql_loom = Dataloom(
     host="localhost",
     logs_filename="logs.sql",
     port=3306,
-    sql_logger="console",
+    sql_logger="file",
 )
 sqlite_loom = Dataloom(
     dialect="sqlite",
@@ -86,11 +88,52 @@ class Category(Model):
 conn, tables = mysql_loom.connect_and_sync(
     [Post, User, Category, Profile], drop=True, force=True
 )
-print(conn)
-# userId = mysql_loom.insert_one(
-#     instance=User,
-#     values=ColumnValue(name="username", value="@miller"),
-# )
+
+
+userId = mysql_loom.insert_one(
+    instance=User,
+    values=ColumnValue(name="username", value="@miller"),
+)
+
+affected_rows = mysql_loom.decrement(
+    User,
+    filters=[Filter(column="id", value=1, operator="eq")],
+    column=ColumnValue(name="tokenVersion", value=2),
+)
+print(affected_rows)
+
+
+# categories = ["general", "education", "sport", "culture"]
+# cats = []
+# for cat in categories:
+#     pId = mysql_loom.insert_one(
+#         instance=Post,
+#         values=[
+#             ColumnValue(name="title", value=f"What are you doing {cat}?"),
+#             ColumnValue(name="userId", value=userId),
+#         ],
+#     )
+# #     cats.append(
+# #         [ColumnValue(name="type", value=cat), ColumnValue(name="postId", value=pId)]
+# #     )
+
+
+# table = mysql_loom.inspect(instance=User)
+
+# print(table)
+
+
+# # post = mysql_loom.find_by_pk(
+# #     Post,
+# #     pk=1,
+# #     include=[Include(model=User, select=["id", "username"], maps_to="N-1")],
+# #     select=["title", "completed"],
+# # )
+# # print("---- post", post)
+
+
+# # if __name__ == "__main__":
+# #     conn.close()
 
 
 # categories = ["general", "education", "sport", "culture"]

@@ -24,7 +24,7 @@ class logger:
                 f.write(
                     "[{time}] : Dataloom[{dialect}]: {sql_statement}\n".format(
                         dialect=dialect,
-                        time=datetime.now(),
+                        time=datetime.now().time(),
                         sql_statement=sql_statement,
                     )
                 )
@@ -40,7 +40,7 @@ class logger:
                 print(
                     Colors.BOLD
                     + Colors.CYAN
-                    + f"[{dialect}:log_{index}] "
+                    + f"[{dialect}:{datetime.now().time()}] "
                     + Colors.RESET
                     + Colors.BOLD
                     + Colors.BLUE
@@ -51,7 +51,7 @@ class logger:
                 print(
                     Colors.BOLD
                     + Colors.CYAN
-                    + f"[{dialect}:log_{index}] "
+                    + f"[{dialect}:{datetime.now().time()}] "
                     + Colors.RESET
                     + Colors.BOLD
                     + Colors.GREEN
