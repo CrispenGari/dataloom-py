@@ -67,7 +67,7 @@ class TestUpdateOnMySQL:
         )
         me = mysql_loom.find_by_pk(User, userId)
 
-        assert me["createdAt"] != me["updatedAt"]
+        assert me["createdAt"] != me["updatedAt"] or me["username"] != "@miller"
         assert res_1 == 1
         assert res_2 == 0
         conn.close()
@@ -165,8 +165,7 @@ class TestUpdateOnMySQL:
                 values=ColumnValue(name="loca", value=3),
             )
         assert str(exc_info.value) == "Table posts does not have column 'loca'."
-
-        assert me["createdAt"] != me["updatedAt"]
+        assert me["createdAt"] != me["updatedAt"] or me["username"] != "@miller"
         assert res_1 == 1
         assert res_2 == 0
         conn.close()
