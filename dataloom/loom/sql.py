@@ -9,9 +9,27 @@ from dataloom.utils import (
     file_logger,
     console_logger,
 )
+from abc import ABC, abstractclassmethod
 
 
-class sql:
+class SQL(ABC):
+    @abstractclassmethod
+    def execute_sql(
+        self,
+        sql: str,
+        args=None,
+        fetchone=False,
+        fetchmany=False,
+        fetchall=False,
+        mutation=True,
+        bulk: bool = False,
+        affected_rows: bool = False,
+        operation: Optional[str] = None,
+    ) -> Any:
+        raise NotImplementedError("The execute_sql method was not implemented.")
+
+
+class sql(SQL):
     def __init__(
         self,
         conn: Any | PooledMySQLConnection | MySQLConnectionAbstract | Connection,
@@ -35,7 +53,7 @@ class sql:
         bulk: bool = False,
         affected_rows: bool = False,
         operation: Optional[str] = None,
-    ):
+    ) -> Any:
         # do we need to log the executed SQL?
         if self.sql_logger is not None:
             if self.sql_logger == "console":

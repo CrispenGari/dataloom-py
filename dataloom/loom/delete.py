@@ -3,16 +3,44 @@ from dataloom.model import Model
 from typing import Optional, Callable, Any
 from dataloom.types import Filter, DIALECT_LITERAL, Order
 from dataloom.utils import get_args
+from abc import ABC, abstractclassmethod
 
 
-class delete:
+class Delete(ABC):
+    @abstractclassmethod
+    def delete_by_pk(self, instance: Model, pk) -> int:
+        raise NotImplementedError("The delete_by_pk function not implemented.")
+
+    @abstractclassmethod
+    def delete_one(
+        self,
+        instance: Model,
+        filters: Optional[Filter | list[Filter]] = [],
+        offset: Optional[int] = None,
+        order: Optional[list[Order]] = [],
+    ) -> int:
+        raise NotImplementedError("The delete_one function not implemented.")
+
+    @abstractclassmethod
+    def delete_bulk(
+        self,
+        instance: Model,
+        filters: Optional[Filter | list[Filter]] = None,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+        order: Optional[list[Order]] = [],
+    ) -> int:
+        raise NotImplementedError("The delete_one function not implemented.")
+
+
+class delete(Delete):
     def __init__(
         self, dialect: DIALECT_LITERAL, _execute_sql: Callable[..., Any]
     ) -> None:
         self._execute_sql = _execute_sql
         self.dialect = dialect
 
-    def delete_by_pk(self, instance: Model, pk):
+    def delete_by_pk(self, instance: Model, pk) -> int:
         sql = instance._get_delete_by_pk_stm(dialect=self.dialect)
         affected_rows = self._execute_sql(
             sql, args=(pk,), affected_rows=True, fetchall=True
@@ -25,7 +53,7 @@ class delete:
         filters: Optional[Filter | list[Filter]] = [],
         offset: Optional[int] = None,
         order: Optional[list[Order]] = [],
-    ):
+    ) -> int:
         sql, params = instance._get_delete_where_stm(
             dialect=self.dialect, filters=filters, offset=offset, order=order
         )
@@ -44,7 +72,7 @@ class delete:
         limit: Optional[int] = None,
         offset: Optional[int] = None,
         order: Optional[list[Order]] = [],
-    ):
+    ) -> int:
         if offset is not None and limit is None and self.dialect == "mysql":
             raise InvalidArgumentsException(
                 f"You can not apply offset without limit on dialect '{self.dialect}'."

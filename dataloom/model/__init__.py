@@ -23,8 +23,6 @@ from dataloom.utils import (
 
 
 class Model:
-    # def __init__(self) -> None:
-
     @classmethod
     def _create_sql(cls, dialect: DIALECT_LITERAL, ignore_exists=True):
         sqls = GetStatement(

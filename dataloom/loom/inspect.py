@@ -3,9 +3,21 @@ from dataloom.exceptions import UnknownColumnException
 from dataloom.utils import print_pretty_table
 from dataloom.types import DIALECT_LITERAL
 from typing import Callable, Any
+from abc import ABC, abstractclassmethod
 
 
-class inspect:
+class Inspect(ABC):
+    @abstractclassmethod
+    def inspect(
+        self,
+        instance: Model,
+        fields: list[str] = ["name", "type", "nullable", "default"],
+        print_table: bool = True,
+    ) -> list[dict] | None:
+        raise NotImplementedError("The inspect method was not implemented.")
+
+
+class inspect(Inspect):
     def __init__(
         self, dialect: DIALECT_LITERAL, database: str, _execute_sql: Callable[..., Any]
     ) -> None:
@@ -18,7 +30,7 @@ class inspect:
         instance: Model,
         fields: list[str] = ["name", "type", "nullable", "default"],
         print_table: bool = True,
-    ):
+    ) -> list[dict] | None:
         # The column name should be first and required.
         allowed = {
             "name": "column_name",

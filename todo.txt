@@ -8,7 +8,7 @@
 8. increment and decrement function (that increments) updated ✅
 10. querying with operations like (OR LIKE > < etc) ✅
 11. limit and pagination ✅
-12. in & not in 
+12. in & not in  ✅
 13. grouping data
 14. updating data ✅
 15. apply delete with limit ✅

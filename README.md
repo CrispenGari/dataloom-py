@@ -69,6 +69,8 @@
 - [Utilities](#utilities)
   - [`inspect`](#inspect)
 - [What is coming next?](#what-is-coming-next)
+- [Contributing](#contributing)
+- [License](#license)
 
 ### Key Features:
 
@@ -1159,3 +1161,13 @@ The `inspect` function take the following arguments.
 ### What is coming next?
 
 1. Associations
+2. Grouping
+3. Altering tables
+
+### Contributing
+
+Contributions to `dataloom` are welcome! Feel free to submit bug reports, feature requests, or pull requests on [GitHub](https://github.com/CrispenGari/dataloom).
+
+### License
+
+This project is licensed under the MIT License - see the [LICENSE](/LISENSE) file for details.

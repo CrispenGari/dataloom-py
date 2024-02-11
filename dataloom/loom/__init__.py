@@ -7,19 +7,15 @@ from dataloom.loom.update import update
 from dataloom.loom.delete import delete
 from dataloom.loom.query import query
 from dataloom.loom.insert import insert
-
-from dataloom.exceptions import (
-    UnsupportedDialectException,
-)
-
+from dataloom.loom.sql import sql as SQL
+from dataloom.exceptions import UnsupportedDialectException
 from dataloom.model import Model
 from dataloom.statements import GetStatement
 from dataloom.conn import ConnectionOptionsFactory
-from dataloom.utils import (
-    file_logger,
-    console_logger,
-)
-from typing import Optional
+from typing import Optional, Any
+from mysql.connector.pooling import PooledMySQLConnection
+from sqlite3 import Connection
+from mysql.connector.connection import MySQLConnectionAbstract
 from dataloom.types import (
     Order,
     Include,
@@ -28,9 +24,10 @@ from dataloom.types import (
     ColumnValue,
     SQL_LOGGER_LITERAL,
 )
+from dataloom.loom.interfaces import IDataloom
 
 
-class Dataloom:
+class Dataloom(IDataloom):
     def __init__(
         self,
         database: str,
@@ -48,6 +45,7 @@ class Dataloom:
         self.sql_logger = sql_logger
         self.dialect = dialect
         self.logs_filename = logs_filename
+
         try:
             config = instances[dialect]
         except KeyError:
@@ -246,7 +244,7 @@ class Dataloom:
         ).inspect(instance=instance, fields=fields, print_table=print_table)
 
     @property
-    def tables(self):
+    def tables(self) -> list[str]:
         sql = GetStatement(self.dialect)._get_tables_command
         res = self._execute_sql(sql, fetchall=True)
         if self.dialect == "sqlite":
@@ -264,104 +262,27 @@ class Dataloom:
         bulk: bool = False,
         affected_rows: bool = False,
         operation: Optional[str] = None,
-    ):
-        # do we need to log the executed SQL?
-        if self.sql_logger is not None:
-            if self.sql_logger == "console":
-                index = console_logger(
-                    index=self.logger_index,
-                    sql_statement=sql.strip(),
-                    dialect=self.dialect,
-                )
-                self.logger_index = index + 1
-            else:
-                file_logger(
-                    dialect=self.dialect,
-                    file_name=self.logs_filename,
-                    sql_statement=sql.strip(),
-                )
-        if self.dialect == "postgres":
-            with self.conn.cursor() as cursor:
-                if args is None:
-                    cursor.execute(sql)
-                else:
-                    if bulk:
-                        cursor.executemany(sql, vars_list=args)
-                    else:
-                        cursor.execute(sql, vars=args)
-                # options
-                if bulk or affected_rows:
-                    result = cursor.rowcount
-                else:
-                    if fetchmany:
-                        result = [res for res in cursor.fetchmany()]
-                    elif fetchall:
-                        result = [res for res in cursor.fetchall()]
-                    elif fetchone:
-                        result = cursor.fetchone()
-                    else:
-                        result = None
-                if mutation:
-                    self.conn.commit()
-        elif self.dialect == "mysql":
-            with self.conn.cursor(buffered=True) as cursor:
-                if args is None:
-                    cursor.execute(sql)
-                else:
-                    if bulk:
-                        cursor.executemany(sql, args)
-                    else:
-                        cursor.execute(sql, args)
-                # options
-                if bulk or affected_rows:
-                    result = cursor.rowcount
-                else:
-                    if fetchmany:
-                        result = cursor.fetchmany()
-                    elif fetchall:
-                        result = cursor.fetchall()
-                    elif fetchone:
-                        result = cursor.fetchone()
-                    else:
-                        result = None
-                if mutation:
-                    self.conn.commit()
+    ) -> Any:
+        return SQL(
+            conn=self.conn,
+            dialect=self.dialect,
+            sql_logger=self.sql_logger,
+            logs_filename=self.logs_filename,
+        ).execute_sql(
+            sql=sql,
+            args=args,
+            operation=operation,
+            mutation=mutation,
+            fetchall=fetchall,
+            bulk=bulk,
+            fetchone=fetchone,
+            fetchmany=fetchmany,
+            affected_rows=affected_rows,
+        )
 
-                if operation is not None:
-                    result = cursor.lastrowid
-        elif self.dialect == "sqlite":
-            cursor = self.conn.cursor()
-            if args is None:
-                cursor.execute(sql)
-            else:
-                if bulk:
-                    cursor.executemany(sql, args)
-                else:
-                    cursor.execute(sql, args)
-            # options
-            if bulk or affected_rows:
-                result = cursor.rowcount
-            else:
-                if fetchmany:
-                    result = cursor.fetchmany()
-                elif fetchall:
-                    result = cursor.fetchall()
-                elif fetchone:
-                    result = cursor.fetchone()
-                else:
-                    result = None
-            if mutation:
-                self.conn.commit()
-            if operation is not None:
-                result = cursor.lastrowid
-        else:
-            raise UnsupportedDialectException(
-                "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
-            )
-
-        return result
-
-    def connect(self):
+    def connect(
+        self,
+    ) -> Any | PooledMySQLConnection | MySQLConnectionAbstract | Connection:
         if self.dialect == "postgres":
             options = ConnectionOptionsFactory.get_connection_options(
                 **self.connection_options
@@ -393,7 +314,9 @@ class Dataloom:
 
     def connect_and_sync(
         self, models: list[Model], drop=False, force=False, alter=False
-    ):
+    ) -> tuple[
+        Any | PooledMySQLConnection | MySQLConnectionAbstract | Connection, list[str]
+    ]:
         try:
             if self.dialect == "postgres":
                 options = ConnectionOptionsFactory.get_connection_options(
@@ -437,7 +360,9 @@ class Dataloom:
         except Exception as e:
             raise Exception(e)
 
-    def sync(self, models: list[Model], drop=False, force=False, alter=False):
+    def sync(
+        self, models: list[Model], drop=False, force=False, alter=False
+    ) -> list[str]:
         try:
             for model in models:
                 if drop or force:

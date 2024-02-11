@@ -4,16 +4,31 @@ from dataloom.types import DIALECT_LITERAL
 from typing import Callable, Any
 from dataloom.exceptions import InvalidColumnValuesException
 from dataloom.utils import get_insert_bulk_attrs
+from abc import ABC, abstractclassmethod
 
 
-class insert:
+class Insert(ABC):
+    @abstractclassmethod
+    def insert_one(
+        self, instance: Model, values: ColumnValue | list[ColumnValue]
+    ) -> Any:
+        raise NotImplementedError("The insert_one method was not implemented.")
+
+    @abstractclassmethod
+    def insert_bulk(self, instance: Model, values: list[list[ColumnValue]]) -> int:
+        raise NotImplementedError("The insert_bulk method was not implemented.")
+
+
+class insert(Insert):
     def __init__(
         self, dialect: DIALECT_LITERAL, _execute_sql: Callable[..., Any]
     ) -> None:
         self._execute_sql = _execute_sql
         self.dialect = dialect
 
-    def insert_one(self, instance: Model, values: ColumnValue | list[ColumnValue]):
+    def insert_one(
+        self, instance: Model, values: ColumnValue | list[ColumnValue]
+    ) -> Any:
         sql, values = instance._get_insert_one_stm(dialect=self.dialect, values=values)
         row = self._execute_sql(
             sql,
@@ -23,7 +38,7 @@ class insert:
         )
         return row[0] if type(row) in [list, tuple] else row
 
-    def insert_bulk(self, instance: Model, values: list[list[ColumnValue]]):
+    def insert_bulk(self, instance: Model, values: list[list[ColumnValue]]) -> int:
         # ? ensure that the values that are passed is a list of a list and they inner list have the same length
         if not isinstance(values, list):
             raise InvalidColumnValuesException(
