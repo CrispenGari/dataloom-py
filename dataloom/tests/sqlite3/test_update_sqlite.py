@@ -51,7 +51,7 @@ class TestUpdateOnSQLite:
             ColumnValue(name="userId", value=userId),
         ]
         _ = sqlite_loom.insert_bulk(Post, values=[post for i in range(5)])
-        time.sleep(0.05)
+        time.sleep(1)
         res_1 = sqlite_loom.update_by_pk(
             User, userId, ColumnValue(name="username", value="Gari")
         )
@@ -121,7 +121,7 @@ class TestUpdateOnSQLite:
             ColumnValue(name="userId", value=userId),
         ]
         _ = sqlite_loom.insert_bulk(Post, values=[post for i in range(5)])
-        time.sleep(0.05)
+        time.sleep(1)
         res_1 = sqlite_loom.update_one(
             User,
             filters=Filter(column="username", value="@miller"),
