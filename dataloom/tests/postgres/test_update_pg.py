@@ -57,7 +57,7 @@ class TestUpdateOnPG:
             ColumnValue(name="userId", value=userId),
         ]
         _ = pg_loom.insert_bulk(Post, [post for i in range(5)])
-        time.sleep(1)
+        time.sleep(0.05)
         res_1 = pg_loom.update_by_pk(
             User, userId, ColumnValue(name="username", value="Gari")
         )
@@ -132,7 +132,7 @@ class TestUpdateOnPG:
             ColumnValue(name="userId", value=userId),
         ]
         _ = pg_loom.insert_bulk(Post, [post for i in range(5)])
-        time.sleep(1)
+        time.sleep(0.05)
         res_1 = pg_loom.update_one(
             User,
             filters=Filter(column="username", value="@miller"),

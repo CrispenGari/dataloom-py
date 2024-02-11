@@ -58,7 +58,7 @@ class TestUpdateOnMySQL:
         ]
 
         _ = mysql_loom.insert_bulk(Post, [post for i in range(5)])
-        time.sleep(1)
+        time.sleep(2)
         res_1 = mysql_loom.update_by_pk(
             User, userId, ColumnValue(name="username", value="Gari")
         )
@@ -134,7 +134,7 @@ class TestUpdateOnMySQL:
         ]
 
         _ = mysql_loom.insert_bulk(Post, [post for i in range(5)])
-        time.sleep(1)
+        time.sleep(2)
         res_1 = mysql_loom.update_one(
             User,
             filters=Filter(column="username", value="@miller"),
