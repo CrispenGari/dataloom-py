@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dataloom"
-version = "1.0.1"
+version = "1.0.2"
 authors = [
     {name = "Crispen Gari", email = "crispengari@gmail.com"},
 ]
