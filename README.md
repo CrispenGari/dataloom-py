@@ -6,6 +6,15 @@
 <img src="https://github.com/CrispenGari/dataloom/blob/main/dataloom.png?raw=true" alt="dataloom" width="200">
 </p>
 
+---
+
+<p align="center">
+  <a href="https://pypi.python.org/pypi/dataloom"><img src="https://badge.fury.io/py/dataloom.svg"></a>
+  <a href="https://github.com/crispengari/dataloom/actions/workflows/ci.yml"><img src="https://github.com/crispengari/dataloom/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green"></a>
+  <a href="https://pypi.python.org/pypi/dataloom"><img src="https://img.shields.io/pypi/pyversions/dataloom.svg"></a>
+</p>
+
 #### Why choose `dataloom`?
 
 1. **Ease of Use**: `dataloom` offers a user-friendly interface, making it straightforward to work with.
