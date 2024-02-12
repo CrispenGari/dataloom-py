@@ -1,52 +1,49 @@
-### dataloom Changelog
+===============================================================================================================================================
+**`1.0.2`**
+===============================================================================================================================================
 
-Change logs for the `dataloom` Version `1.0.2` (`2021-02-12`)
+We have release the new `dataloom` Version `1.0.2` (`2024-02-12`)
+
+### Changes
+
+We have updated the documentation so that it can look more colorful.
+
+===============================================================================================================================================
+**`1.0.1`**
+===============================================================================================================================================
+
+Change logs for the `dataloom` Version `1.0.1` (`2024-02-12`)
 
 ### New Features
 
 - **Docstring**: Now the functions and classes have a beautiful docstring that helps ypu with some examples and references in the editor.
 - **SQL Loggers**: The SQL Loggers can now log `timestamps` not the log index especially for the `console` logger.
 
-### Enhancements
+===============================================================================================================================================
+**`1.0.0`**
+===============================================================================================================================================
 
-- None
+### Release Notes - `dataloom`
 
-### Bug Fixes
+We are pleased to release `dataloom` ORM for python version `3.12` and above. The dataloom version `1.0.0 ` released on (`2024-02-11`) is bug-free and ready to be used with the following features.
 
-- **log_index**: There was a bug with `log_index` that was breaking the entire sofware that has been fixed.
+##### Features
 
-### Performance Improvements
+- Initial release of `dataloom`.
+- Lightweight and versatile Object-Relational Mapping (ORM) functionality.
+- Support for `PostgreSQL`, `MySQL`, and `SQLite3` databases.
+- Simplified database interactions for developers.
 
-- None
+### What you can do
 
-### Security Updates
-
-- None
-
-### Deprecations
-
-- None
-
-### API Changes
-
-- None
-
-### Compatibility Changes
-
-- None
-
-### Documentation Updates
-
-- None
-
-### Internal Changes
-
-- None
-
-### Known Issues
-
-- None
-
-### Miscellaneous
-
-- None
+- Create records
+- Delete records
+- Update records
+- Read records
+- Inspect Models
+- SQL logging
+- Association Mapping
+- Order Records
+- Filter Records
+- Select field in records
+- etc.
