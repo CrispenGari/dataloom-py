@@ -28,6 +28,44 @@ from dataloom.loom.interfaces import IDataloom
 
 
 class Dataloom(IDataloom):
+    """
+    Dataloom
+    --------
+
+    This class allows you to define a loom object for your database connection.
+
+    Parameters
+    ----------
+    database : str
+        The name of the database to which you will connect, for PostgreSQL or MySQL, and the file name for SQLite.
+    dialect : "mysql" | "postgres" | "sqlite"
+        The database dialect to which you want to connect; it is required.
+    user : str, optional
+        The database username with which you want to connect. It defaults to the dialect's default values.
+    host : str, optional
+        The database host to which you will connect. It defaults to the dialect's default values.
+    port : int, optional
+        The database port to which you will connect. It defaults to the dialect's default values.
+    password : str, optional
+        The database password for the specified user. It defaults to the dialect's default value.
+    sql_logger : "console" | "file"
+        The default logging platform for SQL statements. It defaults to None for no logs on either file or console.
+    logs_filename : str, optional
+        The logging file name for SQL statement logs if the sql_logger is set to "file"; otherwise, it defaults to "dataloom.sql".
+
+    Examples
+    --------
+    >>> from dataloom import Dataloom
+    ... loom = Dataloom(
+    ...    dialect="postgres",
+    ...    database="hi",
+    ...    password="root",
+    ...    user="postgres",
+    ...    sql_logger="console",
+    ... )
+
+    """
+
     def __init__(
         self,
         database: str,

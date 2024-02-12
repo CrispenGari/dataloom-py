@@ -9,6 +9,8 @@ from dataloom import (
     ForeignKeyColumn,
     Filter,
     ColumnValue,
+    Include,
+    Order,
 )
 from typing import Optional
 
@@ -99,6 +101,20 @@ affected_rows = mysql_loom.decrement(
     User,
     filters=[Filter(column="id", value=1, operator="eq")],
     column=ColumnValue(name="tokenVersion", value=2),
+)
+
+affected_rows = mysql_loom.update_one(
+    User,
+    filters=[
+        Filter(column="id", value=1, operator="eq", join_next_filter_with="OR"),
+        Filter(column="username", value="miller"),
+    ],
+    values=[
+        [
+            ColumnValue(name="username", value="Mario"),
+            ColumnValue(name="name", value="Mario"),
+        ]
+    ],
 )
 print(affected_rows)
 

@@ -23,6 +23,32 @@ from dataloom.utils import (
 
 
 class Model:
+    """
+    Model
+    -----
+
+    A top-level class that all database tables inherit from.
+
+    Attributes
+    ----------
+    __tablename__ : Optional[TableColumn]
+        The name of the table in the database. If not specified, it defaults to None.
+
+    Examples
+    --------
+    >>> from dataloom import Model, TableColumn, PrimaryKeyColumn, Column
+    ... from typing import Optional
+    ...
+    ... class User(Model):
+    ...     __tablename__: Optional[TableColumn] = TableColumn(name="users")
+    ...     id = PrimaryKeyColumn(type="int", auto_increment=True)
+    ...     name = Column(type="text", nullable=False)
+    ...     username = Column(type="varchar", unique=True, length=255)
+
+    The above example shows you how you can use the model class to create a table called "users".
+
+    """
+
     @classmethod
     def _create_sql(cls, dialect: DIALECT_LITERAL, ignore_exists=True):
         sqls = GetStatement(
