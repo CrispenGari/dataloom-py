@@ -195,7 +195,6 @@ def get_relationships(
     includes: list[dict], fks: dict, parent_table_name: str | None = None
 ):
     relationships = []
-    (includes)
     for include in includes:
         if parent_table_name is not None:
             fks = include["foreign_keys"]
@@ -236,14 +235,14 @@ def get_child_table_params(include: Include, dialect: DIALECT_LITERAL):
     orders = None
     select = include.select
     pk_name = None
-    table__name = include.model._get_table_name()
+    table_name = include.model._get_table_name()
     alias = include.model.__name__.lower()
     fields, pk_name, fks, _ = get_table_fields(include.model, dialect=dialect)
 
     for column in select:
         if column not in fields:
             raise UnknownColumnException(
-                f'The table "{table__name}" does not have a column "{column}".'
+                f'The table "{table_name}" does not have a column "{column}".'
             )
 
     return {
@@ -254,7 +253,7 @@ def get_child_table_params(include: Include, dialect: DIALECT_LITERAL):
         "limit": limit,
         "orders": orders,
         "select": select,
-        "table": table__name,
+        "table": table_name,
         "pk_name": pk_name,
         "foreign_keys": fks,
         "maps_to": include.maps_to,

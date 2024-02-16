@@ -14,6 +14,12 @@ from dataloom import (
 )
 from typing import Optional
 
+sqlite_loom = Dataloom(
+    dialect="sqlite",
+    database="hi.db",
+    logs_filename="sqlite-logs.sql",
+    sql_logger="console",
+)
 
 pg_loom = Dataloom(
     dialect="postgres",
@@ -22,22 +28,17 @@ pg_loom = Dataloom(
     user="postgres",
     sql_logger="console",
 )
-mysql_loom = Dataloom(
-    dialect="mysql",
-    database="hi",
-    password="root",
-    user="root",
-    host="localhost",
-    logs_filename="logs.sql",
-    port=3306,
-    sql_logger="file",
-)
-sqlite_loom = Dataloom(
-    dialect="sqlite",
-    database="hi.db",
-    logs_filename="sqlite-logs.sql",
-    sql_logger="console",
-)
+
+# mysql_loom = Dataloom(
+#     dialect="mysql",
+#     database="hi",
+#     password="root",
+#     user="root",
+#     host="localhost",
+#     logs_filename="logs.sql",
+#     port=3306,
+#     sql_logger="console",
+# )
 
 
 class User(Model):
@@ -56,7 +57,7 @@ class Profile(Model):
         User,
         maps_to="1-1",
         type="int",
-        required=False,
+        required=True,
         onDelete="CASCADE",
         onUpdate="CASCADE",
     )
@@ -69,7 +70,6 @@ class Post(Model):
     title = Column(type="varchar", length=255, nullable=False)
     # timestamps
     createdAt = CreatedAtColumn()
-    updatedAt = UpdatedAtColumn()
     # relations
     userId = ForeignKeyColumn(
         User,
@@ -81,105 +81,68 @@ class Post(Model):
     )
 
 
-class Category(Model):
-    __tablename__: Optional[TableColumn] = TableColumn(name="categories")
-    id = PrimaryKeyColumn(type="int", auto_increment=True, nullable=False, unique=True)
-    type = Column(type="varchar", length=255, nullable=False)
+conn, tables = pg_loom.connect_and_sync([User, Profile, Post], drop=True, force=True)
 
 
-conn, tables = mysql_loom.connect_and_sync(
-    [Post, User, Category, Profile], drop=True, force=True
-)
-
-
-userId = mysql_loom.insert_one(
+userId = pg_loom.insert_one(
     instance=User,
     values=ColumnValue(name="username", value="@miller"),
 )
 
-affected_rows = mysql_loom.decrement(
-    User,
-    filters=[Filter(column="id", value=1, operator="eq")],
-    column=ColumnValue(name="tokenVersion", value=2),
-)
-
-affected_rows = mysql_loom.update_one(
-    User,
-    filters=[
-        Filter(column="id", value=1, operator="eq", join_next_filter_with="OR"),
-        Filter(column="username", value="miller"),
-    ],
+profileId = pg_loom.insert_one(
+    instance=Profile,
     values=[
-        [
-            ColumnValue(name="username", value="Mario"),
-            ColumnValue(name="name", value="Mario"),
-        ]
+        ColumnValue(name="userId", value=userId),
+        ColumnValue(name="avatar", value="hello.jpg"),
     ],
 )
-print(affected_rows)
+for title in ["Hey", "Hello", "What are you doing", "Coding"]:
+    pg_loom.insert_one(
+        instance=Post,
+        values=[
+            ColumnValue(name="userId", value=userId),
+            ColumnValue(name="title", value=title),
+        ],
+    )
 
+# profile = pg_loom.find_by_pk(
+#     instance=Profile,
+#     pk=profileId,
+#     include=[
+#         Include(model=User, select=["id", "username", "tokenVersion"], has='one')
+#     ],
+# )
 
-# categories = ["general", "education", "sport", "culture"]
-# cats = []
-# for cat in categories:
-#     pId = mysql_loom.insert_one(
-#         instance=Post,
-#         values=[
-#             ColumnValue(name="title", value=f"What are you doing {cat}?"),
-#             ColumnValue(name="userId", value=userId),
-#         ],
-#     )
-# #     cats.append(
-# #         [ColumnValue(name="type", value=cat), ColumnValue(name="postId", value=pId)]
-# #     )
+# user = pg_loom.find_by_pk(
+#     instance=User,
+#     pk=userId,
+#     include=[Include(model=Profile, select=["id", "avatar"], has='one')],
+# )
 
+user = pg_loom.find_by_pk(
+    instance=User,
+    pk=userId,
+    include=[
+        Include(
+            model=Post,
+            select=["id", "title"],
+            has="many",
+            offset=0,
+            limit=2,
+            order=[
+                Order(column="createdAt", order="DESC"),
+                Order(column="id", order="DESC"),
+            ],
+        ),
+        Include(model=Profile, select=["id", "avatar"], has="one"),
+    ],
+)
+print(user)
 
-# table = mysql_loom.inspect(instance=User)
+post = pg_loom.find_by_pk(
+    instance=Post,
+    pk=1,
+    include=[Include(model=User, select=["id", "username"], has="one")],
+)
 
-# print(table)
-
-
-# # post = mysql_loom.find_by_pk(
-# #     Post,
-# #     pk=1,
-# #     include=[Include(model=User, select=["id", "username"], maps_to="N-1")],
-# #     select=["title", "completed"],
-# # )
-# # print("---- post", post)
-
-
-# # if __name__ == "__main__":
-# #     conn.close()
-
-
-# categories = ["general", "education", "sport", "culture"]
-# cats = []
-# for cat in categories:
-#     pId = mysql_loom.insert_one(
-#         instance=Post,
-#         values=[
-#             ColumnValue(name="title", value=f"What are you doing {cat}?"),
-#             ColumnValue(name="userId", value=userId),
-#         ],
-#     )
-# #     cats.append(
-# #         [ColumnValue(name="type", value=cat), ColumnValue(name="postId", value=pId)]
-# #     )
-
-
-# table = mysql_loom.inspect(instance=User)
-
-# print(table)
-
-
-# # post = mysql_loom.find_by_pk(
-# #     Post,
-# #     pk=1,
-# #     include=[Include(model=User, select=["id", "username"], maps_to="N-1")],
-# #     select=["title", "completed"],
-# # )
-# # print("---- post", post)
-
-
-# # if __name__ == "__main__":
-# #     conn.close()
+print(post)

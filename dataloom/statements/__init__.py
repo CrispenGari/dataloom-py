@@ -744,3 +744,111 @@ class GetStatement[T]:
                 "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
             )
         return sql
+
+    def _get_select_child_by_pk_command(
+        self,
+        child_pk_name: str,
+        parent_pk_name: str,
+        parent_table_name: str,
+        child_foreign_key_name: str,
+        fields: list = [],
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+        orders: list[str] = [],
+    ):
+        if self.dialect == "postgres":
+            sql = PgStatements.SELECT_CHILD_BY_PK.format(
+                child_column_names=", ".join([f'"{name}"' for name in fields]),
+                child_table_name=f'"{self.table_name}"',
+                child_pk_name=child_pk_name,
+                child_foreign_key_name=f'"{child_foreign_key_name}"',
+                parent_table_name=f'"{parent_table_name}"',
+                parent_pk_name=parent_pk_name,
+                parent_pk="%s",
+                limit="" if limit is None else "LIMIT %s",
+                offset="" if offset is None else "OFFSET %s",
+                orders="" if len(orders) == 0 else f"ORDER BY {', '.join(orders)}",
+            )
+        elif self.dialect == "mysql":
+            sql = MySqlStatements.SELECT_CHILD_BY_PK.format(
+                child_column_names=", ".join([f"`{name}`" for name in fields]),
+                child_table_name=f"`{self.table_name}`",
+                child_pk_name=child_pk_name,
+                child_foreign_key_name=f"`{child_foreign_key_name}`",
+                parent_table_name=f"`{parent_table_name}`",
+                parent_pk_name=parent_pk_name,
+                parent_pk="%s",
+                limit="" if limit is None else "LIMIT %s",
+                offset="" if offset is None else "OFFSET %s",
+                orders="" if len(orders) == 0 else f"ORDER BY {', '.join(orders)}",
+            )
+        elif self.dialect == "sqlite":
+            sql = Sqlite3Statements.SELECT_CHILD_BY_PK.format(
+                child_column_names=", ".join([f"`{name}`" for name in fields]),
+                child_table_name=f"`{self.table_name}`",
+                child_pk_name=child_pk_name,
+                child_foreign_key_name=f"`{child_foreign_key_name}`",
+                parent_table_name=f"`{parent_table_name}`",
+                parent_pk_name=parent_pk_name,
+                parent_pk="?",
+                limit="" if limit is None else "LIMIT ?",
+                offset="" if offset is None else "OFFSET ?",
+                orders="" if len(orders) == 0 else f"ORDER BY {', '.join(orders)}",
+            )
+        else:
+            raise UnsupportedDialectException(
+                "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
+            )
+        return sql
+
+    def _get_select_parent_by_pk_stm(
+        self,
+        child_pk_name: str,
+        child_table_name: str,
+        parent_fk_name: str,
+        fields: list = [],
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+        orders: list[str] = [],
+    ):
+        if self.dialect == "postgres":
+            sql = PgStatements.SELECT_PARENT_BY_PK.format(
+                parent_column_names=", ".join([f'"{name}"' for name in fields]),
+                parent_table_name=f'"{self.table_name}"',
+                parent_fk_name=f'"{parent_fk_name}"',
+                child_table_name=f'"{child_table_name}"',
+                child_pk_name=child_pk_name,
+                child_pk="%s",
+                limit="" if limit is None else "LIMIT %s",
+                offset="" if offset is None else "OFFSET %s",
+                orders="" if len(orders) == 0 else f"ORDER BY {', '.join(orders)}",
+            )
+        elif self.dialect == "mysql":
+            sql = MySqlStatements.SELECT_PARENT_BY_PK.format(
+                parent_column_names=", ".join([f"`{name}`" for name in fields]),
+                parent_table_name=f"`{self.table_name}`",
+                parent_fk_name=f"`{parent_fk_name}`",
+                child_table_name=f"`{child_table_name}`",
+                child_pk_name=child_pk_name,
+                child_pk="%s",
+                limit="" if limit is None else "LIMIT %s",
+                offset="" if offset is None else "OFFSET %s",
+                orders="" if len(orders) == 0 else f"ORDER BY {', '.join(orders)}",
+            )
+        elif self.dialect == "sqlite":
+            sql = Sqlite3Statements.SELECT_PARENT_BY_PK.format(
+                parent_column_names=", ".join([f"`{name}`" for name in fields]),
+                parent_table_name=f"`{self.table_name}`",
+                parent_fk_name=f"`{parent_fk_name}`",
+                child_table_name=f"`{child_table_name}`",
+                child_pk_name=child_pk_name,
+                child_pk="?",
+                limit="" if limit is None else "LIMIT ?",
+                offset="" if offset is None else "OFFSET ?",
+                orders="" if len(orders) == 0 else f"ORDER BY {', '.join(orders)}",
+            )
+        else:
+            raise UnsupportedDialectException(
+                "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
+            )
+        return sql

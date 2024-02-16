@@ -1190,6 +1190,7 @@ class Dataloom(IDataloom):
         bulk: bool = False,
         affected_rows: bool = False,
         operation: Optional[str] = None,
+        _verbose: int = 1,
     ) -> Any:
         return self.sql_obj.execute_sql(
             sql=sql,
@@ -1201,6 +1202,7 @@ class Dataloom(IDataloom):
             fetchone=fetchone,
             fetchmany=fetchmany,
             affected_rows=affected_rows,
+            _verbose=_verbose,
         )
 
     def connect(

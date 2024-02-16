@@ -60,9 +60,10 @@ class sql(SQL):
         bulk: bool = False,
         affected_rows: bool = False,
         operation: Optional[str] = None,
+        _verbose: int = 1,
     ) -> Any:
         # do we need to log the executed SQL?
-        if self.sql_logger is not None:
+        if self.sql_logger is not None and _verbose > 0:
             if self.sql_logger == "console":
                 index = console_logger(
                     index=self.__logger_index,

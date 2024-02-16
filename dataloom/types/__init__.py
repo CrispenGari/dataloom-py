@@ -10,6 +10,7 @@ SQL_LOGGER_LITERAL = Literal["console", "file"]
 CASCADE_LITERAL = Literal["NO ACTION", "CASCADE", "SET NULL"]
 DIALECT_LITERAL = Literal["postgres", "mysql", "sqlite"]
 RELATIONSHIP_LITERAL = Literal["1-1", "1-N", "N-1", "N-N"]
+INCLUDE_LITERAL = Literal["one", "many"]
 
 
 SLQ_OPERATORS = {
@@ -430,7 +431,7 @@ class Include[Model]:
     limit: Optional[int] = field(default=0)
     offset: Optional[int] = field(default=0)
     select: Optional[list[str]] = field(default_factory=list)
-    maps_to: RELATIONSHIP_LITERAL = field(default="1-N")
+    has: INCLUDE_LITERAL = field(default="many")
 
     def __init__(
         self,
@@ -439,7 +440,7 @@ class Include[Model]:
         limit: Optional[int] = 0,
         offset: Optional[int] = 0,
         select: Optional[list[str]] = [],
-        maps_to: RELATIONSHIP_LITERAL = "1-N",
+        has: INCLUDE_LITERAL = "many",
     ):
         """
         Include
@@ -489,7 +490,7 @@ class Include[Model]:
         self.order = order
         self.limit = limit
         self.offset = offset
-        self.maps_to = maps_to
+        self.has = has
 
 
 POSTGRES_SQL_TYPES = {

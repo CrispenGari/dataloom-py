@@ -4,6 +4,7 @@ from dataloom.types import DIALECT_LITERAL
 from typing import Callable, Any, Optional
 from dataloom.utils import get_child_table_columns, get_args
 from abc import ABC, abstractclassmethod
+from dataloom.loom.subqueries import subquery
 
 
 class Query(ABC):
@@ -168,21 +169,19 @@ class query(Query):
         # This part will be added in the future version.
         # """
         return_dict = True
-        include = []
+
         # what is the name of the primary key column? well we will find out
         sql, fields, _includes = instance._get_select_by_pk_stm(
-            dialect=self.dialect, select=select, include=include
+            dialect=self.dialect, select=select, include=[]
         )
         rows = self._execute_sql(sql, args=(pk,), fetchone=True)
         if rows is None:
             return None
-        return self.__map_relationships(
-            instance=instance,
-            row=rows,
-            parent_fields=fields,
-            include=_includes,
-            return_dict=return_dict,
-        )
+        result = dict(zip(fields, rows))
+        relations = subquery(
+            dialect=self.dialect, _execute_sql=self._execute_sql
+        ).get_find_by_pk_relations(parent=instance, includes=include, pk=pk)
+        return {**result, **relations}
 
     def find_one(
         self,

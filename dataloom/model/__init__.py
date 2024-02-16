@@ -561,3 +561,110 @@ class Model:
                 "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
             )
         return sql
+
+    @classmethod
+    def _get_select_child_by_pk_stm(
+        cls,
+        dialect: DIALECT_LITERAL,
+        parent_pk_name: str,
+        parent_table_name: str,
+        child_foreign_key_name: str,
+        select: list[str] = [],
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+        order: Optional[list[Order]] = [],
+    ):
+        # what is the pk name?
+        # what are the foreign keys?
+        fields, pk_name, fks, updatedAtColumName = get_table_fields(
+            cls, dialect=dialect
+        )
+        orders = []
+        if order is not None:
+            for _order in order:
+                if _order.column not in fields:
+                    raise UnknownColumnException(
+                        f'The table "{cls._get_table_name()}" does not have a column "{_order.column}".'
+                    )
+                orders.append(
+                    f'"{_order.column}" {_order.order}'
+                    if dialect == "postgres"
+                    else f"`{_order.column}` {_order.order}"
+                )
+
+        for column in select:
+            if column not in fields:
+                raise UnknownColumnException(
+                    f'The table "{cls._get_table_name()}" does not have a column "{column}".'
+                )
+        if dialect == "postgres" or "mysql" or "sqlite":
+            sql = GetStatement(
+                dialect=dialect, model=cls, table_name=cls._get_table_name()
+            )._get_select_child_by_pk_command(
+                fields=select if len(select) != 0 else fields,
+                child_pk_name=pk_name,
+                parent_pk_name=parent_pk_name,
+                parent_table_name=parent_table_name,
+                child_foreign_key_name=child_foreign_key_name,
+                limit=limit,
+                offset=offset,
+                orders=orders,
+            )
+        else:
+            raise UnsupportedDialectException(
+                "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
+            )
+        return sql, fields if len(select) == 0 else select
+
+    @classmethod
+    def _get_select_parent_by_pk_stm(
+        cls,
+        dialect: DIALECT_LITERAL,
+        child_pk_name: str,
+        child_table_name: str,
+        parent_fk_name: str,
+        select: list[str] = [],
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+        order: list[Order] = [],
+    ):
+        # what is the pk name?
+        # what are the foreign keys?
+        fields, pk_name, fks, updatedAtColumName = get_table_fields(
+            cls, dialect=dialect
+        )
+        orders = []
+        if order is not None:
+            for _order in order:
+                if _order.column not in fields:
+                    raise UnknownColumnException(
+                        f'The table "{cls._get_table_name()}" does not have a column "{_order.column}".'
+                    )
+                orders.append(
+                    f'"{_order.column}" {_order.order}'
+                    if dialect == "postgres"
+                    else f"`{_order.column}` {_order.order}"
+                )
+
+        for column in select:
+            if column not in fields:
+                raise UnknownColumnException(
+                    f'The table "{cls._get_table_name()}" does not have a column "{column}".'
+                )
+        if dialect == "postgres" or "mysql" or "sqlite":
+            sql = GetStatement(
+                dialect=dialect, model=cls, table_name=cls._get_table_name()
+            )._get_select_parent_by_pk_stm(
+                fields=select if len(select) != 0 else fields,
+                child_pk_name=child_pk_name,
+                child_table_name=child_table_name,
+                parent_fk_name=parent_fk_name,
+                limit=limit,
+                offset=offset,
+                orders=orders,
+            )
+        else:
+            raise UnsupportedDialectException(
+                "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
+            )
+        return sql, fields if len(select) == 0 else select
