@@ -170,15 +170,14 @@ def get_table_fields(model, dialect: DIALECT_LITERAL):
     pk_name = None
     updatedAtColumName = None
     fields = []
-    fks = dict()
+    fks = []
     for name, field in inspect.getmembers(model):
         if isinstance(field, Column):
             fields.append(name)
         elif isinstance(field, ForeignKeyColumn):
             fields.append(name)
             table_name = field.table._get_table_name()
-            fks[table_name] = name
-            fks["mapped_to"] = field.maps_to
+            fks.append({table_name: name, "mapped_to": field.maps_to})
         elif isinstance(field, PrimaryKeyColumn):
             fields.append(name)
             pk_name = f'"{name}"' if dialect == "postgres" else f"`{name}`"
