@@ -852,3 +852,46 @@ class GetStatement[T]:
                 "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
             )
         return sql
+
+    def _get_pk_command(
+        self,
+        pk_name: str,
+        filters: list[str],
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+        orders: Optional[list[str]] = [],
+    ):
+        """
+        Getting the primary key value of the table  based on filters.
+        """
+        options = [
+            "" if len(orders) == 0 else f"ORDER BY {', '.join(orders)}",
+            "" if limit is None else f"LIMIT {limit}",
+            "" if offset is None else f"OFFSET { offset}",
+        ]
+        if self.dialect == "postgres":
+            sql = PgStatements.GET_PK_COMMAND.format(
+                table_name=f'"{self.table_name}"',
+                options=" ".join(options),
+                pk_name=pk_name,
+                filters="" if len(filters) == 0 else "WHERE" + " ".join(filters),
+            )
+        elif self.dialect == "mysql":
+            sql = MySqlStatements.GET_PK_COMMAND.format(
+                table_name=f"`{self.table_name}`",
+                options=" ".join(options),
+                pk_name=pk_name,
+                filters="" if len(filters) == 0 else "WHERE" + " ".join(filters),
+            )
+        elif self.dialect == "sqlite":
+            sql = Sqlite3Statements.GET_PK_COMMAND.format(
+                table_name=f"`{self.table_name}`",
+                options=" ".join(options),
+                pk_name=pk_name,
+                filters="" if len(filters) == 0 else "WHERE" + " ".join(filters),
+            )
+        else:
+            raise UnsupportedDialectException(
+                "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
+            )
+        return sql

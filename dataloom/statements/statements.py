@@ -98,6 +98,8 @@ class MySqlStatements:
     ) {orders} {limit} {offset};
     """
 
+    GET_PK_COMMAND = "SELECT {pk_name} FROM {table_name} {filters} {options};".strip()
+
     # -------------- subqueries
 
     SELECT_BY_PK_INCLUDE_COMMAND = """
@@ -195,6 +197,7 @@ class Sqlite3Statements:
         SELECT {child_pk_name} FROM {child_table_name} WHERE {child_pk_name} = {child_pk}
     ) {orders} {limit} {offset};
     """
+    GET_PK_COMMAND = "SELECT {pk_name} FROM {table_name} {filters} {options};".strip()
 
     # -------------- subqueries
 
@@ -314,6 +317,8 @@ class PgStatements:
         SELECT {child_pk_name} FROM {child_table_name} WHERE {child_pk_name} = {child_pk}
     ) {orders} {limit} {offset};
     """
+
+    GET_PK_COMMAND = "SELECT {pk_name} FROM {table_name} {filters} {options};".strip()
     # -------------- subqueries
 
     SELECT_BY_PK_INCLUDE_COMMAND = """

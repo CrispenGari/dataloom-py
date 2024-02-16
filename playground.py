@@ -139,23 +139,23 @@ for cat in ["general", "education", "tech", "sport"]:
     print()
 
 
-profile = mysql_loom.find_by_pk(
+profile = mysql_loom.find_one(
     instance=Profile,
-    pk=profileId,
+    filters=[Filter(column="userId", value=1)],
     include=[Include(model=User, select=["id", "username", "tokenVersion"], has="one")],
 )
 print(profile)
 
-user = mysql_loom.find_by_pk(
+user = mysql_loom.find_one(
     instance=User,
-    pk=userId,
+    filters=[Filter(column="id", value=userId)],
     include=[Include(model=Profile, select=["id", "avatar"], has="one")],
 )
 print(user)
 
-user = mysql_loom.find_by_pk(
+user = mysql_loom.find_one(
     instance=User,
-    pk=userId,
+    filters=[Filter(column="id", value=userId)],
     include=[
         Include(
             model=Post,
@@ -173,9 +173,9 @@ user = mysql_loom.find_by_pk(
 )
 print(user)
 
-post = mysql_loom.find_by_pk(
+post = mysql_loom.find_one(
     instance=Post,
-    pk=1,
+    filters=[Filter(column="userId", value=userId)],
     select=["title", "id"],
     include=[
         Include(
@@ -189,6 +189,7 @@ post = mysql_loom.find_by_pk(
             select=["id", "type"],
             has="many",
             order=[Order(column="id", order="DESC")],
+            limit=2,
         ),
     ],
 )
@@ -196,9 +197,9 @@ post = mysql_loom.find_by_pk(
 print(post)
 
 
-user = mysql_loom.find_by_pk(
+user = mysql_loom.find_one(
     instance=User,
-    pk=userId2,
+    filters=[Filter(column="id", value=userId2)],
     select=["username", "id"],
     include=[
         Include(
@@ -220,3 +221,7 @@ user = mysql_loom.find_by_pk(
 )
 
 print(user)
+
+
+posts = mysql_loom.find_one(Post, select=["id", "completed"])
+print(posts)

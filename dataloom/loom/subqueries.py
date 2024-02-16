@@ -1,8 +1,8 @@
-from dataloom.utils import get_table_fields
-from dataloom.types import DIALECT_LITERAL, Include
+from dataloom.utils import get_table_fields, get_args
+from dataloom.types import DIALECT_LITERAL, Include, Filter
 from dataloom.model import Model
 from dataclasses import dataclass
-from typing import Callable, Any
+from typing import Callable, Any, Optional
 import re
 
 
@@ -11,8 +11,28 @@ class subquery:
     dialect: DIALECT_LITERAL
     _execute_sql: Callable[..., Any]
 
-    def get_find_by_pk_relations(self, parent: Model, pk, includes: list[Include] = []):
+    def get_find_one_relations(
+        self,
+        parent: Model,
+        filters: Optional[Filter | list[Filter]] = None,
+        includes: list[Include] = [],
+        offset: Optional[int] = None,
+    ):
+        _, _, fks, _ = get_table_fields(parent, dialect=self.dialect)
+        sql, params = parent._get_select_pk_stm(
+            dialect=self.dialect,
+            filters=filters,
+            limit=1,
+            offset=offset,
+            order=[],
+        )
+        print(sql)
+        args = get_args(params)
+        row = self._execute_sql(sql, args=args, fetchone=True, _verbose=0)
+        if row is None:
+            return {}
         relations = dict()
+        (pk,) = row
         for include in includes:
             _, parent_pk_name, fks, _ = get_table_fields(
                 include.model, dialect=self.dialect
@@ -20,7 +40,7 @@ class subquery:
             if len(include.include) == 0:
                 relations = {
                     **relations,
-                    **self.get_one(
+                    **self.get_one_by_pk(
                         parent=parent, pk=pk, include=include, foreign_keys=fks
                     ),
                 }
@@ -30,7 +50,7 @@ class subquery:
                 key = include.model.__name__.lower() if has_one else table_name
                 relations = {
                     **relations,
-                    **self.get_one(
+                    **self.get_one_by_pk(
                         parent=parent, pk=pk, include=include, foreign_keys=fks
                     ),
                 }
@@ -61,7 +81,62 @@ class subquery:
                         }
         return relations
 
-    def get_one(
+    def get_find_by_pk_relations(self, parent: Model, pk, includes: list[Include] = []):
+        relations = dict()
+        for include in includes:
+            _, parent_pk_name, fks, _ = get_table_fields(
+                include.model, dialect=self.dialect
+            )
+            if len(include.include) == 0:
+                relations = {
+                    **relations,
+                    **self.get_one_by_pk(
+                        parent=parent, pk=pk, include=include, foreign_keys=fks
+                    ),
+                }
+            else:
+                has_one = include.has == "one"
+                table_name = include.model._get_table_name().lower()
+                key = include.model.__name__.lower() if has_one else table_name
+                relations = {
+                    **relations,
+                    **self.get_one_by_pk(
+                        parent=parent, pk=pk, include=include, foreign_keys=fks
+                    ),
+                }
+                _, parent_pk_name, parent_fks, _ = get_table_fields(
+                    parent, dialect=self.dialect
+                )
+
+                if isinstance(relations[key], dict):
+                    _pk = relations[key][re.sub(r'`|"', "", parent_pk_name)]
+                    relations[key] = {
+                        **relations[key],
+                        **self.get_find_by_pk_relations(
+                            include.model, _pk, includes=include.include
+                        ),
+                    }
+                else:
+                    _pk = (
+                        relations[key][0][re.sub(r'`|"', "", parent_pk_name)]
+                        if len(relations[key]) != 0
+                        else None
+                    )
+                    if _pk is not None:
+                        relations[key] = {
+                            **relations[key],
+                            **self.get_find_by_pk_relations(
+                                include.model, _pk, includes=include.include
+                            ),
+                        }
+        return relations
+
+    def get_one_by_filters(
+        self, parent: Model, include: Include, pk: Any, foreign_keys: list[dict]
+    ):
+        pass
+
+    def get_one_by_pk(
         self, parent: Model, include: Include, pk: Any, foreign_keys: list[dict]
     ):
         _, parent_pk_name, parent_fks, _ = get_table_fields(

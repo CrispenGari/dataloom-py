@@ -193,22 +193,25 @@ class query(Query):
         offset: Optional[int] = None,
     ) -> dict | None:
         return_dict = True
-        include = []
         sql, params, fields = instance._get_select_where_stm(
             dialect=self.dialect,
             filters=filters,
             select=select,
             offset=offset,
-            include=include,
+            include=[],
         )
+
         args = get_args(params)
         row = self._execute_sql(sql, args=args, fetchone=True)
         if row is None:
             return None
-        return self.__map_relationships(
-            instance=instance,
-            row=row,
-            parent_fields=fields,
-            include=include,
-            return_dict=return_dict,
+        result = dict(zip(fields, row))
+        relations = subquery(
+            dialect=self.dialect, _execute_sql=self._execute_sql
+        ).get_find_one_relations(
+            parent=instance,
+            includes=include,
+            filters=filters,
+            offset=offset,
         )
+        return {**result, **relations}

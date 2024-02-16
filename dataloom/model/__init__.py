@@ -668,3 +668,49 @@ class Model:
                 "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
             )
         return sql, fields if len(select) == 0 else select
+
+    @classmethod
+    def _get_select_pk_stm(
+        cls,
+        dialect: DIALECT_LITERAL,
+        filters: Optional[Filter | list[Filter]] = None,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+        order: Optional[list[Order]] = [],
+    ):
+        orders = []
+        fields, pk_name, fks, updatedAtColumName = get_table_fields(
+            cls, dialect=dialect
+        )
+        for _order in order:
+            if _order.column not in fields:
+                raise UnknownColumnException(
+                    f'The table "{cls._get_table_name()}" does not have a column "{_order.column}".'
+                )
+            orders.append(
+                f'"{_order.column}" {_order.order}'
+                if dialect == "postgres"
+                else f"`{_order.column}` {_order.order}"
+            )
+
+        placeholder_filters, placeholder_filter_values = get_table_filters(
+            table_name=cls._get_table_name(),
+            dialect=dialect,
+            fields=fields,
+            filters=filters,
+        )
+        if dialect == "postgres" or "mysql" or "sqlite":
+            sql = GetStatement(
+                dialect=dialect, model=cls, table_name=cls._get_table_name()
+            )._get_pk_command(
+                filters=placeholder_filters,
+                limit=limit,
+                offset=offset,
+                orders=orders,
+                pk_name=pk_name,
+            )
+        else:
+            raise UnsupportedDialectException(
+                "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
+            )
+        return sql, placeholder_filter_values
