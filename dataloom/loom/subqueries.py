@@ -37,15 +37,28 @@ class subquery:
                 _, parent_pk_name, parent_fks, _ = get_table_fields(
                     parent, dialect=self.dialect
                 )
-                _pk = relations[key][re.sub(r'`|"', "", parent_pk_name)]
 
-                relations[key] = {
-                    **relations[key],
-                    **self.get_find_by_pk_relations(
-                        include.model, _pk, includes=include.include
-                    ),
-                }
-
+                if isinstance(relations[key], dict):
+                    _pk = relations[key][re.sub(r'`|"', "", parent_pk_name)]
+                    relations[key] = {
+                        **relations[key],
+                        **self.get_find_by_pk_relations(
+                            include.model, _pk, includes=include.include
+                        ),
+                    }
+                else:
+                    _pk = (
+                        relations[key][0][re.sub(r'`|"', "", parent_pk_name)]
+                        if len(relations[key]) != 0
+                        else None
+                    )
+                    if _pk is not None:
+                        relations[key] = {
+                            **relations[key],
+                            **self.get_find_by_pk_relations(
+                                include.model, _pk, includes=include.include
+                            ),
+                        }
         return relations
 
     def get_one(

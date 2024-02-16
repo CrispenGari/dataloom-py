@@ -194,3 +194,29 @@ post = mysql_loom.find_by_pk(
 )
 
 print(post)
+
+
+user = mysql_loom.find_by_pk(
+    instance=User,
+    pk=userId2,
+    select=["username", "id"],
+    include=[
+        Include(
+            model=Post,
+            select=["id", "title"],
+            has="many",
+            include=[
+                Include(
+                    model=Category,
+                    select=["type", "id"],
+                    has="many",
+                    order=[Order(column="id", order="DESC")],
+                    limit=2,
+                    offset=0,
+                )
+            ],
+        ),
+    ],
+)
+
+print(user)

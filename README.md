@@ -77,6 +77,7 @@
 - [Filters](#filters)
 - [Utilities](#utilities)
   - [`inspect`](#inspect)
+- [Associations](#associations)
 - [What is coming next?](#what-is-coming-next)
 - [Contributing](#contributing)
 - [License](#license)
@@ -1166,6 +1167,10 @@ Output:
 ```
 
 The `inspect` function take the following arguments.
+
+### Associations
+
+Eager
 
 ### What is coming next?
 
