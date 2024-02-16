@@ -2,13 +2,54 @@
 **`1.1.0`**
 ===============================================================================================================================================
 
-### Release Notes - `dataloom`
+### Update Notes - `dataloom`
 
 We have release the new `dataloom` Version `1.1.0` (`2024-02-12`)
 
 ##### Features
 
 - Eager data fetching in relationships
+
+  - Now you can fetch your child relationship together in your query
+
+  ```py
+  user = mysql_loom.find_one(
+    instance=User,
+    filters=[Filter(column="id", value=userId)],
+    include=[Include(model=Profile, select=["id", "avatar"], has="one")],
+  )
+  print(user)
+  ```
+
+  - You can apply limits, offsets, filters and orders to your child associations during queries
+
+  ```py
+  post = mysql_loom.find_one(
+    instance=Post,
+    filters=[Filter(column="userId", value=userId)],
+    select=["title", "id"],
+    include=[
+        Include(
+            model=User,
+            select=["id", "username"],
+            has="one",
+            include=[Include(model=Profile, select=["avatar", "id"], has="one")],
+        ),
+        Include(
+            model=Category,
+            select=["id", "type"],
+            has="many",
+            order=[Order(column="id", order="DESC")],
+            limit=2,
+        ),
+    ],
+  )
+  ```
+
+- `N-N` relational mapping
+- Now you can return python objects when querying data meaning that the option `return_dict` in the query functions like `find_by_pk`, `find_one`, `find_many` and `find_all` now works starting from this version
+- Updated the documentation.
+- Grouping data in queries will also be part of this release, using the class `Group`
 
 ===============================================================================================================================================
 **`1.0.2`**
