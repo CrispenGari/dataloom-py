@@ -874,21 +874,21 @@ class GetStatement[T]:
                 table_name=f'"{self.table_name}"',
                 options=" ".join(options),
                 pk_name=pk_name,
-                filters="" if len(filters) == 0 else "WHERE" + " ".join(filters),
+                filters="" if len(filters) == 0 else "WHERE " + " ".join(filters),
             )
         elif self.dialect == "mysql":
             sql = MySqlStatements.GET_PK_COMMAND.format(
                 table_name=f"`{self.table_name}`",
                 options=" ".join(options),
                 pk_name=pk_name,
-                filters="" if len(filters) == 0 else "WHERE" + " ".join(filters),
+                filters="" if len(filters) == 0 else "WHERE " + " ".join(filters),
             )
         elif self.dialect == "sqlite":
             sql = Sqlite3Statements.GET_PK_COMMAND.format(
                 table_name=f"`{self.table_name}`",
                 options=" ".join(options),
                 pk_name=pk_name,
-                filters="" if len(filters) == 0 else "WHERE" + " ".join(filters),
+                filters="" if len(filters) == 0 else "WHERE " + " ".join(filters),
             )
         else:
             raise UnsupportedDialectException(

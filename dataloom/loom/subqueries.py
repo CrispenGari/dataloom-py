@@ -1,5 +1,5 @@
 from dataloom.utils import get_table_fields, get_args
-from dataloom.types import DIALECT_LITERAL, Include, Filter
+from dataloom.types import DIALECT_LITERAL, Include, Filter, Order
 from dataloom.model import Model
 from dataclasses import dataclass
 from typing import Callable, Any, Optional
@@ -10,6 +10,38 @@ import re
 class subquery:
     dialect: DIALECT_LITERAL
     _execute_sql: Callable[..., Any]
+
+    def get_find_many_relations(
+        self,
+        parent: Model,
+        filters: Optional[Filter | list[Filter]] = None,
+        includes: list[Include] = [],
+        offset: Optional[int] = None,
+        limit: Optional[int] = None,
+        select: list[str] = [],
+        order: Optional[list[Order]] = [],
+    ):
+        sql, params = parent._get_select_pk_stm(
+            dialect=self.dialect,
+            filters=filters,
+            limit=limit,
+            offset=offset,
+            order=order,
+        )
+        args = get_args(params)
+        pks = self._execute_sql(sql, fetchall=True, args=args, _verbose=0)
+        data = []
+
+        for (pk,) in pks:
+            sql2, fields, _ = parent._get_select_by_pk_stm(
+                dialect=self.dialect, select=select
+            )
+            row = self._execute_sql(sql2, fetchone=True, args=(pk,), _verbose=0)
+            relations = self.get_find_by_pk_relations(
+                parent=parent, pk=pk, includes=includes
+            )
+            data.append({**dict(zip(fields, row)), **relations})
+        return data
 
     def get_find_one_relations(
         self,
@@ -26,7 +58,6 @@ class subquery:
             offset=offset,
             order=[],
         )
-        print(sql)
         args = get_args(params)
         row = self._execute_sql(sql, args=args, fetchone=True, _verbose=0)
         if row is None:

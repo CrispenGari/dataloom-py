@@ -78,28 +78,34 @@ class query(Query):
         order: Optional[list[Order]] = [],
     ) -> list:
         return_dict = True
-        include = []
-        sql, params, fields = instance._get_select_where_stm(
-            dialect=self.dialect,
-            filters=filters,
-            select=select,
-            limit=limit,
-            offset=offset,
-            order=order,
-            include=include,
-        )
         data = []
-        args = get_args(params)
-        rows = self._execute_sql(sql, fetchall=True, args=args)
-        for row in rows:
-            res = self.__map_relationships(
-                instance=instance,
-                row=row,
-                parent_fields=fields,
-                include=include,
-                return_dict=return_dict,
+        if len(include) == 0:
+            sql, params, fields = instance._get_select_where_stm(
+                dialect=self.dialect,
+                filters=filters,
+                select=select,
+                limit=limit,
+                offset=offset,
+                order=order,
+                include=[],
             )
-            data.append(res)
+            args = get_args(params)
+            rows = self._execute_sql(sql, fetchall=True, args=args)
+            for row in rows:
+                data.append(dict(zip(fields, row)))
+        else:
+            # run sub queries instead
+            data = subquery(
+                dialect=self.dialect, _execute_sql=self._execute_sql
+            ).get_find_many_relations(
+                parent=instance,
+                includes=include,
+                filters=filters,
+                select=select,
+                limit=limit,
+                order=order,
+                offset=offset,
+            )
         return data
 
     def find_all(

@@ -139,21 +139,21 @@ for cat in ["general", "education", "tech", "sport"]:
     print()
 
 
-profile = mysql_loom.find_one(
+profile = mysql_loom.find_many(
     instance=Profile,
     filters=[Filter(column="userId", value=1)],
     include=[Include(model=User, select=["id", "username", "tokenVersion"], has="one")],
 )
 print(profile)
 
-user = mysql_loom.find_one(
+user = mysql_loom.find_many(
     instance=User,
     filters=[Filter(column="id", value=userId)],
     include=[Include(model=Profile, select=["id", "avatar"], has="one")],
 )
-print(user)
+print(user, userId)
 
-user = mysql_loom.find_one(
+user = mysql_loom.find_many(
     instance=User,
     filters=[Filter(column="id", value=userId)],
     include=[
@@ -173,10 +173,13 @@ user = mysql_loom.find_one(
 )
 print(user)
 
-post = mysql_loom.find_one(
+post = mysql_loom.find_many(
     instance=Post,
     filters=[Filter(column="userId", value=userId)],
     select=["title", "id"],
+    limit=1,
+    offset=0,
+    order=[Order(column="id", order="DESC")],
     include=[
         Include(
             model=User,
@@ -197,7 +200,7 @@ post = mysql_loom.find_one(
 print(post)
 
 
-user = mysql_loom.find_one(
+user = mysql_loom.find_many(
     instance=User,
     filters=[Filter(column="id", value=userId2)],
     select=["username", "id"],
@@ -223,5 +226,5 @@ user = mysql_loom.find_one(
 print(user)
 
 
-posts = mysql_loom.find_one(Post, select=["id", "completed"])
+posts = mysql_loom.find_many(Post, select=["id", "completed"])
 print(posts)
