@@ -473,6 +473,57 @@ class TestEagerLoadingOnMySQL:
             ],
         )
         assert user == {"username": "bob", "id": 2, "posts": []}
+        user = mysql_loom.find_all(
+            instance=User,
+            select=["username", "id"],
+            limit=1,
+            offset=0,
+            order=[Order(column="id", order="ASC")],
+            include=[
+                Include(
+                    model=Post,
+                    select=["id", "title"],
+                    has="many",
+                    limit=1,
+                    offset=0,
+                    order=[Order(column="id", order="ASC")],
+                    include=[
+                        Include(
+                            model=Category,
+                            select=["type", "id"],
+                            has="many",
+                            order=[Order(column="id", order="DESC")],
+                            limit=2,
+                            offset=0,
+                        ),
+                        Include(
+                            model=User,
+                            select=["username", "id"],
+                            has="one",
+                        ),
+                    ],
+                ),
+            ],
+        )
+        assert user == [
+            {
+                "username": "@miller",
+                "id": 1,
+                "categories": [{"type": "sport", "id": 4}, {"type": "tech", "id": 3}],
+                "user": {"username": "@miller", "id": 1},
+                "posts": [
+                    {
+                        "id": 1,
+                        "title": "Hey",
+                        "categories": [
+                            {"type": "sport", "id": 4},
+                            {"type": "tech", "id": 3},
+                        ],
+                        "user": {"username": "@miller", "id": 1},
+                    }
+                ],
+            }
+        ]
 
         conn.close()
 
@@ -728,4 +779,55 @@ class TestEagerLoadingOnMySQL:
             {"id": 2, "completed": 0},
             {"id": 3, "completed": 0},
             {"id": 4, "completed": 0},
+        ]
+
+        user = mysql_loom.find_many(
+            instance=User,
+            filters=[Filter(column="id", value=1)],
+            select=["username", "id"],
+            limit=1,
+            offset=0,
+            order=[Order(column="id", order="ASC")],
+            include=[
+                Include(
+                    model=Post,
+                    select=["id", "title"],
+                    has="many",
+                    limit=1,
+                    offset=0,
+                    order=[Order(column="id", order="ASC")],
+                    include=[
+                        Include(
+                            model=Category,
+                            select=["type", "id"],
+                            has="many",
+                            order=[Order(column="id", order="DESC")],
+                            limit=2,
+                            offset=0,
+                        ),
+                        Include(
+                            model=User,
+                            select=["username", "id"],
+                            has="one",
+                        ),
+                    ],
+                ),
+            ],
+        )
+        assert user == [
+            {
+                "username": "@miller",
+                "id": 1,
+                "posts": [
+                    {
+                        "id": 1,
+                        "title": "Hey",
+                        "categories": [
+                            {"type": "sport", "id": 4},
+                            {"type": "tech", "id": 3},
+                        ],
+                        "user": {"username": "@miller", "id": 1},
+                    }
+                ],
+            }
         ]

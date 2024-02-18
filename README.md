@@ -1524,6 +1524,101 @@ user = mysql_loom.find_one(
 print(user)
 ```
 
+```py
+
+profile = mysql_loom.find_many(
+    instance=Profile,
+    filters=[Filter(column="userId", value=1)],
+    include=[Include(model=User, select=["id", "username", "tokenVersion"], has="one")],
+)
+print(profile)
+
+user = mysql_loom.find_many(
+    instance=User,
+    filters=[Filter(column="id", value=userId)],
+    include=[Include(model=Profile, select=["id", "avatar"], has="one")],
+)
+print(user, userId)
+
+user = mysql_loom.find_many(
+    instance=User,
+    filters=[Filter(column="id", value=userId)],
+    include=[
+        Include(
+            model=Post,
+            select=["id", "title"],
+            has="many",
+            offset=0,
+            limit=2,
+            order=[
+                Order(column="createdAt", order="DESC"),
+                Order(column="id", order="DESC"),
+            ],
+        ),
+        Include(model=Profile, select=["id", "avatar"], has="one"),
+    ],
+)
+print(user)
+
+post = mysql_loom.find_many(
+    instance=Post,
+    filters=[Filter(column="userId", value=userId)],
+    select=["title", "id"],
+    limit=1,
+    offset=0,
+    order=[Order(column="id", order="DESC")],
+    include=[
+        Include(
+            model=User,
+            select=["id", "username"],
+            has="one",
+            include=[Include(model=Profile, select=["avatar", "id"], has="one")],
+        ),
+        Include(
+            model=Category,
+            select=["id", "type"],
+            has="many",
+            order=[Order(column="id", order="DESC")],
+            limit=2,
+        ),
+    ],
+)
+
+print(post)
+
+
+user = mysql_loom.find_many(
+    instance=User,
+    filters=[Filter(column="id", value=userId2)],
+    select=["username", "id"],
+    include=[
+        Include(
+            model=Post,
+            select=["id", "title"],
+            has="many",
+            include=[
+                Include(
+                    model=Category,
+                    select=["type", "id"],
+                    has="many",
+                    order=[Order(column="id", order="DESC")],
+                    limit=2,
+                    offset=0,
+                )
+            ],
+        ),
+    ],
+)
+
+print(user)
+
+
+posts = mysql_loom.find_many(Post, select=["id", "completed"])
+print(posts)
+
+
+```
+
 #### `N-1` Association
 
 #### `1-N` Association

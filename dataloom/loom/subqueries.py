@@ -11,6 +11,34 @@ class subquery:
     dialect: DIALECT_LITERAL
     _execute_sql: Callable[..., Any]
 
+    def get_find_all_relations(
+        self,
+        parent: Model,
+        includes: list[Include] = [],
+        offset: Optional[int] = None,
+        limit: Optional[int] = None,
+        select: list[str] = [],
+        order: Optional[list[Order]] = [],
+    ):
+        sql, params = parent._get_select_pk_stm(
+            dialect=self.dialect,
+            limit=limit,
+            offset=offset,
+            order=order,
+        )
+        pks = self._execute_sql(sql, fetchall=True, args=None, _verbose=0)
+        data = []
+        for (pk,) in pks:
+            sql2, fields, _ = parent._get_select_by_pk_stm(
+                dialect=self.dialect, select=select
+            )
+            row = self._execute_sql(sql2, fetchone=True, args=(pk,), _verbose=0)
+            relations = self.get_find_by_pk_relations(
+                parent=parent, pk=pk, includes=includes
+            )
+            data.append({**dict(zip(fields, row)), **relations})
+        return data
+
     def get_find_many_relations(
         self,
         parent: Model,
@@ -29,9 +57,9 @@ class subquery:
             order=order,
         )
         args = get_args(params)
+        print(sql)
         pks = self._execute_sql(sql, fetchall=True, args=args, _verbose=0)
         data = []
-
         for (pk,) in pks:
             sql2, fields, _ = parent._get_select_by_pk_stm(
                 dialect=self.dialect, select=select
@@ -40,8 +68,30 @@ class subquery:
             relations = self.get_find_by_pk_relations(
                 parent=parent, pk=pk, includes=includes
             )
+            allowed = self.get_name_and_alias(includes)
+            delete_them = []
+            for key, value in relations.items():
+                if isinstance(value, dict):
+                    if key not in allowed:
+                        delete_them.append(key)
+                elif isinstance(value, list):
+                    if key not in allowed:
+                        delete_them.append(key)
+
+            for key in delete_them:
+                del relations[key]
+
             data.append({**dict(zip(fields, row)), **relations})
         return data
+
+    def get_name_and_alias(self, includes: list[Include]) -> list[tuple]:
+        allowed = []
+        for include in includes:
+            table = include.model._get_table_name()
+            alias = include.model.__name__.lower()
+            allowed.append(table)
+            allowed.append(alias)
+        return allowed
 
     def get_find_one_relations(
         self,
@@ -147,25 +197,93 @@ class subquery:
                             include.model, _pk, includes=include.include
                         ),
                     }
-                else:
-                    _pk = (
-                        relations[key][0][re.sub(r'`|"', "", parent_pk_name)]
-                        if len(relations[key]) != 0
-                        else None
-                    )
-                    if _pk is not None:
-                        relations[key] = {
-                            **relations[key],
-                            **self.get_find_by_pk_relations(
-                                include.model, _pk, includes=include.include
-                            ),
-                        }
-        return relations
 
-    def get_one_by_filters(
-        self, parent: Model, include: Include, pk: Any, foreign_keys: list[dict]
-    ):
-        pass
+                else:
+                    try:
+                        _pk = (
+                            relations[key][0][re.sub(r'`|"', "", parent_pk_name)]
+                            if len(relations[key]) != 0
+                            else None
+                        )
+                        if _pk is not None:
+                            if isinstance(relations[key], dict):
+                                relations[key] = {
+                                    **relations[key],
+                                    **self.get_find_by_pk_relations(
+                                        include.model, _pk, includes=include.include
+                                    ),
+                                }
+
+                            else:
+                                _, parent_pk_name, parent_fks, _ = get_table_fields(
+                                    include.model, dialect=self.dialect
+                                )
+                                t_name = (
+                                    f'"{include.model._get_table_name()}"'
+                                    if self.dialect == "postgres"
+                                    else f"`{include.model._get_table_name()}`"
+                                )
+                                fk_name = None
+                                for _fk in fks:
+                                    if parent._get_table_name() in _fk:
+                                        fk_name = (
+                                            f'"{_fk[parent._get_table_name()]}"'
+                                            if self.dialect == "postgres"
+                                            else f"`{_fk[parent._get_table_name()]}`"
+                                        )
+                                placeholder = "?" if self.dialect == "sqlite" else "%s"
+                                orders = [
+                                    f'{f'"{order.column}"' if self.dialect == 'postgres' else f"`{order.column}`"} {order.order}'
+                                    for order in include.order
+                                ]
+                                options = [
+                                    ""
+                                    if include.limit is None
+                                    else f"LIMIT {placeholder}",
+                                    ""
+                                    if include.offset is None
+                                    else f"OFFSET {placeholder}",
+                                ]
+                                orderby = (
+                                    ""
+                                    if len(orders) == 0
+                                    else " ORDER BY " + " ".join(orders)
+                                )
+                                stmt = f"""
+                                    select {parent_pk_name} from {t_name} where {fk_name} = {placeholder}{orderby} {' '.join(options)}
+                                """
+
+                                data = []
+                                _args = [
+                                    a
+                                    for a in [pk, include.limit, include.offset]
+                                    if a is not None
+                                ]
+                                pks = self._execute_sql(
+                                    stmt, args=_args, fetchall=True, _verbose=1
+                                )
+                                for (_pk,) in pks:
+                                    (
+                                        sql2,
+                                        fields,
+                                        _,
+                                    ) = include.model._get_select_by_pk_stm(
+                                        dialect=self.dialect, select=include.select
+                                    )
+                                    row = self._execute_sql(
+                                        sql2, fetchone=True, args=(_pk,), _verbose=0
+                                    )
+                                    relations = self.get_find_by_pk_relations(
+                                        parent=include.model,
+                                        pk=_pk,
+                                        includes=include.include,
+                                    )
+                                    data.append({**dict(zip(fields, row)), **relations})
+                                relations[key] = data
+                    except Exception:
+                        pass
+
+        return relations
 
     def get_one_by_pk(
         self, parent: Model, include: Include, pk: Any, foreign_keys: list[dict]
@@ -228,6 +346,8 @@ class subquery:
                 rows = self._execute_sql(sql, args=(pk,), fetchone=has_one)
                 relations[key] = dict(zip(selected, rows)) if rows is not None else None
             elif has_many:
+                # get them by fks
+                """SELECT FROM POSTS WHERE USERID = ID LIMIT=10, """
                 args = [
                     arg
                     for arg in [pk, include.limit, include.offset]

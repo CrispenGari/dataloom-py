@@ -119,49 +119,32 @@ class query(Query):
         order: Optional[list[Order]] = [],
     ) -> list:
         return_dict = True
-        include = []
-        sql, params, fields = instance._get_select_where_stm(
-            dialect=self.dialect,
-            select=select,
-            limit=limit,
-            offset=offset,
-            order=order,
-            include=include,
-        )
         data = []
-        rows = self._execute_sql(sql, fetchall=True)
-        for row in rows:
-            res = self.__map_relationships(
-                instance=instance,
-                row=row,
-                parent_fields=fields,
+        if len(include) == 0:
+            sql, params, fields = instance._get_select_where_stm(
+                dialect=self.dialect,
+                select=select,
+                limit=limit,
+                offset=offset,
+                order=order,
                 include=include,
-                return_dict=return_dict,
             )
-            data.append(res)
+            rows = self._execute_sql(sql, fetchall=True)
+            for row in rows:
+                data.append(dict(zip(fields, row)))
+        else:
+            # run sub queries instead
+            data = subquery(
+                dialect=self.dialect, _execute_sql=self._execute_sql
+            ).get_find_all_relations(
+                parent=instance,
+                includes=include,
+                select=select,
+                limit=limit,
+                order=order,
+                offset=offset,
+            )
         return data
-
-    def __map_relationships(
-        self,
-        instance: Model,
-        row: tuple,
-        parent_fields: list,
-        include: list[dict] = [],
-        return_dict: bool = True,
-    ):
-        # how are relations are mapped?
-        json = dict(zip(parent_fields, row[: len(parent_fields)]))
-        result = json if return_dict else instance(**json)
-        row = row[len(parent_fields) :]
-        for _include in include:
-            alias, selected = [v for v in get_child_table_columns(_include).items()][0]
-            child_json = dict(zip(selected, row[: len(selected)]))
-            row = row[len(selected) :]
-            if return_dict:
-                result[alias] = child_json
-            else:
-                result[alias] = _include.model(**child_json)
-        return result
 
     def find_by_pk(
         self,
