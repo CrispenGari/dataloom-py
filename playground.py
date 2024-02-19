@@ -134,7 +134,7 @@ profileId = mysql_loom.insert_one(
         ColumnValue(name="avatar", value="hello.jpg"),
     ],
 )
-for title in ["Hey", "Hello", "What are you doing", "Coding"]:
+for title in ["Hello", "Hello", "What are you doing", "Coding"]:
     mysql_loom.insert_one(
         instance=Post,
         values=[
@@ -154,7 +154,11 @@ for cat in ["general", "education", "tech", "sport"]:
     )
 
 
-profile = mysql_loom.find_by_pk(Profile, pk=1, select=["avatar", "id"])
+profile = mysql_loom.find_all(
+    Profile,
+    select=["avatar", "id"],
+    include=[Include(model=User, has="one", include=[Include(model=Category)])],
+)
 profile = Profile(**profile)
 print(profile)  # ? = <Profile:id=1>
 print(profile.avatar)  # ? hello.jpg

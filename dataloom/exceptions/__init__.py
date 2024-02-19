@@ -36,3 +36,7 @@ class UnknownColumnException(ValueError):
 
 class InvalidOperatorException(ValueError):
     pass
+
+
+class UnknownRelationException(Exception):
+    pass

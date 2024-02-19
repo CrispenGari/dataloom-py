@@ -883,3 +883,192 @@ class TestEagerLoadingOnPG:
                 ],
             }
         ]
+
+    def test_unknown_relations(self):
+        from dataloom import (
+            Dataloom,
+            Model,
+            Column,
+            PrimaryKeyColumn,
+            CreatedAtColumn,
+            TableColumn,
+            ForeignKeyColumn,
+            ColumnValue,
+            Include,
+        )
+
+        import pytest
+        from dataloom.exceptions import UnknownRelationException
+
+        from dataloom.keys import PgConfig
+
+        pg_loom = Dataloom(
+            dialect="postgres",
+            database=PgConfig.database,
+            password=PgConfig.password,
+            user=PgConfig.user,
+        )
+
+        class User(Model):
+            __tablename__: TableColumn = TableColumn(name="users")
+            id = PrimaryKeyColumn(type="int", auto_increment=True)
+            name = Column(type="text", nullable=False, default="Bob")
+            username = Column(type="varchar", unique=True, length=255)
+            tokenVersion = Column(type="int", default=0)
+
+        class Profile(Model):
+            __tablename__: TableColumn = TableColumn(name="profiles")
+            id = PrimaryKeyColumn(type="int", auto_increment=True)
+            avatar = Column(type="text", nullable=False)
+            userId = ForeignKeyColumn(
+                User,
+                maps_to="1-1",
+                type="int",
+                required=True,
+                onDelete="CASCADE",
+                onUpdate="CASCADE",
+            )
+
+        class Post(Model):
+            __tablename__: TableColumn = TableColumn(name="posts")
+            id = PrimaryKeyColumn(
+                type="int", auto_increment=True, nullable=False, unique=True
+            )
+            completed = Column(type="boolean", default=False)
+            title = Column(type="varchar", length=255, nullable=False)
+            # timestamps
+            createdAt = CreatedAtColumn()
+            # relations
+            userId = ForeignKeyColumn(
+                User,
+                maps_to="1-N",
+                type="int",
+                required=True,
+                onDelete="CASCADE",
+                onUpdate="CASCADE",
+            )
+
+        class Category(Model):
+            __tablename__: TableColumn = TableColumn(name="categories")
+            id = PrimaryKeyColumn(
+                type="int", auto_increment=True, nullable=False, unique=True
+            )
+            type = Column(type="varchar", length=255, nullable=False)
+
+            postId = ForeignKeyColumn(
+                Post,
+                maps_to="N-1",
+                type="int",
+                required=True,
+                onDelete="CASCADE",
+                onUpdate="CASCADE",
+            )
+
+        conn, tables = pg_loom.connect_and_sync(
+            [User, Profile, Post, Category], drop=True, force=True
+        )
+
+        userId = pg_loom.insert_one(
+            instance=User,
+            values=ColumnValue(name="username", value="@miller"),
+        )
+
+        profileId = pg_loom.insert_one(
+            instance=Profile,
+            values=[
+                ColumnValue(name="userId", value=userId),
+                ColumnValue(name="avatar", value="hello.jpg"),
+            ],
+        )
+        for title in ["Hey", "Hello", "What are you doing", "Coding"]:
+            pg_loom.insert_one(
+                instance=Post,
+                values=[
+                    ColumnValue(name="userId", value=userId),
+                    ColumnValue(name="title", value=title),
+                ],
+            )
+
+        for cat in ["general", "education", "tech", "sport"]:
+            pg_loom.insert_one(
+                instance=Category,
+                values=[
+                    ColumnValue(name="postId", value=profileId),
+                    ColumnValue(name="type", value=cat),
+                ],
+            )
+
+        with pytest.raises(UnknownRelationException) as exec_info:
+            pg_loom.find_by_pk(
+                Profile,
+                pk=1,
+                select=["avatar", "id"],
+                include=[
+                    Include(
+                        model=Category,
+                    )
+                ],
+            )
+        assert (
+            str(exec_info.value)
+            == 'The table "profiles" does not have relations "categories".'
+        )
+        with pytest.raises(UnknownRelationException) as exec_info:
+            pg_loom.find_many(
+                Profile,
+                select=["avatar", "id"],
+                include=[
+                    Include(
+                        model=Category,
+                    )
+                ],
+            )
+        assert (
+            str(exec_info.value)
+            == 'The table "profiles" does not have relations "categories".'
+        )
+        with pytest.raises(UnknownRelationException) as exec_info:
+            pg_loom.find_by_pk(
+                Profile,
+                pk=1,
+                select=["avatar", "id"],
+                include=[
+                    Include(
+                        model=Category,
+                    )
+                ],
+            )
+        assert (
+            str(exec_info.value)
+            == 'The table "profiles" does not have relations "categories".'
+        )
+        with pytest.raises(UnknownRelationException) as exec_info:
+            pg_loom.find_all(
+                Profile,
+                select=["avatar", "id"],
+                include=[
+                    Include(
+                        model=Category,
+                    )
+                ],
+            )
+        assert (
+            str(exec_info.value)
+            == 'The table "profiles" does not have relations "categories".'
+        )
+        with pytest.raises(UnknownRelationException) as exec_info:
+            pg_loom.find_one(
+                Profile,
+                select=["avatar", "id"],
+                include=[
+                    Include(
+                        model=Category,
+                    )
+                ],
+            )
+        assert (
+            str(exec_info.value)
+            == 'The table "profiles" does not have relations "categories".'
+        )
+
+        conn.close()

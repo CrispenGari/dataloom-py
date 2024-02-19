@@ -3,6 +3,7 @@ from dataloom.types import DIALECT_LITERAL, Include, Filter, Order
 from dataloom.model import Model
 from dataclasses import dataclass
 from typing import Callable, Any, Optional
+from dataloom.exceptions import UnknownRelationException
 import re
 
 
@@ -302,7 +303,12 @@ class subquery:
             here = [fk for fk in parent_fks if include.model._get_table_name() in fk]
             parent_fks = dict() if len(here) == 0 else here[0]
             # this table is a child table meaning that we don't have a foreign key here
-            fk = parent_fks[table_name]
+            try:
+                fk = parent_fks[table_name]
+            except KeyError:
+                raise UnknownRelationException(
+                    f'The table "{parent._get_table_name()}" does not have relations "{table_name}".'
+                )
             sql, selected = include.model._get_select_child_by_pk_stm(
                 dialect=self.dialect,
                 select=include.select,
