@@ -49,11 +49,9 @@ We have release the new `dataloom` Version `1.1.0` (`2024-02-12`)
 - Now `return_dict` has bee removed as an option in dataloom in the query functions like `find_by_pk`, `find_one`, `find_many` and `find_all` now works starting from this version. If you enjoy working with python objects you have to maneuver them manually using experimental features.
 
   ```py
-  from dataloom import experimental_decorators
+  from dataloom.decorators import initialize
 
-  @experimental_decorators.initialize(
-      repr=True, to_dict=True, init=True, repr_identifier="id"
-  )
+  @initialize(repr=True, to_dict=True, init=True, repr_identifier="id")
   class Profile(Model):
       __tablename__: Optional[TableColumn] = TableColumn(name="profiles")
       id = PrimaryKeyColumn(type="int", auto_increment=True)
@@ -76,7 +74,7 @@ We have release the new `dataloom` Version `1.1.0` (`2024-02-12`)
   print([Profile(**p) for p in profile][0].id) # ? = 1
   ```
 
-  - These experimental decorators as we name them `"experimental"` they are little bit slow and they work perfect in a single instance, you can not nest relationships on them.
+  - These are `experimental` decorators they are little bit slow and they work perfect in a single instance, you can not nest relationships on them.
   - You can use them if you know how your data is structured and also if you know how to manipulate dictionaries
 
 - Updated the documentation.

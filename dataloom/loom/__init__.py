@@ -257,7 +257,7 @@ class Dataloom(IDataloom):
         instance: Model,
         filters: Optional[Filter | list[Filter]] = None,
         select: list[str] = [],
-        include: list[Model] = [],
+        include: list[Include] = [],
         limit: Optional[int] = None,
         offset: Optional[int] = None,
         order: Optional[list[Order]] = [],
@@ -276,8 +276,8 @@ class Dataloom(IDataloom):
             Filters to apply when selecting the rows. It can be a single Filter object, a list of Filter objects, or None to apply no filters. Default is None.
         select : list[str], optional
             Columns to select in the query. Default is an empty list, which selects all columns.
-        include : list[Model], optional
-            Models to include in the query (e.g., for JOIN operations).
+        include : list[Include], optional
+            Include instances that contains Models to include in the query (e.g., for JOIN operations).
 
         limit : int | None, optional
             The maximum number of rows to retrieve. Default is None.

@@ -76,7 +76,9 @@
 - [Ordering](#ordering)
 - [Filters](#filters)
 - [Utilities](#utilities)
-  - [`inspect`](#inspect)
+  - [1. `inspect`](#1-inspect)
+  - [2. `decorators`](#2-decorators)
+    - [`@initialize`](#initialize)
 - [Associations](#associations)
   - [1. `1-1` Association](#1-1-1-association)
     - [Inserting](#inserting)
@@ -84,7 +86,12 @@
   - [2. `N-1` Association](#2-n-1-association)
     - [Inserting](#inserting-1)
     - [Retrieving Records](#retrieving-records-1)
-  - [`1-N` Association](#1-n-association)
+  - [3. `1-N` Association](#3-1-n-association)
+    - [Inserting](#inserting-2)
+    - [Retrieving Records](#retrieving-records-2)
+  - [4. What about bidirectional queries?](#4-what-about-bidirectional-queries)
+    - [1. Child to Parent](#1-child-to-parent)
+    - [2. Parent to Child](#2-parent-to-child)
 - [What is coming next?](#what-is-coming-next)
 - [Contributing](#contributing)
 - [License](#license)
@@ -671,8 +678,6 @@ The `find_all()` method takes in the following arguments:
 | `order`    | List of columns to order the documents by.     | `list[Order]` | `None`  | `No`     |
 | `include`  | List of related models to eagerly load.        | `list[Model]` | `None`  | `No`     |
 
-> 👉 **Note:** Note that the `include` argument is not working at the moment. This argument allows us to eagerly load child relationships from the parent model.
-
 ##### 2. `find_many()`
 
 Here is an example demonstrating the usage of the `find_many()` function with specific filters.
@@ -1147,9 +1152,7 @@ The following table show you some expression that you can use with this `like` o
 
 Dataloom comes up with some utility functions that works on an instance of a model. This is very useful when debuging your tables to see how do they look like. These function include:
 
-1. `inspect()`
-
-#### `inspect`
+#### 1. `inspect`
 
 This function takes in a model as argument and inspect the model fields or columns. The following examples show how we can use this handy function in inspecting table names.
 
@@ -1184,6 +1187,94 @@ Output:
 ```
 
 The `inspect` function take the following arguments.
+
+| Argument      | Description                                            | Type        | Default                                   | Required |
+| ------------- | ------------------------------------------------------ | ----------- | ----------------------------------------- | -------- |
+| `instance`    | The model instance to inspect.                         | `Model`     | -                                         | Yes      |
+| `fields`      | The list of fields to include in the inspection.       | `list[str]` | `["name", "type", "nullable", "default"]` | No       |
+| `print_table` | Flag indicating whether to print the inspection table. | `bool`      | `True`                                    | No       |
+
+#### 2. `decorators`
+
+These modules contain several decorators that can prove useful when creating models. These decorators originate from `dataloom.decorators`, and at this stage, we are referring to them as "experimental."
+
+##### `@initialize`
+
+Let's examine a model named `Profile`, which appears as follows:
+
+```py
+class Profile(Model):
+    __tablename__: Optional[TableColumn] = TableColumn(name="profiles")
+    id = PrimaryKeyColumn(type="int", auto_increment=True)
+    avatar = Column(type="text", nullable=False)
+    userId = ForeignKeyColumn(
+        User,
+        maps_to="1-1",
+        type="int",
+        required=True,
+        onDelete="CASCADE",
+        onUpdate="CASCADE",
+    )
+```
+
+This is simply a Python class that inherits from the top-level class `Model`. However, it lacks some useful `dunder` methods such as `__init__` and `__repr__`. In standard Python, we can achieve this functionality by using `dataclasses`. For example, we can modify our class as follows:
+
+```py
+from dataclasses import dataclass
+
+@dataclass
+class Profile(Model):
+    # ....
+
+```
+
+However, this approach doesn't function as expected in `dataloom` columns. Hence, we've devised these experimental decorators to handle the generation of essential dunder methods required for working with `dataloom`. If you prefer not to use decorators, you always have the option to manually create these dunder methods. Here's an example:
+
+```py
+class Profile(Model):
+    # ...
+    def __init__(self, id: int | None, avatar: str | None, userId: int | None) -> None:
+        self.id = id
+        self.avatar = avatar
+        self.userId = userId
+
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__}:id={self.id}>"
+
+    @property
+    def to_dict(self):
+        return {"id": self.id, "avatar": self.avatar, "userId": self.userId}
+```
+
+However, by using the `initialize` decorator, this functionality will be automatically generated for you. Here's all you need to do:
+
+```py
+from dataloom.decorators import initialize
+
+@initialize(repr=True, to_dict=True, init=True, repr_identifier="id")
+class Profile(Model):
+    # ...
+```
+
+> 👉 **Tip**: Dataloom has a clever way of skipping the `TableColumn` because it doesn't matter in this case.
+
+The `initialize` decorator takes the following arguments:
+
+| Argument          | Description                                                 | Type            | Default | Required |
+| ----------------- | ----------------------------------------------------------- | --------------- | ------- | -------- |
+| `to_dict`         | Flag indicating whether to generate a `to_dict` method.     | `bool`          | `False` | `No`     |
+| `init`            | Flag indicating whether to generate an `__init__` method.   | `bool`          | `True`  | `No`     |
+| `repr`            | Flag indicating whether to generate a `__repr__` method.    | `bool`          | `False` | `No`     |
+| `repr_identifier` | Identifier for the attribute used in the `__repr__` method. | `str` or `None` | `None`  | `No`     |
+
+> Note that this `decorator` function allows us to interact with our data from the database in an object-oriented way in Python. Below is an example illustrating this concept:
+
+```py
+profile = mysql_loom.find_by_pk(Profile, pk=1, select=["avatar", "id"])
+profile = Profile(**profile)
+print(profile)  # ? = <Profile:id=1>
+print(profile.avatar)  # ? hello.jpg
+```
 
 ### Associations
 
@@ -1401,24 +1492,105 @@ for cat in ["general", "education", "tech", "sport"]:
 
 ##### Retrieving Records
 
-```py
+Let's attempt to retrieve a post with an ID of `1` along with its corresponding categories. We can achieve this as follows:
 
+```py
+post = mysql_loom.find_by_pk(Post, 1, select=["id", "title"])
+categories = mysql_loom.find_many(
+    Category,
+    select=["type", "id"],
+    filters=Filter(column="postId", value=1),
+    order=[
+        Order(column="id", order="DESC"),
+    ],
+)
+post_with_categories = {**post, "categories": categories}
+print(post_with_categories)  # ? = {'id': 1, 'title': 'Hey', 'categories': [{'type': 'sport', 'id': 4}, {'type': 'tech', 'id': 3}, {'type': 'education', 'id': 2}, {'type': 'general', 'id': 1}]}
+```
+
+- We use the `mysql_loom.find_by_pk()` method to retrieve a single post (`Post`) with an `id` equal to 1. We select only specific columns (`id` and `title`) for the post.
+- We use the `mysql_loom.find_many()` method to retrieve multiple categories (`Category`) associated with the post. We select only specific columns (`type` and `id`) for the categories. We apply a filter to only fetch categories associated with the post with `postId` equal to 1. We sort the categories based on the `id` column in descending order.
+- We create a dictionary (`post_with_categories`) that contains the retrieved post and its associated categories. The post information is stored under the key `post`, and the categories information is stored under the key `categories`.
+
+> The above task can be accomplished using `eager` document retrieval as shown below.
+
+```py
+post_with_categories = mysql_loom.find_by_pk(
+    Post,
+    1,
+    select=["id", "title"],
+    include=[
+        Include(
+            model=Category,
+            select=["type", "id"],
+            order=[
+                Order(column="id", order="DESC"),
+            ],
+        )
+    ],
+)
+
+```
+
+The code snippet queries a database to retrieve a post with an `id` of `1` along with its associated categories. Here's a breakdown:
+
+1. **Querying for Post**:
+
+   - The `mysql_loom.find_by_pk()` method fetches a single post from the database.
+   - It specifies the `Post` model and ID `1`, retrieving only the `id` and `title` columns.
+
+2. **Including Categories**:
+
+   - The `include` parameter specifies additional related data to fetch.
+   - Inside `include`, an `Include` instance is created for categories related to the post.
+   - It specifies the `Category` model and selects only the `type` and `id` columns.
+   - Categories are ordered by `id` in descending order.
+
+3. **Result**:
+   - The result is stored in `post_with_categories`, containing the post information and associated categories.
+
+> In summary, this code is retrieving a specific post along with its categories from the database, and it's using `eager` loading to efficiently fetch related data in a single query.
+
+#### 3. `1-N` Association
+
+Let's consider a scenario where a `User` has multiple `Post`. here is how the relationships are mapped.
+
+```py
+class User(Model):
+    __tablename__: Optional[TableColumn] = TableColumn(name="users")
+    id = PrimaryKeyColumn(type="int", auto_increment=True)
+    name = Column(type="text", nullable=False, default="Bob")
+    username = Column(type="varchar", unique=True, length=255)
+    tokenVersion = Column(type="int", default=0)
+
+class Post(Model):
+    __tablename__: Optional[TableColumn] = TableColumn(name="posts")
+    id = PrimaryKeyColumn(type="int", auto_increment=True, nullable=False, unique=True)
+    completed = Column(type="boolean", default=False)
+    title = Column(type="varchar", length=255, nullable=False)
+    # timestamps
+    createdAt = CreatedAtColumn()
+    # relations
+    userId = ForeignKeyColumn(
+        User,
+        maps_to="1-N",
+        type="int",
+        required=True,
+        onDelete="CASCADE",
+        onUpdate="CASCADE"
+    )
+```
+
+So clearly we can see that when creating a `post` we need to have a `userId`
+
+##### Inserting
+
+Here is how we can insert a user and a post to the database tables.
+
+```py
 userId = mysql_loom.insert_one(
     instance=User,
     values=ColumnValue(name="username", value="@miller"),
-)
-
-userId2 = mysql_loom.insert_one(
-    instance=User,
-    values=ColumnValue(name="username", value="bob"),
-)
-
-profileId = mysql_loom.insert_one(
-    instance=Profile,
-    values=[
-        ColumnValue(name="userId", value=userId),
-        ColumnValue(name="avatar", value="hello.jpg"),
-    ],
 )
 for title in ["Hey", "Hello", "What are you doing", "Coding"]:
     mysql_loom.insert_one(
@@ -1428,197 +1600,166 @@ for title in ["Hey", "Hello", "What are you doing", "Coding"]:
             ColumnValue(name="title", value=title),
         ],
     )
-
-
-for cat in ["general", "education", "tech", "sport"]:
-    mysql_loom.insert_one(
-        instance=Category,
-        values=[
-            ColumnValue(name="postId", value=1),
-            ColumnValue(name="type", value=cat),
-        ],
-    )
-    print()
-
-
-profile = mysql_loom.find_one(
-    instance=Profile,
-    filters=[Filter(column="userId", value=1)],
-    include=[Include(model=User, select=["id", "username", "tokenVersion"], has="one")],
-)
-print(profile)
-
-user = mysql_loom.find_one(
-    instance=User,
-    filters=[Filter(column="id", value=userId)],
-    include=[Include(model=Profile, select=["id", "avatar"], has="one")],
-)
-print(user)
-
-user = mysql_loom.find_one(
-    instance=User,
-    filters=[Filter(column="id", value=userId)],
-    include=[
-        Include(
-            model=Post,
-            select=["id", "title"],
-            has="many",
-            offset=0,
-            limit=2,
-            order=[
-                Order(column="createdAt", order="DESC"),
-                Order(column="id", order="DESC"),
-            ],
-        ),
-        Include(model=Profile, select=["id", "avatar"], has="one"),
-    ],
-)
-print(user)
-
-post = mysql_loom.find_one(
-    instance=Post,
-    filters=[Filter(column="userId", value=userId)],
-    select=["title", "id"],
-    include=[
-        Include(
-            model=User,
-            select=["id", "username"],
-            has="one",
-            include=[Include(model=Profile, select=["avatar", "id"], has="one")],
-        ),
-        Include(
-            model=Category,
-            select=["id", "type"],
-            has="many",
-            order=[Order(column="id", order="DESC")],
-        ),
-    ],
-)
-
-print(post)
-
-user = mysql_loom.find_one(
-    instance=User,
-    filters=[Filter(column="id", value=userId2)],
-    select=["username", "id"],
-    include=[
-        Include(
-            model=Post,
-            select=["id", "title"],
-            has="many",
-            include=[
-                Include(
-                    model=Category,
-                    select=["type", "id"],
-                    has="many",
-                    order=[Order(column="id", order="DESC")],
-                    limit=2,
-                    offset=0,
-                )
-            ],
-        ),
-    ],
-)
-
-print(user)
 ```
+
+We're performing database operations to insert records for a user and multiple posts associated with that user.
+
+- We insert a user record into the database using `mysql_loom.insert_one()` method.
+- We iterate over a list of titles.
+- For each title in the list, we insert a new post record into the database.
+- Each post is associated with the user we inserted earlier, identified by the `userId`.
+- The titles for the posts are set based on the titles in the list.
+
+##### Retrieving Records
+
+Now let's query the user with his respective posts. we can do it as follows:
 
 ```py
-
-profile = mysql_loom.find_many(
-    instance=Profile,
-    filters=[Filter(column="userId", value=1)],
-    include=[Include(model=User, select=["id", "username", "tokenVersion"], has="one")],
+user = mysql_loom.find_by_pk(
+    User,
+    1,
+    select=["id", "username"],
 )
-print(profile)
-
-user = mysql_loom.find_many(
-    instance=User,
-    filters=[Filter(column="id", value=userId)],
-    include=[Include(model=Profile, select=["id", "avatar"], has="one")],
+posts = mysql_loom.find_many(
+    Post,
+    filters=Filter(column="userId", value=userId, operator="eq"),
+    select=["id", "title"],
+    order=[Order(column="id", order="DESC")],
+    limit=2,
+    offset=1,
 )
-print(user, userId)
 
-user = mysql_loom.find_many(
-    instance=User,
-    filters=[Filter(column="id", value=userId)],
+user_with_posts = {**user, "posts": posts}
+print(
+    user_with_posts
+)  # ? = {'id': 1, 'username': '@miller', 'posts': [{'id': 3, 'title': 'What are you doing'}, {'id': 2, 'title': 'Hello'}]}
+```
+
+We're querying the database to retrieve information about a `user` and their associated `posts`.
+
+1. **Querying User**:
+
+   - We use `mysql_loom.find_by_pk()` to fetch a single user record from the database.
+   - The user's ID is specified as `1`.
+   - We select only the `id` and `username` columns for the user.
+
+2. **Querying Posts**:
+
+   - We use `mysql_loom.find_many()` to retrieve multiple post records associated with the user.
+   - A filter is applied to only fetch posts where the `userId` matches the ID of the user retrieved earlier.
+   - We select only the `id` and `title` columns for the posts.
+   - The posts are ordered by the `id` column in descending order.
+   - We set a limit of `2` posts to retrieve, and we skip the first post using an offset of `1`.
+   - We create a dictionary `user_with_posts` containing the user information and a list of their associated posts under the key `"posts"`.
+
+With eager loading this can be done as follows the above can be done as follows:
+
+```py
+user_with_posts = mysql_loom.find_by_pk(
+    User,
+    1,
+    select=["id", "username"],
     include=[
         Include(
             model=Post,
             select=["id", "title"],
-            has="many",
-            offset=0,
+            order=[Order(column="id", order="DESC")],
             limit=2,
-            order=[
-                Order(column="createdAt", order="DESC"),
-                Order(column="id", order="DESC"),
-            ],
-        ),
-        Include(model=Profile, select=["id", "avatar"], has="one"),
+            offset=1,
+        )
     ],
 )
-print(user)
+print(
+    user_with_posts
+)  # ? = {'id': 1, 'username': '@miller', 'posts': [{'id': 3, 'title': 'What are you doing'}, {'id': 2, 'title': 'Hello'}]}
+```
 
-post = mysql_loom.find_many(
-    instance=Post,
-    filters=[Filter(column="userId", value=userId)],
-    select=["title", "id"],
-    limit=1,
-    offset=0,
+- We use `mysql_loom.find_by_pk()` to fetch a single user record from the database.
+- The user's ID is specified as `1`.
+- We select only the `id` and `username` columns for the user.
+- Additionally, we include associated post records using `eager` loading.
+- Inside the `include` parameter, we specify the `Post` model and select only the `id` and `title` columns for the posts.
+- The posts are ordered by the `id` column in descending order.
+- We set a limit of `2` posts to retrieve, and we skip the first post using an offset of `1`.
+
+#### 4. What about bidirectional queries?
+
+In Dataloom, we support bidirectional relations with eager loading on-the-fly. You can query from a `parent` to a `child` and from a `child` to a `parent`. You just need to know how the relationship is mapped between these two models. In this case, the `has` option is very important in the `Include` class. Here are some examples demonstrating bidirectional querying between `user` and `post`, where the `user` is the parent table and the `post` is the child table in this case.
+
+##### 1. Child to Parent
+
+Here is an example illustrating how we can query a parent from child table.
+
+```py
+posts_users = mysql_loom.find_many(
+    Post,
+    limit=2,
+    offset=3,
     order=[Order(column="id", order="DESC")],
+    select=["id", "title"],
     include=[
         Include(
             model=User,
             select=["id", "username"],
             has="one",
-            include=[Include(model=Profile, select=["avatar", "id"], has="one")],
+            include=[Include(model=Profile, select=["id", "avatar"], has="one")],
         ),
         Include(
             model=Category,
             select=["id", "type"],
-            has="many",
             order=[Order(column="id", order="DESC")],
+            has="many",
             limit=2,
         ),
     ],
 )
+print(posts_users) # ? = [{'id': 1, 'title': 'Hey', 'user': {'id': 1, 'username': '@miller', 'profile': {'id': 1, 'avatar': 'hello.jpg'}}, 'categories': [{'id': 4, 'type': 'sport'}, {'id': 3, 'type': 'tech'}]}]
+```
 
-print(post)
+##### 2. Parent to Child
 
+Here is an example of how we can query a child table from parent table
 
-user = mysql_loom.find_many(
-    instance=User,
-    filters=[Filter(column="id", value=userId2)],
-    select=["username", "id"],
+```py
+user_post = mysql_loom.find_by_pk(
+    User,
+    pk=userId,
+    select=["id", "username"],
     include=[
         Include(
             model=Post,
+            limit=2,
+            offset=3,
+            order=[Order(column="id", order="DESC")],
             select=["id", "title"],
-            has="many",
             include=[
                 Include(
+                    model=User,
+                    select=["id", "username"],
+                    has="one",
+                    include=[
+                        Include(model=Profile, select=["id", "avatar"], has="one")
+                    ],
+                ),
+                Include(
                     model=Category,
-                    select=["type", "id"],
-                    has="many",
+                    select=["id", "type"],
                     order=[Order(column="id", order="DESC")],
+                    has="many",
                     limit=2,
-                    offset=0,
-                )
+                ),
             ],
         ),
+        Include(model=Profile, select=["id", "avatar"], has="one"),
     ],
 )
 
-print(user)
 
-
-posts = mysql_loom.find_many(Post, select=["id", "completed"])
-print(posts)
-
+print(user_post) """ ? =
+{'id': 1, 'username': '@miller', 'user': {'id': 1, 'username': '@miller', 'profile': {'id': 1, 'avatar': 'hello.jpg'}}, 'categories': [{'id': 4, 'type': 'sport'}, {'id': 3, 'type': 'tech'}], 'posts': [{'id': 1, 'title': 'Hey', 'user': {'id': 1, 'username': '@miller', 'profile': {'id': 1, 'avatar': 'hello.jpg'}}, 'categories': [{'id': 4, 'type': 'sport'}, {'id': 3, 'type': 'tech'}]}], 'profile': {'id': 1, 'avatar': 'hello.jpg'}}
+"""
 
 ```
-
-#### `1-N` Association
 
 ### What is coming next?
 
