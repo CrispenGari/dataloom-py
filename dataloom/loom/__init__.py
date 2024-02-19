@@ -258,7 +258,6 @@ class Dataloom(IDataloom):
         filters: Optional[Filter | list[Filter]] = None,
         select: list[str] = [],
         include: list[Model] = [],
-        return_dict: bool = True,
         limit: Optional[int] = None,
         offset: Optional[int] = None,
         order: Optional[list[Order]] = [],
@@ -279,8 +278,7 @@ class Dataloom(IDataloom):
             Columns to select in the query. Default is an empty list, which selects all columns.
         include : list[Model], optional
             Models to include in the query (e.g., for JOIN operations).
-        return_dict : bool, optional
-            If True, returns results as dictionaries. If False, returns results as instances of the Model class. Default is True.
+
         limit : int | None, optional
             The maximum number of rows to retrieve. Default is None.
         offset : int | None, optional
@@ -331,7 +329,6 @@ class Dataloom(IDataloom):
             include=include,
             offset=offset,
             filters=filters,
-            return_dict=return_dict,
             order=order,
         )
 
@@ -340,7 +337,6 @@ class Dataloom(IDataloom):
         instance: Model,
         select: list[str] = [],
         include: list[Include] = [],
-        return_dict: bool = True,
         limit: Optional[int] = None,
         offset: Optional[int] = None,
         order: Optional[list[Order]] = [],
@@ -359,8 +355,6 @@ class Dataloom(IDataloom):
             Columns to select in the query. Default is an empty list, which selects all columns.
         include : list[Include], optional
             Models to include in the query (e.g., for JOIN operations).
-        return_dict : bool, optional
-            If True, returns results as dictionaries. If False, returns results as instances of the Model class. Default is True.
         limit : int | None, optional
             The maximum number of rows to retrieve. Default is None.
         offset : int | None, optional
@@ -408,7 +402,6 @@ class Dataloom(IDataloom):
             instance=instance,
             select=select,
             include=include,
-            return_dict=return_dict,
             limit=limit,
             offset=offset,
             order=order,
@@ -420,7 +413,6 @@ class Dataloom(IDataloom):
         pk,
         select: list[str] = [],
         include: list[Include] = [],
-        return_dict: bool = True,
     ):
         """
         find_by_pk
@@ -438,8 +430,6 @@ class Dataloom(IDataloom):
             Columns to select in the query. Default is an empty list, which selects all columns.
         include : list[Include], optional
             Models to include in the query (e.g., for JOIN operations).
-        return_dict : bool, optional
-            If True, returns the result as a dictionary. If False, returns the result as an instance of the Model class. Default is True.
 
         Returns
         -------
@@ -480,7 +470,6 @@ class Dataloom(IDataloom):
         return query(dialect=self.dialect, _execute_sql=self._execute_sql).find_by_pk(
             include=include,
             pk=pk,
-            return_dict=return_dict,
             select=select,
             instance=instance,
         )
@@ -491,7 +480,6 @@ class Dataloom(IDataloom):
         filters: Optional[Filter | list[Filter]] = None,
         select: list[str] = [],
         include: list[Include] = [],
-        return_dict: bool = True,
         offset: Optional[int] = None,
     ):
         """
@@ -510,8 +498,6 @@ class Dataloom(IDataloom):
             Columns to select in the query. Default is an empty list, which selects all columns.
         include : list[Include], optional
             Models to include in the query (e.g., for JOIN operations).
-        return_dict : bool, optional
-            If True, returns the result as a dictionary. If False, returns the result as an instance of the Model class. Default is True.
         offset : int | None, optional
             The offset of the row to retrieve, useful for pagination. Default is None.
 
@@ -557,7 +543,6 @@ class Dataloom(IDataloom):
             filters=filters,
             offset=offset,
             include=include,
-            return_dict=return_dict,
         )
 
     def update_by_pk(

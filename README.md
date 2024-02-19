@@ -78,8 +78,12 @@
 - [Utilities](#utilities)
   - [`inspect`](#inspect)
 - [Associations](#associations)
-  - [`1-1` Association](#1-1-association)
-  - [`N-1` Association](#n-1-association)
+  - [1. `1-1` Association](#1-1-1-association)
+    - [Inserting](#inserting)
+    - [Retrieving Records](#retrieving-records)
+  - [2. `N-1` Association](#2-n-1-association)
+    - [Inserting](#inserting-1)
+    - [Retrieving Records](#retrieving-records-1)
   - [`1-N` Association](#1-n-association)
 - [What is coming next?](#what-is-coming-next)
 - [Contributing](#contributing)
@@ -506,6 +510,18 @@ posts = pg_loom.find_all(
 
 #### `Include`
 
+The `Include` class facilitates eager loading for models with relationships. Below is a table detailing the parameters available for the `Include` class:
+
+| Argument  | Description                                                             | Type                        | Default         | Required |
+| --------- | ----------------------------------------------------------------------- | --------------------------- | --------------- | -------- | --- |
+| `model`   | The model to be included when eagerly fetching records.                 | `Model`                     | -               | Yes      |
+| `order`   | The list of order specifications for sorting the included data.         | `list[Order]`, optional     | `[]`            | No       |
+| `limit`   | The maximum number of records to include.                               | `int                        | None`, optional | `0`      | No  |
+| `offset`  | The number of records to skip before including.                         | `int                        | None`, optional | `0`      | No  |
+| `select`  | The list of columns to include.                                         | `list[str]                  | None`, optional | `None`   | No  |
+| `has`     | The relationship type between the current model and the included model. | `INCLUDE_LITERAL`, optional | `"many"`        | No       |
+| `include` | The extra included models.                                              | `list[Include]`, optional   | `[]`            | No       |
+
 ### Syncing Tables
 
 Syncing tables involves the process of creating tables from models and saving them to a database. After defining your tables, you will need to synchronize your database tables using the `sync` method.
@@ -702,14 +718,13 @@ print(user) # ? {'id': 1, 'username': '@miller'}
 
 This method take the following as arguments
 
-| Argument      | Description                                                          | Type                             | Default | Required |
-| ------------- | -------------------------------------------------------------------- | -------------------------------- | ------- | -------- |
-| `instance`    | The model class to retrieve instances from.                          | `Model`                          |         | `Yes`    |
-| `filters`     | Filter or list of filters to apply to the query.                     | `Filter \| list[Filter] \| None` | `None`  | `No`     |
-| `select`      | List of fields to select from the instances.                         | `list[str]`                      | `[]`    | `No`     |
-| `include`     | List of related models to eagerly load.                              | `list[Include]`                  | `[]`    | `No`     |
-| `return_dict` | Flag indicating whether to return the result as a dictionary or not. | `bool`                           | `True`  | `No`     |
-| `offset`      | Number of instances to skip before retrieving.                       | `int \| None`                    | `None`  | `No`     |
+| Argument   | Description                                      | Type                             | Default | Required |
+| ---------- | ------------------------------------------------ | -------------------------------- | ------- | -------- |
+| `instance` | The model class to retrieve instances from.      | `Model`                          |         | `Yes`    |
+| `filters`  | Filter or list of filters to apply to the query. | `Filter \| list[Filter] \| None` | `None`  | `No`     |
+| `select`   | List of fields to select from the instances.     | `list[str]`                      | `[]`    | `No`     |
+| `include`  | List of related models to eagerly load.          | `list[Include]`                  | `[]`    | `No`     |
+| `offset`   | Number of instances to skip before retrieving.   | `int \| None`                    | `None`  | `No`     |
 
 ##### 4. `find_by_pk()`
 
@@ -722,13 +737,12 @@ print(user) # ? {'id': 1, 'username': '@miller'}
 
 The method takes the following as arguments:
 
-| Argument      | Description                                                          | Type            | Default | Required |
-| ------------- | -------------------------------------------------------------------- | --------------- | ------- | -------- |
-| `instance`    | The model class to retrieve instances from.                          | `Model`         |         | `Yes`    |
-| `pk`          | The primary key value to use for retrieval.                          | `Any`           |         | `Yes`    |
-| `select`      | List of fields to select from the instances.                         | `list[str]`     | `[]`    | `No`     |
-| `include`     | List of related models to eagerly load.                              | `list[Include]` | `[]`    | `No`     |
-| `return_dict` | Flag indicating whether to return the result as a dictionary or not. | `bool`          | `True`  | `No`     |
+| Argument   | Description                                  | Type            | Default | Required |
+| ---------- | -------------------------------------------- | --------------- | ------- | -------- |
+| `instance` | The model class to retrieve instances from.  | `Model`         |         | `Yes`    |
+| `pk`       | The primary key value to use for retrieval.  | `Any`           |         | `Yes`    |
+| `select`   | List of fields to select from the instances. | `list[str]`     | `[]`    | `No`     |
+| `include`  | List of related models to eagerly load.      | `list[Include]` | `[]`    | `No`     |
 
 #### 3. Updating a record
 
@@ -1175,59 +1189,17 @@ The `inspect` function take the following arguments.
 
 In dataloom you can create association using the `foreign-keys` column during model creation. You just have to specify a single model to have a relationship with another model using the [`ForeignKeyColum`](#foreignkeycolumn-class). Just by doing that dataloom will be able to learn bidirectional relationship between your models. Let's have a look at the following examples:
 
-#### `1-1` Association
+#### 1. `1-1` Association
+
+Let's consider an example where we want to map the relationship between a `User` and a `Profile`:
 
 ```py
-from dataloom import (
-    Dataloom,
-    Model,
-    PrimaryKeyColumn,
-    Column,
-    CreatedAtColumn,
-    UpdatedAtColumn,
-    TableColumn,
-    ForeignKeyColumn,
-    Filter,
-    ColumnValue,
-    Include,
-    Order,
-)
-from typing import Optional
-
-sqlite_loom = Dataloom(
-    dialect="sqlite",
-    database="hi.db",
-    logs_filename="sqlite-logs.sql",
-    sql_logger="console",
-)
-
-pg_loom = Dataloom(
-    dialect="postgres",
-    database="hi",
-    password="root",
-    user="postgres",
-    sql_logger="console",
-)
-
-mysql_loom = Dataloom(
-    dialect="mysql",
-    database="hi",
-    password="root",
-    user="root",
-    host="localhost",
-    logs_filename="logs.sql",
-    port=3306,
-    sql_logger="console",
-)
-
-
 class User(Model):
     __tablename__: Optional[TableColumn] = TableColumn(name="users")
     id = PrimaryKeyColumn(type="int", auto_increment=True)
     name = Column(type="text", nullable=False, default="Bob")
     username = Column(type="varchar", unique=True, length=255)
     tokenVersion = Column(type="int", default=0)
-
 
 class Profile(Model):
     __tablename__: Optional[TableColumn] = TableColumn(name="profiles")
@@ -1242,7 +1214,115 @@ class Profile(Model):
         onUpdate="CASCADE",
     )
 
+```
 
+The above code demonstrates how to establish a `one-to-one` relationship between a `User` and a `Profile` using the `dataloom`.
+
+- `User` and `Profile` are two model classes inheriting from `Model`.
+- Each model is associated with a corresponding table in the database, defined by the `__tablename__` attribute.
+- Both models have a primary key column (`id`) defined using `PrimaryKeyColumn`.
+- Additional columns (`name`, `username`, `tokenVersion` for `User` and `avatar`, `userId` for `Profile`) are defined using `Column`.
+- The `userId` column in the `Profile` model establishes a foreign key relationship with the `id` column of the `User` model using `ForeignKeyColumn`. This relationship is specified to be a `one-to-one` relationship (`maps_to="1-1"`).
+- Various constraints such as `nullable`, `unique`, `default`, and foreign key constraints (`onDelete`, `onUpdate`) are specified for the columns.
+
+##### Inserting
+
+In the following code example we are going to demonstrate how we can create a `user` with a `profile`, first we need to create a user first so that we get reference to the user of the profile that we will create.
+
+```py
+userId = mysql_loom.insert_one(
+    instance=User,
+    values=ColumnValue(name="username", value="@miller"),
+)
+
+profileId = mysql_loom.insert_one(
+    instance=Profile,
+    values=[
+        ColumnValue(name="userId", value=userId),
+        ColumnValue(name="avatar", value="hello.jpg"),
+    ],
+)
+```
+
+This Python code snippet demonstrates how to insert data into the database using the `mysql_loom.insert_one` method, it also work on other methods like `insert_bulk`.
+
+1. **Inserting a User Record**:
+
+   - The `mysql_loom.insert_one` method is used to insert a new record into the `User` table.
+   - The `instance=User` parameter specifies that the record being inserted belongs to the `User` model.
+   - The `values=ColumnValue(name="username", value="@miller")` parameter specifies the values to be inserted into the `User` table, where the `username` column will be set to `"@miller"`.
+   - The ID of the newly inserted record is obtained and assigned to the variable `userId`.
+
+2. **Inserting a Profile Record**:
+   - Again, the `mysql_loom.insert_one` method is called to insert a new record into the `Profile` table.
+   - The `instance=Profile` parameter specifies that the record being inserted belongs to the `Profile` model.
+   - The `values` parameter is a list containing two `ColumnValue` objects:
+     - The first `ColumnValue` object specifies that the `userId` column of the `Profile` table will be set to the `userId` value obtained from the previous insertion.
+     - The second `ColumnValue` object specifies that the `avatar` column of the `Profile` table will be set to `"hello.jpg"`.
+   - The ID of the newly inserted record is obtained and assigned to the variable `profileId`.
+
+##### Retrieving Records
+
+The following example shows you how you can retrieve the data in a associations
+
+```py
+profile = mysql_loom.find_one(
+    instance=Profile,
+    select=["id", "avatar"],
+    filters=Filter(column="userId", value=userId),
+)
+user = mysql_loom.find_by_pk(
+    instance=User,
+    pk=userId,
+    select=["id", "username"],
+)
+user_with_profile = {**user, "profile": profile}
+print(user_with_profile) # ? = {'id': 1, 'username': '@miller', 'profile': {'id': 1, 'avatar': 'hello.jpg'}}
+```
+
+This Python code snippet demonstrates how to query data from the database using the `mysql_loom.find_one` and `mysql_loom.find_by_pk` methods, and combine the results of these two records that have association.
+
+1. **Querying a Profile Record**:
+
+   - The `mysql_loom.find_one` method is used to retrieve a single record from the `Profile` table.
+   - The `filters=Filter(column="userId", value=userId)` parameter filters the results to only include records where the `userId` column matches the `userId` value obtained from a previous insertion.
+
+2. **Querying a User Record**:
+
+   - The `mysql_loom.find_by_pk` method is used to retrieve a single record from the `User` table based on its primary key (`pk=userId`).
+   - The `instance=User` parameter specifies that the record being retrieved belongs to the `User` model.
+   - The `select=["id", "username"]` parameter specifies that only the `id` and `username` columns should be selected.
+   - The retrieved user data is assigned to the variable `user`.
+
+3. **Combining User and Profile Data**:
+   - The user data (`user`) and profile data (`profile`) are combined into a single dictionary (`user_with_profile`) using dictionary unpacking (`{**user, "profile": profile}`).
+   - This dictionary represents a user with their associated profile.
+
+> 🏒 We have realized that we are performing three steps when querying records, which can be verbose. However, in dataloom, we have introduced `eager` data fetching for all methods that retrieve data from the database. The following example demonstrates how we can achieve the same result as before using eager loading:
+
+```python
+# With eager loading
+user_with_profile = mysql_loom.find_by_pk(
+    instance=User,
+    pk=userId,
+    select=["id", "username"],
+    include=[Include(model=Profile, select=["id", "avatar"], has="one")],
+)
+print(user_with_profile) # ? = {'id': 1, 'username': '@miller', 'profile': {'id': 1, 'avatar': 'hello.jpg'}}
+```
+
+This Python code snippet demonstrates how to use eager loading with the `mysql_loom.find_by_pk` method to efficiently retrieve data from the `User` and `Profile` tables in a single query.
+
+- Eager loading allows us to retrieve related data from multiple tables in a single database query, reducing the need for multiple queries and improving performance.
+- In this example, the `include` parameter is used to specify eager loading for the `Profile` model associated with the `User` model.
+- By including the `Profile` model with the `User` model in the `find_by_pk` method call, we instruct the database to retrieve both the user data (`id` and `username`) and the associated profile data (`id` and `avatar`) in a single query.
+- This approach streamlines the data retrieval process and minimizes unnecessary database calls, leading to improved efficiency and performance in applications.
+
+#### 2. `N-1` Association
+
+Models can have `Many` to `One` relationship, it depends on how you define them. Let's have a look at the relationship between a `Category` and a `Post`. Many categories can belong to a single post.
+
+```py
 class Post(Model):
     __tablename__: Optional[TableColumn] = TableColumn(name="posts")
     id = PrimaryKeyColumn(type="int", auto_increment=True, nullable=False, unique=True)
@@ -1260,7 +1340,6 @@ class Post(Model):
         onUpdate="CASCADE",
     )
 
-
 class Category(Model):
     __tablename__: Optional[TableColumn] = TableColumn(name="categories")
     id = PrimaryKeyColumn(type="int", auto_increment=True, nullable=False, unique=True)
@@ -1275,29 +1354,24 @@ class Category(Model):
         onUpdate="CASCADE",
     )
 
+```
 
-conn, tables = mysql_loom.connect_and_sync(
-    [User, Profile, Post, Category], drop=True, force=True
-)
+In the provided code, we have two models: `Post` and `Category`. The relationship between these two models can be described as a `Many-to-One` relationship.
 
+This means that many categories can belong to a single post. In other words:
 
-userId = mysql_loom.insert_one(
-    instance=User,
-    values=ColumnValue(name="username", value="@miller"),
-)
+- For each `Post` instance, there can be multiple `Category` instances associated with it.
+- However, each `Category` instance can only be associated with one `Post`.
 
-userId2 = mysql_loom.insert_one(
-    instance=User,
-    values=ColumnValue(name="username", value="bob"),
-)
+For example, consider a blogging platform where each `Post` represents an article and each `Category` represents a topic or theme. Each article (post) can be assigned to multiple topics (categories), such as "Technology", "Travel", "Food", etc. However, each topic (category) can only be associated with one specific article (post).
 
-profileId = mysql_loom.insert_one(
-    instance=Profile,
-    values=[
-        ColumnValue(name="userId", value=userId),
-        ColumnValue(name="avatar", value="hello.jpg"),
-    ],
-)
+This relationship allows for a hierarchical organization of data, where posts can be categorized into different topics or themes represented by categories.
+
+##### Inserting
+
+Let's illustrate the following example where we insert categories into a post with the `id` 1.
+
+```py
 for title in ["Hey", "Hello", "What are you doing", "Coding"]:
     mysql_loom.insert_one(
         instance=Post,
@@ -1307,7 +1381,6 @@ for title in ["Hey", "Hello", "What are you doing", "Coding"]:
         ],
     )
 
-
 for cat in ["general", "education", "tech", "sport"]:
     mysql_loom.insert_one(
         instance=Category,
@@ -1316,91 +1389,17 @@ for cat in ["general", "education", "tech", "sport"]:
             ColumnValue(name="type", value=cat),
         ],
     )
-    print()
-
-
-profile = mysql_loom.find_by_pk(
-    instance=Profile,
-    pk=profileId,
-    include=[Include(model=User, select=["id", "username", "tokenVersion"], has="one")],
-)
-print(profile)
-
-user = mysql_loom.find_by_pk(
-    instance=User,
-    pk=userId,
-    include=[Include(model=Profile, select=["id", "avatar"], has="one")],
-)
-print(user)
-
-user = mysql_loom.find_by_pk(
-    instance=User,
-    pk=userId,
-    include=[
-        Include(
-            model=Post,
-            select=["id", "title"],
-            has="many",
-            offset=0,
-            limit=2,
-            order=[
-                Order(column="createdAt", order="DESC"),
-                Order(column="id", order="DESC"),
-            ],
-        ),
-        Include(model=Profile, select=["id", "avatar"], has="one"),
-    ],
-)
-print(user)
-
-post = mysql_loom.find_by_pk(
-    instance=Post,
-    pk=1,
-    select=["title", "id"],
-    include=[
-        Include(
-            model=User,
-            select=["id", "username"],
-            has="one",
-            include=[Include(model=Profile, select=["avatar", "id"], has="one")],
-        ),
-        Include(
-            model=Category,
-            select=["id", "type"],
-            has="many",
-            order=[Order(column="id", order="DESC")],
-        ),
-    ],
-)
-
-print(post)
-
-
-user = mysql_loom.find_by_pk(
-    instance=User,
-    pk=userId2,
-    select=["username", "id"],
-    include=[
-        Include(
-            model=Post,
-            select=["id", "title"],
-            has="many",
-            include=[
-                Include(
-                    model=Category,
-                    select=["type", "id"],
-                    has="many",
-                    order=[Order(column="id", order="DESC")],
-                    limit=2,
-                    offset=0,
-                )
-            ],
-        ),
-    ],
-)
-
-print(user)
 ```
+
+- **Inserting Posts**
+  We're inserting new posts into the `Post` table. Each post is associated with a user (`userId`), and we're iterating over a list of titles to insert multiple posts.
+
+- **Inserting Categories**
+  We're inserting new categories into the `Category` table. Each category is associated with a specific post (`postId`), and we're inserting categories for a post with `id` 1.
+
+> In summary, we're creating a relationship between posts and categories by inserting records into their respective tables. Each category record is linked to a specific post record through the `postId` attribute.
+
+##### Retrieving Records
 
 ```py
 
@@ -1619,15 +1618,13 @@ print(posts)
 
 ```
 
-#### `N-1` Association
-
 #### `1-N` Association
 
 ### What is coming next?
 
-1. Associations
-2. Grouping
-3. Altering tables
+1. N-N associations
+2. Altering tables
+3. Grouping
 
 ### Contributing
 

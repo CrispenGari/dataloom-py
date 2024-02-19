@@ -11,9 +11,11 @@ from dataloom import (
     ColumnValue,
     Include,
     Order,
+    experimental_decorators,
 )
-import json
+import json, time
 from typing import Optional
+from dataclasses import dataclass
 
 sqlite_loom = Dataloom(
     dialect="sqlite",
@@ -38,7 +40,7 @@ mysql_loom = Dataloom(
     host="localhost",
     logs_filename="logs.sql",
     port=3306,
-    sql_logger="console",
+    sql_logger=None,
 )
 
 
@@ -50,6 +52,9 @@ class User(Model):
     tokenVersion = Column(type="int", default=0)
 
 
+@experimental_decorators.initialize(
+    repr=True, to_dict=True, init=True, repr_identifier="id"
+)
 class Profile(Model):
     __tablename__: Optional[TableColumn] = TableColumn(name="profiles")
     id = PrimaryKeyColumn(type="int", auto_increment=True)
@@ -138,12 +143,14 @@ for cat in ["general", "education", "tech", "sport"]:
         ],
     )
 
-
-# profile = mysql_loom.find_all(
-#     instance=Profile,
-#     include=[Include(model=User, select=["id", "username", "tokenVersion"], has="one")],
-# )
-# print(profile)
+user_with_profile = mysql_loom.find_by_pk(
+    instance=User,
+    pk=userId,
+    select=["id", "username"],
+    include=[Include(model=Profile, select=["id", "avatar"], has="one")],
+)
+print(user_with_profile)
+print(user_with_profile)
 
 # user = mysql_loom.find_all(
 #     instance=User,
@@ -197,41 +204,134 @@ for cat in ["general", "education", "tech", "sport"]:
 # print(json.dumps(post, indent=2))
 
 
-user = mysql_loom.find_many(
-    instance=User,
-    filters=[Filter(column="id", value=1)],
-    select=["username", "id"],
-    limit=1,
-    offset=0,
-    order=[Order(column="id", order="ASC")],
-    include=[
-        Include(
-            model=Post,
-            select=["id", "title"],
-            has="many",
-            limit=1,
-            offset=0,
-            order=[Order(column="id", order="ASC")],
-            include=[
-                Include(
-                    model=Category,
-                    select=["type", "id"],
-                    has="many",
-                    order=[Order(column="id", order="DESC")],
-                    limit=2,
-                    offset=0,
-                ),
-                Include(
-                    model=User,
-                    select=["username", "id"],
-                    has="one",
-                ),
-            ],
-        ),
-    ],
-)
+# user = mysql_loom.find_many(
+#     instance=User,
+#     filters=[Filter(column="id", value=1)],
+#     select=["username", "id"],
+#     limit=1,
+#     offset=0,
+#     order=[Order(column="id", order="ASC")],
+#     include=[
+#         Include(
+#             model=Post,
+#             select=["id", "title"],
+#             has="many",
+#             limit=1,
+#             offset=0,
+#             order=[Order(column="id", order="ASC")],
+#             include=[
+#                 Include(
+#                     model=Category,
+#                     select=["type", "id"],
+#                     has="many",
+#                     order=[Order(column="id", order="DESC")],
+#                     limit=2,
+#                     offset=0,
+#                 ),
+#                 Include(
+#                     model=User,
+#                     select=["username", "id"],
+#                     has="one",
+#                 ),
+#             ],
+#         ),
+#     ],
+# )
 
-print(json.dumps(user, indent=2))
+# print(json.dumps(user, indent=2))
+
+
+# posts = mysql_loom.find_all(Post, select=["id", "completed"])
+# print(posts)
+
+
+# user = mysql_loom.find_all(
+#     instance=User,
+#     include=[Include(model=Profile, select=["id", "avatar"], has="one")],
+# )
+# print(user)
+
+# user = mysql_loom.find_all(
+#     instance=User,
+#     include=[
+#         Include(
+#             model=Post,
+#             select=["id", "title"],
+#             has="many",
+#             offset=0,
+#             limit=2,
+#             order=[
+#                 Order(column="createdAt", order="DESC"),
+#                 Order(column="id", order="DESC"),
+#             ],
+#         ),
+#         Include(model=Profile, select=["id", "avatar"], has="one"),
+#     ],
+# )
+# print(user)
+
+# post = mysql_loom.find_all(
+#     instance=Post,
+#     select=["title", "id"],
+#     limit=5,
+#     offset=0,
+#     order=[Order(column="id", order="DESC")],
+#     include=[
+#         Include(
+#             model=User,
+#             select=["id", "username"],
+#             has="one",
+#             include=[Include(model=Profile, select=["avatar", "id"], has="one")],
+#         ),
+#         Include(
+#             model=Category,
+#             select=["id", "type"],
+#             has="many",
+#             order=[Order(column="id", order="DESC")],
+#             limit=2,
+#             include=[Include(model=Post, has="one")],
+#         ),
+#     ],
+# )
+
+# print(json.dumps(post, indent=2))
+
+
+# user = mysql_loom.find_many(
+#     instance=User,
+#     filters=[Filter(column="id", value=1)],
+#     select=["username", "id"],
+#     limit=1,
+#     offset=0,
+#     order=[Order(column="id", order="ASC")],
+#     include=[
+#         Include(
+#             model=Post,
+#             select=["id", "title"],
+#             has="many",
+#             limit=1,
+#             offset=0,
+#             order=[Order(column="id", order="ASC")],
+#             include=[
+#                 Include(
+#                     model=Category,
+#                     select=["type", "id"],
+#                     has="many",
+#                     order=[Order(column="id", order="DESC")],
+#                     limit=2,
+#                     offset=0,
+#                 ),
+#                 Include(
+#                     model=User,
+#                     select=["username", "id"],
+#                     has="one",
+#                 ),
+#             ],
+#         ),
+#     ],
+# )
+
+# print(json.dumps(user, indent=2))
 
 
 # posts = mysql_loom.find_all(Post, select=["id", "completed"])

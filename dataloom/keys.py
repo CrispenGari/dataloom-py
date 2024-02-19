@@ -1,4 +1,4 @@
-push = False
+push = True
 
 
 class PgConfig:

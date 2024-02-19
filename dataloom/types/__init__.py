@@ -282,8 +282,10 @@ class Include[Model]:
         The number of records to skip before including. Default is 0 (no offset).
     select : list[str] | None, optional
         The list of columns to include. Default is None (include all columns).
-    maps_to : RELATIONSHIP_LITERAL, optional
-        The relationship type between the current model and the included model. Default is "1-N" (one-to-many).
+    has : INCLUDE_LITERAL, optional
+        The relationship type between the current model and the included model. Default is "many".
+    include : list[Include], optional
+        The extra included models.
 
     Returns
     -------
@@ -300,11 +302,11 @@ class Include[Model]:
     --------
     >>> from dataloom import Include, Model, Order
     ...
-    ... # Including posts for a user with ID 1
-    ... mysql_loom.find_by_pk(
-    ...     User, pk=1, include=[Include(Post, limit=2, offset=0, select=["id", "title"], maps_to="1-N")]
+    ... # get the profile and the user of that profile in one eager query.
+    ... profile = mysql_loom.find_many(
+    ...     instance=Profile,
+    ...     include=[Include(model=User, select=["id", "username", "tokenVersion"], has="one")],
     ... )
-
     """
 
     model: Model = field(repr=False)

@@ -15,7 +15,6 @@ class Query(ABC):
         filters: Optional[Filter | list[Filter]] = None,
         select: list[str] = [],
         include: list[Model] = [],
-        return_dict: bool = True,
         limit: Optional[int] = None,
         offset: Optional[int] = None,
         order: Optional[list[Order]] = [],
@@ -28,7 +27,6 @@ class Query(ABC):
         instance: Model,
         select: list[str] = [],
         include: list[Include] = [],
-        return_dict: bool = True,
         limit: Optional[int] = None,
         offset: Optional[int] = None,
         order: Optional[list[Order]] = [],
@@ -42,7 +40,6 @@ class Query(ABC):
         pk,
         select: list[str] = [],
         include: list[Include] = [],
-        return_dict: bool = True,
     ) -> dict | None:
         raise NotImplementedError("The find_by_pk method was not implemented.")
 
@@ -53,7 +50,6 @@ class Query(ABC):
         filters: Optional[Filter | list[Filter]] = None,
         select: list[str] = [],
         include: list[Include] = [],
-        return_dict: bool = True,
         offset: Optional[int] = None,
     ) -> dict | None:
         raise NotImplementedError("The find_one method was not implemented.")
@@ -72,12 +68,10 @@ class query(Query):
         filters: Optional[Filter | list[Filter]] = None,
         select: list[str] = [],
         include: list[Model] = [],
-        return_dict: bool = True,
         limit: Optional[int] = None,
         offset: Optional[int] = None,
         order: Optional[list[Order]] = [],
     ) -> list:
-        return_dict = True
         data = []
         if len(include) == 0:
             sql, params, fields = instance._get_select_where_stm(
@@ -92,7 +86,8 @@ class query(Query):
             args = get_args(params)
             rows = self._execute_sql(sql, fetchall=True, args=args)
             for row in rows:
-                data.append(dict(zip(fields, row)))
+                d = dict(zip(fields, row))
+                data.append(d)
         else:
             # run sub queries instead
             data = subquery(
@@ -113,12 +108,10 @@ class query(Query):
         instance: Model,
         select: list[str] = [],
         include: list[Include] = [],
-        return_dict: bool = True,
         limit: Optional[int] = None,
         offset: Optional[int] = None,
         order: Optional[list[Order]] = [],
     ) -> list:
-        return_dict = True
         data = []
         if len(include) == 0:
             sql, params, fields = instance._get_select_where_stm(
@@ -152,13 +145,7 @@ class query(Query):
         pk,
         select: list[str] = [],
         include: list[Include] = [],
-        return_dict: bool = True,
     ) -> dict | None:
-        # """
-        # This part will be added in the future version.
-        # """
-        return_dict = True
-
         # what is the name of the primary key column? well we will find out
         sql, fields, _includes = instance._get_select_by_pk_stm(
             dialect=self.dialect, select=select, include=[]
@@ -178,10 +165,8 @@ class query(Query):
         filters: Optional[Filter | list[Filter]] = None,
         select: list[str] = [],
         include: list[Include] = [],
-        return_dict: bool = True,
         offset: Optional[int] = None,
     ) -> dict | None:
-        return_dict = True
         sql, params, fields = instance._get_select_where_stm(
             dialect=self.dialect,
             filters=filters,

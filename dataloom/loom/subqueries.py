@@ -57,7 +57,6 @@ class subquery:
             order=order,
         )
         args = get_args(params)
-        print(sql)
         pks = self._execute_sql(sql, fetchall=True, args=args, _verbose=0)
         data = []
         for (pk,) in pks:

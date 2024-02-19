@@ -6,6 +6,10 @@ class InvalidArgumentsException(Exception):
     pass
 
 
+class InvalidPropertyException(Exception):
+    pass
+
+
 class TooManyPkException(Exception):
     pass
 

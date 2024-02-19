@@ -24,30 +24,61 @@ We have release the new `dataloom` Version `1.1.0` (`2024-02-12`)
   - You can apply limits, offsets, filters and orders to your child associations during queries
 
   ```py
-  post = mysql_loom.find_one(
-    instance=Post,
-    filters=[Filter(column="userId", value=userId)],
-    select=["title", "id"],
-    include=[
-        Include(
-            model=User,
-            select=["id", "username"],
-            has="one",
-            include=[Include(model=Profile, select=["avatar", "id"], has="one")],
-        ),
-        Include(
-            model=Category,
-            select=["id", "type"],
-            has="many",
-            order=[Order(column="id", order="DESC")],
-            limit=2,
-        ),
-    ],
-  )
+    post = mysql_loom.find_one(
+      instance=Post,
+      filters=[Filter(column="userId", value=userId)],
+      select=["title", "id"],
+      include=[
+          Include(
+              model=User,
+              select=["id", "username"],
+              has="one",
+              include=[Include(model=Profile, select=["avatar", "id"], has="one")],
+          ),
+          Include(
+              model=Category,
+              select=["id", "type"],
+              has="many",
+              order=[Order(column="id", order="DESC")],
+              limit=2,
+          ),
+      ],
+    )
   ```
 
-- `N-N` relational mapping
-- Now you can return python objects when querying data meaning that the option `return_dict` in the query functions like `find_by_pk`, `find_one`, `find_many` and `find_all` now works starting from this version
+- Now `return_dict` has bee removed as an option in dataloom in the query functions like `find_by_pk`, `find_one`, `find_many` and `find_all` now works starting from this version. If you enjoy working with python objects you have to maneuver them manually using experimental features.
+
+  ```py
+  from dataloom import experimental_decorators
+
+  @experimental_decorators.initialize(
+      repr=True, to_dict=True, init=True, repr_identifier="id"
+  )
+  class Profile(Model):
+      __tablename__: Optional[TableColumn] = TableColumn(name="profiles")
+      id = PrimaryKeyColumn(type="int", auto_increment=True)
+      avatar = Column(type="text", nullable=False)
+      userId = ForeignKeyColumn(
+          User,
+          maps_to="1-1",
+          type="int",
+          required=True,
+          onDelete="CASCADE",
+          onUpdate="CASCADE",
+      )
+
+  # now you can do this
+
+  profile = mysql_loom.find_many(
+      instance=Profile,
+  )
+  print([Profile(**p) for p in profile]) # ? = [<Profile:id=1>]
+  print([Profile(**p) for p in profile][0].id) # ? = 1
+  ```
+
+  - These experimental decorators as we name them `"experimental"` they are little bit slow and they work perfect in a single instance, you can not nest relationships on them.
+  - You can use them if you know how your data is structured and also if you know how to manipulate dictionaries
+
 - Updated the documentation.
 - Grouping data in queries will also be part of this release, using the class `Group`
 
@@ -99,3 +130,7 @@ We are pleased to release `dataloom` ORM for python version `3.12` and above. Th
 - Filter Records
 - Select field in records
 - etc.
+
+```
+
+```
