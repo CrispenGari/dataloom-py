@@ -50,7 +50,7 @@
   - [`Filter` Class](#filter-class)
   - [`ColumnValue` Class](#columnvalue-class)
   - [`Order` Class](#order-class)
-  - [`Include`](#include)
+  - [`Include` Class](#include-class)
 - [Syncing Tables](#syncing-tables)
   - [1. The `sync` method.](#1-the-sync-method)
   - [2. The `connect_and_sync` method.](#2-the-connect_and_sync-method)
@@ -508,19 +508,19 @@ posts = pg_loom.find_all(
 | `column` | The name of the column to order by.                                       | `str`               | -       |
 | `order`  | The order direction, either `"ASC"` (ascending) or `"DESC"` (descending). | `"ASC"` or `"DESC"` | `"ASC"` |
 
-#### `Include`
+#### `Include` Class
 
 The `Include` class facilitates eager loading for models with relationships. Below is a table detailing the parameters available for the `Include` class:
 
-| Argument  | Description                                                             | Type                        | Default         | Required |
-| --------- | ----------------------------------------------------------------------- | --------------------------- | --------------- | -------- | --- |
-| `model`   | The model to be included when eagerly fetching records.                 | `Model`                     | -               | Yes      |
-| `order`   | The list of order specifications for sorting the included data.         | `list[Order]`, optional     | `[]`            | No       |
-| `limit`   | The maximum number of records to include.                               | `int                        | None`, optional | `0`      | No  |
-| `offset`  | The number of records to skip before including.                         | `int                        | None`, optional | `0`      | No  |
-| `select`  | The list of columns to include.                                         | `list[str]                  | None`, optional | `None`   | No  |
-| `has`     | The relationship type between the current model and the included model. | `INCLUDE_LITERAL`, optional | `"many"`        | No       |
-| `include` | The extra included models.                                              | `list[Include]`, optional   | `[]`            | No       |
+| Argument  | Description                                                             | Type                          | Default  | Required |
+| --------- | ----------------------------------------------------------------------- | ----------------------------- | -------- | -------- |
+| `model`   | The model to be included when eagerly fetching records.                 | `Model`                       | -        | Yes      |
+| `order`   | The list of order specifications for sorting the included data.         | `list[Order]`, optional       | `[]`     | No       |
+| `limit`   | The maximum number of records to include.                               | `int \| None`, optional       | `0`      | No       |
+| `offset`  | The number of records to skip before including.                         | `int \| None`, optional       | `0`      | No       |
+| `select`  | The list of columns to include.                                         | `list[str] \| None`, optional | `None`   | No       |
+| `has`     | The relationship type between the current model and the included model. | `INCLUDE_LITERAL`, optional   | `"many"` | No       |
+| `include` | The extra included models.                                              | `list[Include]`, optional     | `[]`     | No       |
 
 ### Syncing Tables
 
