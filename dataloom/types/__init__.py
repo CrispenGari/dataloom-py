@@ -29,6 +29,24 @@ SLQ_OPERAND = {
     "OR": "OR",
 }
 
+AGGREGATION_LITERALS = Literal["AVG", "COUNT", "SUM", "MAX", "MIN"]
+
+
+@dataclass(kw_only=True, repr=False)
+class Having:
+    column: str = field(repr=False)
+    operator: OPERATOR_LITERAL = field(repr=False, default="eq")
+    value: Any = field(repr=False)
+    join_next_with: Optional[SLQ_OPERAND_LITERAL] = field(default="AND")
+
+
+@dataclass(repr=False, kw_only=True)
+class Group:
+    column: str = field(repr=False)
+    function: AGGREGATION_LITERALS = field(default="COUNT", repr=False)
+    having: Optional[list[Having] | Having] = field(default=None, repr=False)
+    return_aggregation_column: Optional[bool] = field(default=False, repr=True)
+
 
 @dataclass(kw_only=True, repr=False)
 class Filter:

@@ -30,6 +30,10 @@ class InvalidColumnValuesException(ValueError):
     pass
 
 
+class InvalidFilterValuesException(ValueError):
+    pass
+
+
 class UnknownColumnException(ValueError):
     pass
 

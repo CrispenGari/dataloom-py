@@ -11,6 +11,8 @@ from dataloom import (
     ColumnValue,
     Include,
     Order,
+    Group,
+    Having,
 )
 from dataloom.decorators import initialize
 import json, time
@@ -40,7 +42,7 @@ mysql_loom = Dataloom(
     host="localhost",
     logs_filename="logs.sql",
     port=3306,
-    sql_logger=None,
+    sql_logger="console",
 )
 
 
@@ -155,10 +157,25 @@ for cat in ["general", "education", "tech", "sport"]:
 
 
 profile = mysql_loom.find_all(
-    Profile,
-    select=["avatar", "id"],
-    include=[Include(model=User, has="one", include=[Include(model=Category)])],
+    Post,
+    select=["title", "id"],
+    # filters=Filter(column="id", operator="gt", value=1),
+    group=[
+        Group(
+            column="id",
+            function="MAX",
+            having=[
+                Having(column="id", operator="in", value=(2, 3, 4)),
+                Having(column="id", operator="lt", value=10, join_next_with="OR"),
+            ],
+            return_aggregation_column=True,
+        ),
+        Group(
+            column="title",
+            function="COUNT",
+            having=Having(column="title", operator="eq", value=1),
+            return_aggregation_column=True,
+        ),
+    ],
 )
-profile = Profile(**profile)
-print(profile)  # ? = <Profile:id=1>
-print(profile.avatar)  # ? hello.jpg
+print(profile)

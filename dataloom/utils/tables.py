@@ -1,4 +1,5 @@
 import inspect
+from dataloom.utils.helpers import is_collection
 from dataloom.columns import (
     Column,
     CreatedAtColumn,
@@ -14,7 +15,11 @@ from dataloom.types import (
     Filter,
     ColumnValue,
 )
-from dataloom.exceptions import InvalidOperatorException, UnknownColumnException
+from dataloom.exceptions import (
+    InvalidOperatorException,
+    UnknownColumnException,
+    InvalidFilterValuesException,
+)
 from typing import Optional
 
 
@@ -27,7 +32,7 @@ def get_table_filters(
     placeholder_filter_values = []
     placeholder_filters = []
     if filters is not None:
-        if isinstance(filters, list):
+        if is_collection(filters):
             for idx, filter in enumerate(filters):
                 key = filter.column
                 if key not in fields:
@@ -42,20 +47,30 @@ def get_table_filters(
                 )
 
                 if op == "IN" or op == "NOT IN":
-                    _list = ", ".join(
-                        ["?" if dialect == "sqlite" else "%s" for i in filter.value]
-                    )
-                    _key = (
-                        f'"{key}" {op} ({_list}) {join}'
-                        if dialect == "postgres"
-                        else f"`{key}` {op} ({_list}) {join}"
-                    )
+                    if is_collection(filter.value):
+                        _list = ", ".join(
+                            ["?" if dialect == "sqlite" else "%s" for i in filter.value]
+                        )
+                        _key = (
+                            f'"{key}" {op} ({_list}) {join}'
+                            if dialect == "postgres"
+                            else f"`{key}` {op} ({_list}) {join}"
+                        )
+                    else:
+                        raise InvalidFilterValuesException(
+                            f'The column "{filter.column}" value can only be a list, tuple or dictionary but got {type(filter.value)} .'
+                        )
                 else:
-                    _key = (
-                        f'"{key}" {op} %s {join}'
-                        if dialect == "postgres"
-                        else f"`{key}` {op} {'%s' if dialect == 'mysql' else '?'} {join}"
-                    )
+                    if not is_collection(filter.value):
+                        _key = (
+                            f'"{key}" {op} %s {join}'
+                            if dialect == "postgres"
+                            else f"`{key}` {op} {'%s' if dialect == 'mysql' else '?'} {join}"
+                        )
+                    else:
+                        raise InvalidFilterValuesException(
+                            f'The column "{filter.column}" value can not be a collection.'
+                        )
                 placeholder_filter_values.append(filter.value)
                 placeholder_filters.append(_key)
         else:
@@ -67,20 +82,30 @@ def get_table_filters(
                 )
             op = get_operator(filter.operator)
             if op == "IN" or op == "NOT IN":
-                _list = ", ".join(
-                    ["?" if dialect == "sqlite" else "%s" for i in filter.value]
-                )
-                _key = (
-                    f'"{key}" {op} ({_list})'
-                    if dialect == "postgres"
-                    else f"`{key}` {op} ({_list})"
-                )
+                if is_collection(filter.value):
+                    _list = ", ".join(
+                        ["?" if dialect == "sqlite" else "%s" for i in filter.value]
+                    )
+                    _key = (
+                        f'"{key}" {op} ({_list})'
+                        if dialect == "postgres"
+                        else f"`{key}` {op} ({_list})"
+                    )
+                else:
+                    raise InvalidFilterValuesException(
+                        f'The column "{filter.column}" value can only be a list, tuple or dictionary but got {type(filter.value)} .'
+                    )
             else:
-                _key = (
-                    f'"{key}" {op} %s'
-                    if dialect == "postgres"
-                    else f"`{key}` {op} {'%s' if dialect == 'mysql' else '?'}"
-                )
+                if not is_collection(filter.value):
+                    _key = (
+                        f'"{key}" {op} %s'
+                        if dialect == "postgres"
+                        else f"`{key}` {op} {'%s' if dialect == 'mysql' else '?'}"
+                    )
+                else:
+                    raise InvalidFilterValuesException(
+                        f'The column "{filter.column}" value can not be a collection.'
+                    )
             placeholder_filter_values.append(filter.value)
             placeholder_filters.append(_key)
     return placeholder_filters, placeholder_filter_values
@@ -97,7 +122,7 @@ def get_column_values(
     column_names = []
 
     if values is not None:
-        if isinstance(values, list):
+        if is_collection(values):
             for value in values:
                 key = value.name
                 v = value.value

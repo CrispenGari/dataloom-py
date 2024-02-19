@@ -1,5 +1,5 @@
 from dataloom.loom import Dataloom
-from dataloom.types import Order, Include, Filter, ColumnValue
+from dataloom.types import Order, Include, Filter, ColumnValue, Group, Having
 from dataloom.model import Model
 from dataloom.columns import (
     PrimaryKeyColumn,
@@ -23,4 +23,6 @@ __all__ = [
     Dataloom,
     TableColumn,
     Model,
+    Group,
+    Having,
 ]

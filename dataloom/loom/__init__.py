@@ -23,6 +23,7 @@ from dataloom.types import (
     Filter,
     ColumnValue,
     SQL_LOGGER_LITERAL,
+    Group,
 )
 from dataloom.loom.interfaces import IDataloom
 
@@ -261,6 +262,7 @@ class Dataloom(IDataloom):
         limit: Optional[int] = None,
         offset: Optional[int] = None,
         order: Optional[list[Order]] = [],
+        group: Optional[list[Group]] = [],
     ) -> list:
         """
         find_many
@@ -330,6 +332,7 @@ class Dataloom(IDataloom):
             offset=offset,
             filters=filters,
             order=order,
+            group=group,
         )
 
     def find_all(
@@ -340,6 +343,7 @@ class Dataloom(IDataloom):
         limit: Optional[int] = None,
         offset: Optional[int] = None,
         order: Optional[list[Order]] = [],
+        group: Optional[list[Group]] = [],
     ) -> list:
         """
         find_all
@@ -405,6 +409,7 @@ class Dataloom(IDataloom):
             limit=limit,
             offset=offset,
             order=order,
+            group=group,
         )
 
     def find_by_pk(

@@ -6,19 +6,23 @@ from dataloom.columns import (
     TableColumn,
 )
 from dataloom.statements import GetStatement
-from dataloom.types import Order, Include
+
 from typing import Optional
 from dataloom.types import (
     DIALECT_LITERAL,
     Filter,
     ColumnValue,
     INCREMENT_DECREMENT_LITERAL,
+    Order,
+    Include,
+    Group,
 )
 from dataloom.utils import (
     get_table_filters,
     get_column_values,
     get_child_table_params,
     get_table_fields,
+    get_groups,
 )
 
 
@@ -146,14 +150,11 @@ class Model:
         limit: Optional[int] = None,
         offset: Optional[int] = None,
         order: Optional[list[Order]] = [],
-        include: list[Include] = [],
+        group: Optional[list[Group] | Group] = [],
     ):
         orders = []
-        includes = []
-        # what are the foreign keys?
 
-        for _include in include:
-            includes.append(get_child_table_params(_include, dialect=dialect))
+        # what are the foreign keys?
 
         fields, pk_name, fks, updatedAtColumName = get_table_fields(
             cls, dialect=dialect
@@ -168,7 +169,6 @@ class Model:
                 if dialect == "postgres"
                 else f"`{_order.column}` {_order.order}"
             )
-
         for column in select:
             if column not in fields:
                 raise UnknownColumnException(
@@ -180,6 +180,20 @@ class Model:
             fields=fields,
             filters=filters,
         )
+        (
+            group_fns,
+            group_columns,
+            having_columns,
+            having_values,
+            return_aggregation_column,
+        ) = get_groups(
+            fields=fields,
+            dialect=dialect,
+            select=select,
+            group=group,
+            table_name=cls._get_table_name(),
+        )
+
         if dialect == "postgres" or "mysql" or "sqlite":
             if len(placeholder_filters) == 0:
                 sql = GetStatement(
@@ -189,9 +203,9 @@ class Model:
                     limit=limit,
                     offset=offset,
                     orders=orders,
-                    includes=includes,
-                    fks=fks,
                     pk_name=pk_name,
+                    groups=(group_columns, group_fns),
+                    having=having_columns,
                 )
             else:
                 sql = GetStatement(
@@ -202,9 +216,8 @@ class Model:
                     limit=limit,
                     offset=offset,
                     orders=orders,
-                    includes=includes,
-                    fks=fks,
-                    pk_name=pk_name,
+                    groups=(group_columns, group_fns),
+                    having=having_columns,
                 )
         else:
             raise UnsupportedDialectException(
@@ -213,7 +226,16 @@ class Model:
         return (
             sql,
             placeholder_filter_values,
-            fields if len(select) == 0 else select,
+            (
+                fields + []
+                if not return_aggregation_column
+                else fields + group_fns
+                if len(select) == 0
+                else select + []
+                if not return_aggregation_column
+                else select + group_fns
+            ),
+            having_values,
         )
 
     @classmethod

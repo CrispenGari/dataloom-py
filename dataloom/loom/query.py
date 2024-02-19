@@ -1,8 +1,7 @@
 from dataloom.model import Model
-from dataloom.types import Filter, Order, Include
-from dataloom.types import DIALECT_LITERAL
+from dataloom.types import Filter, Order, Include, Group, DIALECT_LITERAL
 from typing import Callable, Any, Optional
-from dataloom.utils import get_child_table_columns, get_args
+from dataloom.utils import get_args
 from abc import ABC, abstractclassmethod
 from dataloom.loom.subqueries import subquery
 
@@ -71,19 +70,20 @@ class query(Query):
         limit: Optional[int] = None,
         offset: Optional[int] = None,
         order: Optional[list[Order]] = [],
+        group: Optional[list[Group]] = [],
     ) -> list:
         data = []
         if len(include) == 0:
-            sql, params, fields = instance._get_select_where_stm(
+            sql, params, fields, having_values = instance._get_select_where_stm(
                 dialect=self.dialect,
                 filters=filters,
                 select=select,
                 limit=limit,
                 offset=offset,
                 order=order,
-                include=[],
+                group=group,
             )
-            args = get_args(params)
+            args = list(get_args(params)) + having_values
             rows = self._execute_sql(sql, fetchall=True, args=args)
             for row in rows:
                 d = dict(zip(fields, row))
@@ -111,18 +111,20 @@ class query(Query):
         limit: Optional[int] = None,
         offset: Optional[int] = None,
         order: Optional[list[Order]] = [],
+        group: Optional[list[Group]] = [],
     ) -> list:
         data = []
         if len(include) == 0:
-            sql, params, fields = instance._get_select_where_stm(
+            sql, params, fields, having_values = instance._get_select_where_stm(
                 dialect=self.dialect,
                 select=select,
                 limit=limit,
                 offset=offset,
                 order=order,
-                include=include,
+                group=group,
             )
-            rows = self._execute_sql(sql, fetchall=True)
+            args = list(get_args(params)) + having_values
+            rows = self._execute_sql(sql, fetchall=True, args=args)
             for row in rows:
                 data.append(dict(zip(fields, row)))
         else:
@@ -167,12 +169,11 @@ class query(Query):
         include: list[Include] = [],
         offset: Optional[int] = None,
     ) -> dict | None:
-        sql, params, fields = instance._get_select_where_stm(
+        sql, params, fields, having_values = instance._get_select_where_stm(
             dialect=self.dialect,
             filters=filters,
             select=select,
             offset=offset,
-            include=[],
         )
 
         args = get_args(params)

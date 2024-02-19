@@ -1017,4 +1017,18 @@ class TestEagerLoadingOnMySQL:
             == 'The table "profiles" does not have relations "categories".'
         )
 
+        with pytest.raises(UnknownRelationException) as exec_info:
+            mysql_loom.find_all(
+                Profile,
+                select=["avatar", "id"],
+                include=[
+                    Include(
+                        model=User, has="many", include=[Include(model=Post, has="one")]
+                    )
+                ],
+            )
+        assert (
+            str(exec_info.value)
+            == 'The model "profiles" does not maps to "many" of "users".'
+        )
         conn.close()

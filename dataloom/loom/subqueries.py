@@ -1,4 +1,4 @@
-from dataloom.utils import get_table_fields, get_args
+from dataloom.utils import get_table_fields, get_args, is_collection
 from dataloom.types import DIALECT_LITERAL, Include, Filter, Order
 from dataloom.model import Model
 from dataclasses import dataclass
@@ -74,7 +74,7 @@ class subquery:
                 if isinstance(value, dict):
                     if key not in allowed:
                         delete_them.append(key)
-                elif isinstance(value, list):
+                elif is_collection(value):
                     if key not in allowed:
                         delete_them.append(key)
 
@@ -329,7 +329,12 @@ class subquery:
                     if arg is not None
                 ]
                 rows = self._execute_sql(sql, args=args, fetchone=has_one)
-                relations[key] = [dict(zip(selected, row)) for row in rows]
+                try:
+                    relations[key] = [dict(zip(selected, row)) for row in rows]
+                except TypeError:
+                    raise UnknownRelationException(
+                        f'The model "{parent._get_table_name()}" does not maps to "{include.has}" of "{include.model._get_table_name()}".'
+                    )
 
         else:
             # this table is a parent table. then the child is now the parent
