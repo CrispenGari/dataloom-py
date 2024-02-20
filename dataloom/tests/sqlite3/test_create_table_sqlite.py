@@ -1,10 +1,10 @@
 class TestCreatingTableSQlite:
     def test_2_pk_error(self):
-        from dataloom import Column, PrimaryKeyColumn, Dataloom, TableColumn, Model
+        from dataloom import Column, PrimaryKeyColumn, Loom, TableColumn, Model
         import pytest
         from typing import Optional
 
-        sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
+        sqlite_loom = Loom(dialect="sqlite", database="hi.db")
         conn = sqlite_loom.connect()
 
         class User(Model):
@@ -24,10 +24,10 @@ class TestCreatingTableSQlite:
 
     def test_no_pk_error(self):
         import pytest
-        from dataloom import Model, Dataloom, Column, TableColumn
+        from dataloom import Model, Loom, Column, TableColumn
         from typing import Optional
 
-        sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
+        sqlite_loom = Loom(dialect="sqlite", database="hi.db")
         conn = sqlite_loom.connect()
 
         class User(Model):
@@ -41,10 +41,10 @@ class TestCreatingTableSQlite:
         conn.close()
 
     def test_table_name(self):
-        from dataloom import Model, Dataloom, Column, PrimaryKeyColumn, TableColumn
+        from dataloom import Model, Loom, Column, PrimaryKeyColumn, TableColumn
         from typing import Optional
 
-        sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
+        sqlite_loom = Loom(dialect="sqlite", database="hi.db")
         conn = sqlite_loom.connect()
 
         class Posts(Model):
@@ -62,7 +62,7 @@ class TestCreatingTableSQlite:
         conn.close()
 
     def test_connect_sync(self):
-        from dataloom import Dataloom, Model, TableColumn, Column, PrimaryKeyColumn
+        from dataloom import Loom, Model, TableColumn, Column, PrimaryKeyColumn
         from typing import Optional
 
         class User(Model):
@@ -77,7 +77,7 @@ class TestCreatingTableSQlite:
             id = PrimaryKeyColumn(type="int", nullable=False, auto_increment=True)
             title = Column(type="text", nullable=False)
 
-        sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
+        sqlite_loom = Loom(dialect="sqlite", database="hi.db")
         conn, tables = sqlite_loom.connect_and_sync([User, Post], drop=True, force=True)
         assert len(tables) >= 2
         assert "users" in tables and "posts" in tables
@@ -85,10 +85,10 @@ class TestCreatingTableSQlite:
         conn.close()
 
     def test_syncing_tables(self):
-        from dataloom import Model, Dataloom, Column, PrimaryKeyColumn, TableColumn
+        from dataloom import Model, Loom, Column, PrimaryKeyColumn, TableColumn
         from typing import Optional
 
-        sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
+        sqlite_loom = Loom(dialect="sqlite", database="hi.db")
         conn = sqlite_loom.connect()
 
         class Post(Model):

@@ -40,7 +40,7 @@ def initialize(
     Examples
     --------
     >>> from dataloom import (
-    ...     Dataloom,
+    ...     Loom,
     ...     Model,
     ...     PrimaryKeyColumn,
     ...     Column,

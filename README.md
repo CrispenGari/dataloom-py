@@ -40,9 +40,17 @@
 - [Python Version Compatibility](#python-version-compatibility)
 - [Usage](#usage)
 - [Connection](#connection)
+  - [`Postgres`](#postgres)
+  - [`MySQL`](#mysql)
+  - [`SQLite`](#sqlite)
 - [Dataloom Classes](#dataloom-classes)
+  - [`Loom` Class](#loom-class)
   - [`Model` Class](#model-class)
   - [`Column` Class](#column-class)
+    - [Column Datatypes](#column-datatypes)
+      - [1. `mysql`](#1-mysql)
+      - [2. `postgres`](#2-postgres)
+      - [3. `sqlite`](#3-sqlite)
   - [`PrimaryKeyColumn` Class](#primarykeycolumn-class)
   - [`ForeignKeyColumn` Class](#foreignkeycolumn-class)
   - [`CreatedAtColumn` Class](#createdatcolumn-class)
@@ -51,6 +59,8 @@
   - [`ColumnValue` Class](#columnvalue-class)
   - [`Order` Class](#order-class)
   - [`Include` Class](#include-class)
+  - [`Group` Class](#group-class)
+  - [`Having` Class](#having-class)
 - [Syncing Tables](#syncing-tables)
   - [1. The `sync` method.](#1-the-sync-method)
   - [2. The `connect_and_sync` method.](#2-the-connect_and_sync-method)
@@ -75,6 +85,9 @@
       - [Guidelines for Safe Usage](#guidelines-for-safe-usage)
 - [Ordering](#ordering)
 - [Filters](#filters)
+  - [Operators](#operators)
+- [Data Aggregation](#data-aggregation)
+  - [Aggregation Functions](#aggregation-functions)
 - [Utilities](#utilities)
   - [1. `inspect`](#1-inspect)
   - [2. `decorators`](#2-decorators)
@@ -132,13 +145,17 @@ In this section we are going to go through how you can use our `orm` package in 
 
 ### Connection
 
-To use Dataloom, you need to establish a connection with a specific database `dialect`. The available dialect options are `mysql`, `postgres`, and `sqlite`. The following is an example of how you can establish a connection with postgres database.
+To use Dataloom, you need to establish a connection with a specific database `dialect`. The available dialect options are `mysql`, `postgres`, and `sqlite`.
+
+#### `Postgres`
+
+The following is an example of how you can establish a connection with postgres database.
 
 ```python
-from dataloom import Dataloom
+from dataloom import Loom
 
-# Create a Dataloom instance with PostgreSQL configuration
-pg_loom = Dataloom(
+# Create a Loom instance with PostgreSQL configuration
+pg_loom = Loom(
     dialect="postgres",
     database="hi",
     password="root",
@@ -158,13 +175,15 @@ if __name__ == "__main__":
     conn.close()
 ```
 
-To establish a connection with a `MySQL` database using Dataloom, you can use the following example:
+#### `MySQL`
+
+To establish a connection with a `MySQL` database using `Loom`, you can use the following example:
 
 ```python
-from dataloom import Dataloom
+from dataloom import Loom
 
-# Create a Dataloom instance with MySQL configuration
-mysql_loom = Dataloom(
+# Create a Loom instance with MySQL configuration
+mysql_loom = Loom(
     dialect="mysql",
     database="hi",
     password="root",
@@ -184,13 +203,15 @@ if __name__ == "__main__":
 
 ```
 
-To establish a connection with an `SQLite` database using Dataloom, you can use the following example:
+#### `SQLite`
+
+To establish a connection with an `SQLite` database using `Loom`, you can use the following example:
 
 ```python
-from dataloom import Dataloom
+from dataloom import Loom
 
-# Create a Dataloom instance with SQLite configuration
-sqlite_loom = Dataloom(
+# Create a Loom instance with SQLite configuration
+sqlite_loom = Loom(
     dialect="sqlite",
     database="hi.db",
     logs_filename="sqlite-logs.sql",
@@ -206,7 +227,29 @@ if __name__ == "__main__":
     conn.close()
 ```
 
-The `Dataloom` class takes in the following options:
+### Dataloom Classes
+
+The following are the list of classes that are available in `dataloom`.
+
+#### `Loom` Class
+
+This class is used to create a loom object that will be use to perform actions to a database. The following example show how you can create a `loom` object using this class.
+
+```python
+from dataloom import Loom
+loom = Loom(
+    dialect="postgres",
+    database="hi",
+    password="root",
+    user="postgres",
+    host="localhost",
+    sql_logger="console",
+    logs_filename="logs.sql",
+    port=5432,
+)
+```
+
+The `Loom` class takes in the following options:
 | Parameter | Description | Value Type | Default Value | Required |
 | --------------- | --------------------------------------------------------------------------------- | --------------- | -------------- | -------- |
 | `dialect` | Dialect for the database connection. Options are `mysql`, `postgres`, or `sqlite` | `str` or `None` | `None` | `Yes` |
@@ -218,15 +261,13 @@ The `Dataloom` class takes in the following options:
 | `logs_filename` | Filename for the query logs | `str` or `None` | `dataloom.sql` | `No` |
 | `port` | Port number for the database connection (only for `mysql` and `postgres`) | `int` or `None` | `None` | `No` |
 
-### Dataloom Classes
-
 #### `Model` Class
 
 A model in Dataloom is a top-level class that facilitates the creation of complex SQL tables using regular Python classes. This example demonstrates how to define two tables, `User` and `Post`, by creating classes that inherit from the `Model` class.
 
 ```py
 from dataloom import (
-    Dataloom,
+    Loom,
     Model,
     PrimaryKeyColumn,
     Column,
@@ -295,77 +336,82 @@ Here are some other options that you can pass to the `Column`:
 
 > Talking about data types, each `dialect` has its own accepted values. Here is a list of types supported by each and every `dialect`:
 
-1. `mysql`
+##### Column Datatypes
 
-   - `"int"` - Integer data type.
-   - `"smallint"` - Small integer data type.
-   - `"bigint"` - Big integer data type.
-   - `"float"` - Floating-point number data type.
-   - `"double"` - Double-precision floating-point number data type.
-   - `"numeric"` - Numeric or decimal data type.
-   - `"text"` - Text data type.
-   - `"varchar"` - Variable-length character data type.
-   - `"char"` - Fixed-length character data type.
-   - `"boolean"` - Boolean data type.
-   - `"date"` - Date data type.
-   - `"time"` - Time data type.
-   - `"timestamp"` - Timestamp data type.
-   - `"json"` - JSON (JavaScript Object Notation) data type.
-   - `"blob"` - Binary Large Object (BLOB) data type.
+In this section we will list all the `datatypes` that are supported for each dialect.
 
-2. `postgres`
+###### 1. `mysql`
 
-   - `"int"` - Integer data type (Alias: `"INTEGER"`).
-   - `"smallint"` - Small integer data type (Alias: `"SMALLINT"`).
-   - `"bigint"` - Big integer data type (Alias: `"BIGINT"`).
-   - `"serial"` - Auto-incrementing integer data type (Alias: `"SERIAL"`).
-   - `"bigserial"` - Auto-incrementing big integer data type (Alias: `"BIGSERIAL"`).
-   - `"smallserial"` - Auto-incrementing small integer data type (Alias: `"SMALLSERIAL"`).
-   - `"float"` - Real number data type (Alias: `"REAL"`).
-   - `"double precision"` - Double-precision floating-point number data type (Alias: `"DOUBLE PRECISION"`).
-   - `"numeric"` - Numeric data type (Alias: `"NUMERIC"`).
-   - `"text"` - Text data type.
-   - `"varchar"` - Variable-length character data type.
-   - `"char"` - Fixed-length character data type.
-   - `"boolean"` - Boolean data type.
-   - `"date"` - Date data type.
-   - `"time"` - Time data type.
-   - `"timestamp"` - Timestamp data type.
-   - `"interval"` - Time interval data type.
-   - `"uuid"` - UUID (Universally Unique Identifier) data type.
-   - `"json"` - JSON (JavaScript Object Notation) data type.
-   - `"jsonb"` - Binary JSON (JavaScript Object Notation) data type.
-   - `"bytea"` - Binary data type (Array of bytes).
-   - `"array"` - Array data type.
-   - `"inet"` - IP network address data type.
-   - `"cidr"` - Classless Inter-Domain Routing (CIDR) address data type.
-   - `"macaddr"` - MAC (Media Access Control) address data type.
-   - `"tsvector"` - Text search vector data type.
-   - `"point"` - Geometric point data type.
-   - `"line"` - Geometric line data type.
-   - `"lseg"` - Geometric line segment data type.
-   - `"box"` - Geometric box data type.
-   - `"path"` - Geometric path data type.
-   - `"polygon"` - Geometric polygon data type.
-   - `"circle"` - Geometric circle data type.
-   - `"hstore"` - Key-value pair store data type.
+- `"int"` - Integer data type.
+- `"smallint"` - Small integer data type.
+- `"bigint"` - Big integer data type.
+- `"float"` - Floating-point number data type.
+- `"double"` - Double-precision floating-point number data type.
+- `"numeric"` - Numeric or decimal data type.
+- `"text"` - Text data type.
+- `"varchar"` - Variable-length character data type.
+- `"char"` - Fixed-length character data type.
+- `"boolean"` - Boolean data type.
+- `"date"` - Date data type.
+- `"time"` - Time data type.
+- `"timestamp"` - Timestamp data type.
+- `"json"` - JSON (JavaScript Object Notation) data type.
+- `"blob"` - Binary Large Object (BLOB) data type.
 
-3. `sqlite`
-   - `"int"` - Integer data type (Alias: `"INTEGER"`).
-   - `"smallint"` - Small integer data type (Alias: `"SMALLINT"`).
-   - `"bigint"` - Big integer data type (Alias: `"BIGINT"`).
-   - `"float"` - Real number data type (Alias: `"REAL"`).
-   - `"double precision"` - Double-precision floating-point number data type (Alias: `"DOUBLE"`).
-   - `"numeric"` - Numeric data type (Alias: `"NUMERIC"`).
-   - `"text"` - Text data type.
-   - `"varchar"` - Variable-length character data type.
-   - `"char"` - Fixed-length character data type.
-   - `"boolean"` - Boolean data type.
-   - `"date"` - Date data type.
-   - `"time"` - Time data type.
-   - `"timestamp"` - Timestamp data type.
-   - `"json"` - JSON (JavaScript Object Notation) data type.
-   - `"blob"` - Binary Large Object (BLOB) data type.
+###### 2. `postgres`
+
+- `"int"` - Integer data type (Alias: `"INTEGER"`).
+- `"smallint"` - Small integer data type (Alias: `"SMALLINT"`).
+- `"bigint"` - Big integer data type (Alias: `"BIGINT"`).
+- `"serial"` - Auto-incrementing integer data type (Alias: `"SERIAL"`).
+- `"bigserial"` - Auto-incrementing big integer data type (Alias: `"BIGSERIAL"`).
+- `"smallserial"` - Auto-incrementing small integer data type (Alias: `"SMALLSERIAL"`).
+- `"float"` - Real number data type (Alias: `"REAL"`).
+- `"double precision"` - Double-precision floating-point number data type (Alias: `"DOUBLE PRECISION"`).
+- `"numeric"` - Numeric data type (Alias: `"NUMERIC"`).
+- `"text"` - Text data type.
+- `"varchar"` - Variable-length character data type.
+- `"char"` - Fixed-length character data type.
+- `"boolean"` - Boolean data type.
+- `"date"` - Date data type.
+- `"time"` - Time data type.
+- `"timestamp"` - Timestamp data type.
+- `"interval"` - Time interval data type.
+- `"uuid"` - UUID (Universally Unique Identifier) data type.
+- `"json"` - JSON (JavaScript Object Notation) data type.
+- `"jsonb"` - Binary JSON (JavaScript Object Notation) data type.
+- `"bytea"` - Binary data type (Array of bytes).
+- `"array"` - Array data type.
+- `"inet"` - IP network address data type.
+- `"cidr"` - Classless Inter-Domain Routing (CIDR) address data type.
+- `"macaddr"` - MAC (Media Access Control) address data type.
+- `"tsvector"` - Text search vector data type.
+- `"point"` - Geometric point data type.
+- `"line"` - Geometric line data type.
+- `"lseg"` - Geometric line segment data type.
+- `"box"` - Geometric box data type.
+- `"path"` - Geometric path data type.
+- `"polygon"` - Geometric polygon data type.
+- `"circle"` - Geometric circle data type.
+- `"hstore"` - Key-value pair store data type.
+
+###### 3. `sqlite`
+
+- `"int"` - Integer data type (Alias: `"INTEGER"`).
+- `"smallint"` - Small integer data type (Alias: `"SMALLINT"`).
+- `"bigint"` - Big integer data type (Alias: `"BIGINT"`).
+- `"float"` - Real number data type (Alias: `"REAL"`).
+- `"double precision"` - Double-precision floating-point number data type (Alias: `"DOUBLE"`).
+- `"numeric"` - Numeric data type (Alias: `"NUMERIC"`).
+- `"text"` - Text data type.
+- `"varchar"` - Variable-length character data type.
+- `"char"` - Fixed-length character data type.
+- `"boolean"` - Boolean data type.
+- `"date"` - Date data type.
+- `"time"` - Time data type.
+- `"timestamp"` - Timestamp data type.
+- `"json"` - JSON (JavaScript Object Notation) data type.
+- `"blob"` - Binary Large Object (BLOB) data type.
 
 > Note: Every table is required to have a primary key column and this column should be 1. Let's talk about the `PrimaryKeyColumn`
 
@@ -529,6 +575,28 @@ The `Include` class facilitates eager loading for models with relationships. Bel
 | `has`     | The relationship type between the current model and the included model. | `INCLUDE_LITERAL`, optional   | `"many"` | No       |
 | `include` | The extra included models.                                              | `list[Include]`, optional     | `[]`     | No       |
 
+#### `Group` Class
+
+This class is used for data `aggregation` and grouping data in `dataloom`. Below is a table detailing the parameters available for the `Group` class:
+
+| Argument                    | Description                                             | Type                                          | Default   | Required |
+| --------------------------- | ------------------------------------------------------- | --------------------------------------------- | --------- | -------- |
+| `column`                    | The name of the column to group by.                     | `str`                                         |           | Yes      |
+| `function`                  | The aggregation function to apply on the grouped data.  | `"COUNT" \| "AVG" \| "SUM" \| "MIN" \| "MAX"` | `"COUNT"` | No       |
+| `having`                    | Filters to apply to the grouped data.                   | `list[Having] \| Having \| None`              | `None`    | No       |
+| `return_aggregation_column` | Whether to return the aggregation column in the result. | `bool`                                        | `False`   | No       |
+
+#### `Having` Class
+
+This class method is used to specify the filters to be applied on `Grouped` data during `aggregation` in `dataloom`. Below is a table detailing the parameters available for the `Group` class:
+
+| Argument         | Description                                   | Type                                   | Default | Required |
+| ---------------- | --------------------------------------------- | -------------------------------------- | ------- | -------- |
+| `column`         | The name of the column to filter on.          | `str`                                  |         | `Yes`    |
+| `operator`       | The operator to use for the filter.           | [`OPERATOR_LITERAL\|None`](#operators) | `"eq"`  | `No`     |
+| `value`          | The value to compare against.                 | `Any`                                  |         | `Yes`    |
+| `join_next_with` | The SQL operand to join the next filter with. | `"AND" \| "OR"\|None`                  | `"AND"` | `No`     |
+
 ### Syncing Tables
 
 Syncing tables involves the process of creating tables from models and saving them to a database. After defining your tables, you will need to synchronize your database tables using the `sync` method.
@@ -560,7 +628,7 @@ The `connect_and_sync` function proves to be very handy as it handles both the d
 ```py
 # ....
 
-sqlite_loom = Dataloom(
+sqlite_loom = Loom(
     dialect="sqlite", database="hi.db", logs_filename="sqlite-logs.sql", logging=True
 )
 conn, tables = sqlite_loom.connect_and_sync([Post, User], drop=True, force=True)
@@ -669,14 +737,17 @@ print(users) # ? [{'id': 1, 'username': '@miller'}]
 
 The `find_all()` method takes in the following arguments:
 
-| Argument   | Description                                    | Type          | Default | Required |
-| ---------- | ---------------------------------------------- | ------------- | ------- | -------- |
-| `instance` | The model class to retrieve documents from.    | `Model`       | `None`  | `Yes`    |
-| `select`   | List of fields to select from the documents.   | `list[str]`   | `None`  | `No`     |
-| `limit`    | Maximum number of documents to retrieve.       | `int`         | `None`  | `No`     |
-| `offset`   | Number of documents to skip before retrieving. | `int`         | `0`     | `No`     |
-| `order`    | List of columns to order the documents by.     | `list[Order]` | `None`  | `No`     |
-| `include`  | List of related models to eagerly load.        | `list[Model]` | `None`  | `No`     |
+| Argument   | Description                                                                                | Type                     | Default | Required |
+| ---------- | ------------------------------------------------------------------------------------------ | ------------------------ | ------- | -------- |
+| `instance` | The model class to retrieve documents from.                                                | `Model`                  | `None`  | `Yes`    |
+| `select`   | Collection or a string of fields to select from the documents.                             | `list[str]\|str`         | `None`  | `No`     |
+| `limit`    | Maximum number of documents to retrieve.                                                   | `int`                    | `None`  | `No`     |
+| `offset`   | Number of documents to skip before retrieving.                                             | `int`                    | `0`     | `No`     |
+| `order`    | Collection of columns to order the documents by.                                           | `list[Order]`            | `None`  | `No`     |
+| `include`  | Collection or a `Include` of related models to eagerly load.                               | `list[Include]\|Include` | `None`  | `No`     |
+| `group`    | Collection of `Group` which specifies how you want your data to be grouped during queries. | `list[Group]\|Group`     | `None`  | `No`     |
+
+> 👍 **Pro Tip**: A collection can be any python iterable, the supported iterables are `list`, `set`, `tuple`.
 
 ##### 2. `find_many()`
 
@@ -696,17 +767,18 @@ print(users) # ? [{'id': 1, 'username': '@miller'}]
 
 The `find_many()` method takes in the following arguments:
 
-| Argument   | Description                                    | Type                     | Default | Required |
-| ---------- | ---------------------------------------------- | ------------------------ | ------- | -------- |
-| `instance` | The model class to retrieve documents from.    | `Model`                  | `None`  | `Yes`    |
-| `filters`  | List of filters to apply to the query.         | `list[Filter] \| Filter` | `None`  | `No`     |
-| `select`   | List of fields to select from the documents.   | `list[str]`              | `None`  | `No`     |
-| `limit`    | Maximum number of documents to retrieve.       | `int`                    | `None`  | `No`     |
-| `offset`   | Number of documents to skip before retrieving. | `int`                    | `0`     | `No`     |
-| `order`    | List of columns to order the documents by.     | `list[Order]`            | `None`  | `No`     |
-| `include`  | List of related models to eagerly load.        | `list[Model]`            | `None`  | `No`     |
+| Argument   | Description                                                                                | Type                     | Default | Required |
+| ---------- | ------------------------------------------------------------------------------------------ | ------------------------ | ------- | -------- |
+| `instance` | The model class to retrieve documents from.                                                | `Model`                  | `None`  | `Yes`    |
+| `select`   | Collection or a string of fields to select from the documents.                             | `list[str]\|str`         | `None`  | `No`     |
+| `limit`    | Maximum number of documents to retrieve.                                                   | `int`                    | `None`  | `No`     |
+| `offset`   | Number of documents to skip before retrieving.                                             | `int`                    | `0`     | `No`     |
+| `order`    | Collection of columns to order the documents by.                                           | `list[Order]`            | `None`  | `No`     |
+| `include`  | Collection or a `Include` of related models to eagerly load.                               | `list[Include]\|Include` | `None`  | `No`     |
+| `group`    | Collection of `Group` which specifies how you want your data to be grouped during queries. | `list[Group]\|Group`     | `None`  | `No`     |
+| `filters`  | Collection of `Filter` or a `Filter` to apply to the query.                                | `list[Filter] \| Filter` | `None`  | `No`     |
 
-> The distinction between the `find_all()` and `find_many()` methods lies in the fact that `find_many()` enables you to apply specific filters, whereas `find_all()` retrieves all the documents within the specified model.
+> 👍 **Pro Tip**: The distinction between the `find_all()` and `find_many()` methods lies in the fact that `find_many()` enables you to apply specific filters, whereas `find_all()` retrieves all the documents within the specified model.
 
 ##### 3. `find_one()`
 
@@ -723,13 +795,13 @@ print(user) # ? {'id': 1, 'username': '@miller'}
 
 This method take the following as arguments
 
-| Argument   | Description                                      | Type                             | Default | Required |
-| ---------- | ------------------------------------------------ | -------------------------------- | ------- | -------- |
-| `instance` | The model class to retrieve instances from.      | `Model`                          |         | `Yes`    |
-| `filters`  | Filter or list of filters to apply to the query. | `Filter \| list[Filter] \| None` | `None`  | `No`     |
-| `select`   | List of fields to select from the instances.     | `list[str]`                      | `[]`    | `No`     |
-| `include`  | List of related models to eagerly load.          | `list[Include]`                  | `[]`    | `No`     |
-| `offset`   | Number of instances to skip before retrieving.   | `int \| None`                    | `None`  | `No`     |
+| Argument   | Description                                                                                | Type                             | Default | Required |
+| ---------- | ------------------------------------------------------------------------------------------ | -------------------------------- | ------- | -------- |
+| `instance` | The model class to retrieve instances from.                                                | `Model`                          |         | `Yes`    |
+| `filters`  | `Filter` or a collection of `Filter` to apply to the query.                                | `Filter \| list[Filter] \| None` | `None`  | `No`     |
+| `select`   | Collection of `str` or `str` of which is the name of the columns or column to be selected. | `list[str]\|str`                 | `[]`    | `No`     |
+| `include`  | Collection of `Include` or a single `Include` of related models to eagerly load.           | `list[Include]\|Include`         | `[]`    | `No`     |
+| `offset`   | Number of instances to skip before retrieving.                                             | `int \| None`                    | `None`  | `No`     |
 
 ##### 4. `find_by_pk()`
 
@@ -742,12 +814,12 @@ print(user) # ? {'id': 1, 'username': '@miller'}
 
 The method takes the following as arguments:
 
-| Argument   | Description                                  | Type            | Default | Required |
-| ---------- | -------------------------------------------- | --------------- | ------- | -------- |
-| `instance` | The model class to retrieve instances from.  | `Model`         |         | `Yes`    |
-| `pk`       | The primary key value to use for retrieval.  | `Any`           |         | `Yes`    |
-| `select`   | List of fields to select from the instances. | `list[str]`     | `[]`    | `No`     |
-| `include`  | List of related models to eagerly load.      | `list[Include]` | `[]`    | `No`     |
+| Argument   | Description                                                                        | Type            | Default | Required |
+| ---------- | ---------------------------------------------------------------------------------- | --------------- | ------- | -------- |
+| `instance` | The model class to retrieve instances from.                                        | `Model`         |         | `Yes`    |
+| `pk`       | The primary key value to use for retrieval.                                        | `Any`           |         | `Yes`    |
+| `select`   | Collection column names to select from the instances.                              | `list[str]`     | `[]`    | `No`     |
+| `include`  | A Collection of `Include` or a single `Include` of related models to eagerly load. | `list[Include]` | `[]`    | `No`     |
 
 #### 3. Updating a record
 
@@ -773,11 +845,11 @@ affected_rows = mysql_loom.update_by_pk(
 
 The above method takes in the following as arguments:
 
-| Argument   | Description                                                     | Type                               | Default | Required |
-| ---------- | --------------------------------------------------------------- | ---------------------------------- | ------- | -------- |
-| `instance` | The model class for which to update the instance.               | `Model`                            |         | `Yes`    |
-| `pk`       | The primary key value of the instance to update.                | `Any`                              |         | `Yes`    |
-| `values`   | Single or list of column-value pairs to update in the instance. | `ColumnValue \| list[ColumnValue]` |         | `Yes`    |
+| Argument   | Description                                                                            | Type                               | Default | Required |
+| ---------- | -------------------------------------------------------------------------------------- | ---------------------------------- | ------- | -------- |
+| `instance` | The model class for which to update the instance.                                      | `Model`                            |         | `Yes`    |
+| `pk`       | The primary key value of the instance to update.                                       | `Any`                              |         | `Yes`    |
+| `values`   | Single or Collection of [`ColumnValue`](#columnvalue-class) to update in the instance. | `ColumnValue \| list[ColumnValue]` |         | `Yes`    |
 
 ##### 2. `update_one()`
 
@@ -798,11 +870,11 @@ affected_rows = mysql_loom.update_one(
 
 The method takes the following as arguments:
 
-| Argument   | Description                                                     | Type                               | Default | Required |
-| ---------- | --------------------------------------------------------------- | ---------------------------------- | ------- | -------- |
-| `instance` | The model class for which to update the instance(s).            | `Model`                            |         | `Yes`    |
-| `filters`  | Filter or list of filters to apply to the update query.         | `Filter \| list[Filter] \| None`   |         | `Yes`    |
-| `values`   | Single or list of column-value pairs to update in the instance. | `ColumnValue \| list[ColumnValue]` |         | `Yes`    |
+| Argument   | Description                                                           | Type                               | Default | Required |
+| ---------- | --------------------------------------------------------------------- | ---------------------------------- | ------- | -------- |
+| `instance` | The model class for which to update the instance(s).                  | `Model`                            |         | `Yes`    |
+| `filters`  | Filter or collection of filters to apply to the update query.         | `Filter \| list[Filter] \| None`   |         | `Yes`    |
+| `values`   | Single or collection of column-value pairs to update in the instance. | `ColumnValue \| list[ColumnValue]` |         | `Yes`    |
 
 ##### 3. `update_bulk()`
 
@@ -823,11 +895,11 @@ affected_rows = mysql_loom.update_bulk(
 
 The above method takes in the following as argument:
 
-| Argument   | Description                                                     | Type                               | Default | Required |
-| ---------- | --------------------------------------------------------------- | ---------------------------------- | ------- | -------- |
-| `instance` | The model class for which to update instances.                  | `Model`                            |         | `Yes`    |
-| `filters`  | Filter or list of filters to apply to the update query.         | `Filter \| list[Filter] \| None`   |         | `Yes`    |
-| `values`   | Single or list of column-value pairs to update in the instance. | `ColumnValue \| list[ColumnValue]` |         | `Yes`    |
+| Argument   | Description                                                           | Type                               | Default | Required |
+| ---------- | --------------------------------------------------------------------- | ---------------------------------- | ------- | -------- |
+| `instance` | The model class for which to update instances.                        | `Model`                            |         | `Yes`    |
+| `filters`  | Filter or collection of filters to apply to the update query.         | `Filter \| list[Filter] \| None`   |         | `Yes`    |
+| `values`   | Single or collection of column-value pairs to update in the instance. | `ColumnValue \| list[ColumnValue]` |         | `Yes`    |
 
 #### 4. Deleting a record
 
@@ -864,12 +936,12 @@ affected_rows = mysql_loom.delete_one(
 
 The method takes in the following arguments:
 
-| Argument   | Description                                                | Type                             | Default | Required |
-| ---------- | ---------------------------------------------------------- | -------------------------------- | ------- | -------- |
-| `instance` | The model class from which to delete the instance(s).      | `Model`                          |         | `Yes`    |
-| `filters`  | Filter or list of filters to apply to the deletion query.  | `Filter \| list[Filter] \| None` | `None`  | `No`     |
-| `offset`   | Number of instances to skip before deleting.               | `int \| None`                    | `None`  | `No`     |
-| `order`    | List of columns to order the instances by before deletion. | `list[Order] \| None`            | `[]`    | `No`     |
+| Argument   | Description                                                                           | Type                             | Default | Required |
+| ---------- | ------------------------------------------------------------------------------------- | -------------------------------- | ------- | -------- |
+| `instance` | The model class from which to delete the instance(s).                                 | `Model`                          |         | `Yes`    |
+| `filters`  | Filter or collection of filters to apply to the deletion query.                       | `Filter \| list[Filter] \| None` | `None`  | `No`     |
+| `offset`   | Number of instances to skip before deleting.                                          | `int \| None`                    | `None`  | `No`     |
+| `order`    | Collection of `Order` or as single `Order` to order the instances by before deletion. | `list[Order] \| Order\| None`    | `[]`    | `No`     |
 
 ##### 3. `delete_bulk()`
 
@@ -883,13 +955,13 @@ affected_rows = mysql_loom.delete_bulk(
 
 The method takes the following as arguments:
 
-| Argument   | Description                                                | Type                             | Default | Required |
-| ---------- | ---------------------------------------------------------- | -------------------------------- | ------- | -------- |
-| `instance` | The model class from which to delete instances.            | `Model`                          |         | `Yes`    |
-| `filters`  | Filter or list of filters to apply to the deletion query.  | `Filter \| list[Filter] \| None` | `None`  | `No`     |
-| `limit`    | Maximum number of instances to delete.                     | `int \| None`                    | `None`  | `No`     |
-| `offset`   | Number of instances to skip before deleting.               | `int \| None`                    | `None`  | `No`     |
-| `order`    | List of columns to order the instances by before deletion. | `list[Order] \| None`            | `[]`    | `No`     |
+| Argument   | Description                                                                          | Type                             | Default | Required |
+| ---------- | ------------------------------------------------------------------------------------ | -------------------------------- | ------- | -------- |
+| `instance` | The model class from which to delete instances.                                      | `Model`                          |         | `Yes`    |
+| `filters`  | Filter or collection of filters to apply to the deletion query.                      | `Filter \| list[Filter] \| None` | `None`  | `No`     |
+| `limit`    | Maximum number of instances to delete.                                               | `int \| None`                    | `None`  | `No`     |
+| `offset`   | Number of instances to skip before deleting.                                         | `int \| None`                    | `None`  | `No`     |
+| `order`    | Collection of `Order` or a single `Order` to order the instances by before deletion. | `list[Order] \|Order\| None`     | `[]`    | `No`     |
 
 ###### Warning: Potential Risk with `delete_bulk()`
 
@@ -956,7 +1028,7 @@ There are different find of filters that you can use when filtering documents fo
 res2 = mysql_loom.delete_one(
     instance=Post,
     offset=0,
-    order=[Order(column="id", order="DESC")],
+    order=Order(column="id", order="DESC"),
     filters=Filter(column="id", value=1, operator="gt"),
 )
 ```
@@ -991,6 +1063,8 @@ res2 = mysql_loom.delete_one(
     ],
 )
 ```
+
+##### Operators
 
 You can use the `operator` to match the values. Here is the table of description for these filters.
 
@@ -1147,6 +1221,67 @@ The following table show you some expression that you can use with this `like` o
 | `[charlist]%`  | Finds values that start with any character in the specified character list.                                              |
 | `[!charlist]%` | Finds values that start with any character not in the specified character list.                                          |
 | `_pattern_`    | Finds values that have any single character followed by the specified pattern and then followed by any single character. |
+
+### Data Aggregation
+
+With the [`Having`](#having-class) and the [`Group`](#group-class) classes you can perform some powerful powerful queries. In this section we are going to demonstrate an example of how we can do the aggregate queries.
+
+```py
+posts = mysql_loom.find_many(
+    Post,
+    select="id",
+    filters=Filter(column="id", operator="gt", value=1),
+    group=Group(
+        column="id",
+        function="MAX",
+        having=Having(column="id", operator="in", value=(2, 3, 4)),
+        return_aggregation_column=True,
+    ),
+)
+```
+
+The following will be the output from the above query.
+
+```shell
+[{'id': 2, 'MAX(`id`)': 2}, {'id': 3, 'MAX(`id`)': 3}, {'id': 4, 'MAX(`id`)': 4}]
+```
+
+However you can remove the aggregation column from the above query by specifying the `return_aggregation_column` to be `False`:
+
+```py
+posts = mysql_loom.find_many(
+    Post,
+    select="id",
+    filters=Filter(column="id", operator="gt", value=1),
+    group=Group(
+        column="id",
+        function="MAX",
+        having=Having(column="id", operator="in", value=(2, 3, 4)),
+        return_aggregation_column=False,
+    ),
+)
+print(posts)
+```
+
+This will output:
+
+```shell
+[{'id': 2}, {'id': 3}, {'id': 4}]
+```
+
+#### Aggregation Functions
+
+You can use the following aggregation functions that dataloom supports:
+
+| Aggregation Function | Description                                      |
+| -------------------- | ------------------------------------------------ |
+| `"AVG"`              | Computes the average of the values in the group. |
+| `"COUNT"`            | Counts the number of items in the group.         |
+| `"SUM"`              | Computes the sum of the values in the group.     |
+| `"MAX"`              | Retrieves the maximum value in the group.        |
+| `"MIN"`              | Retrieves the minimum value in the group.        |
+
+> 👍 **Pro Tip**: Note that data aggregation only works without `eager` loading and also works only with [`find_may()`](#2-find_many) and [`find_all()`](#1-find_all) in dataloom.
 
 ### Utilities
 
@@ -1765,7 +1900,6 @@ print(user_post) """ ? =
 
 1. N-N associations
 2. Altering tables
-3. Grouping
 
 ### Contributing
 

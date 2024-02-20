@@ -1,7 +1,7 @@
 class TestEagerLoadingOnSQLite:
     def test_find_by_pk(self):
         from dataloom import (
-            Dataloom,
+            Loom,
             Model,
             Column,
             PrimaryKeyColumn,
@@ -13,7 +13,7 @@ class TestEagerLoadingOnSQLite:
             Order,
         )
 
-        sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
+        sqlite_loom = Loom(dialect="sqlite", database="hi.db")
 
         class User(Model):
             __tablename__: TableColumn = TableColumn(name="users")
@@ -234,7 +234,7 @@ class TestEagerLoadingOnSQLite:
 
     def test_find_one(self):
         from dataloom import (
-            Dataloom,
+            Loom,
             Model,
             Column,
             PrimaryKeyColumn,
@@ -247,7 +247,7 @@ class TestEagerLoadingOnSQLite:
             Filter,
         )
 
-        sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
+        sqlite_loom = Loom(dialect="sqlite", database="hi.db")
 
         class User(Model):
             __tablename__: TableColumn = TableColumn(name="users")
@@ -518,7 +518,7 @@ class TestEagerLoadingOnSQLite:
 
     def test_find_many(self):
         from dataloom import (
-            Dataloom,
+            Loom,
             Model,
             Column,
             PrimaryKeyColumn,
@@ -531,7 +531,7 @@ class TestEagerLoadingOnSQLite:
             Filter,
         )
 
-        sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
+        sqlite_loom = Loom(dialect="sqlite", database="hi.db")
 
         class User(Model):
             __tablename__: TableColumn = TableColumn(name="users")
@@ -814,7 +814,7 @@ class TestEagerLoadingOnSQLite:
 
     def test_unknown_relations(self):
         from dataloom import (
-            Dataloom,
+            Loom,
             Model,
             Column,
             PrimaryKeyColumn,
@@ -828,7 +828,7 @@ class TestEagerLoadingOnSQLite:
         import pytest
         from dataloom.exceptions import UnknownRelationException
 
-        sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
+        sqlite_loom = Loom(dialect="sqlite", database="hi.db")
 
         class User(Model):
             __tablename__: TableColumn = TableColumn(name="users")

@@ -1,7 +1,7 @@
 class TestAggregationLoadingOnPG:
     def test_find_many(self):
         from dataloom import (
-            Dataloom,
+            Loom,
             Model,
             Column,
             PrimaryKeyColumn,
@@ -17,7 +17,7 @@ class TestAggregationLoadingOnPG:
         from dataloom.exceptions import UnknownColumnException
         from dataloom.keys import PgConfig
 
-        pg_loom = Dataloom(
+        pg_loom = Loom(
             dialect="postgres",
             database=PgConfig.database,
             password=PgConfig.password,
@@ -127,7 +127,7 @@ class TestAggregationLoadingOnPG:
 
     def test_find_all(self):
         from dataloom import (
-            Dataloom,
+            Loom,
             Model,
             Column,
             PrimaryKeyColumn,
@@ -142,7 +142,7 @@ class TestAggregationLoadingOnPG:
         from dataloom.exceptions import UnknownColumnException
         from dataloom.keys import PgConfig
 
-        pg_loom = Dataloom(
+        pg_loom = Loom(
             dialect="postgres",
             database=PgConfig.database,
             password=PgConfig.password,

@@ -7,7 +7,7 @@ from sqlite3 import Connection
 from mysql.connector.connection import MySQLConnectionAbstract
 
 
-class IDataloom(ABC):
+class ILoom(ABC):
     @abstractclassmethod
     def increment(
         self,

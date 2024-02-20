@@ -3,7 +3,7 @@ class TestDeletingOnSQLite:
         from dataloom import (
             Column,
             PrimaryKeyColumn,
-            Dataloom,
+            Loom,
             TableColumn,
             Model,
             CreatedAtColumn,
@@ -14,7 +14,7 @@ class TestDeletingOnSQLite:
 
         from typing import Optional
 
-        sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
+        sqlite_loom = Loom(dialect="sqlite", database="hi.db")
 
         class User(Model):
             __tablename__: Optional[TableColumn] = TableColumn(name="users")
@@ -58,7 +58,7 @@ class TestDeletingOnSQLite:
         from dataloom import (
             Column,
             PrimaryKeyColumn,
-            Dataloom,
+            Loom,
             TableColumn,
             Model,
             CreatedAtColumn,
@@ -70,7 +70,7 @@ class TestDeletingOnSQLite:
         from dataloom.exceptions import UnknownColumnException
         from typing import Optional
 
-        sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
+        sqlite_loom = Loom(dialect="sqlite", database="hi.db")
 
         class User(Model):
             __tablename__: Optional[TableColumn] = TableColumn(name="users")
@@ -160,7 +160,7 @@ class TestDeletingOnSQLite:
         from dataloom import (
             Column,
             PrimaryKeyColumn,
-            Dataloom,
+            Loom,
             TableColumn,
             Model,
             CreatedAtColumn,
@@ -173,7 +173,7 @@ class TestDeletingOnSQLite:
         from typing import Optional
         from dataloom.exceptions import UnknownColumnException
 
-        sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
+        sqlite_loom = Loom(dialect="sqlite", database="hi.db")
 
         class User(Model):
             __tablename__: Optional[TableColumn] = TableColumn(name="users")
@@ -281,7 +281,7 @@ class TestDeletingOnSQLite:
         from dataloom import (
             Column,
             PrimaryKeyColumn,
-            Dataloom,
+            Loom,
             TableColumn,
             Model,
             CreatedAtColumn,
@@ -292,7 +292,7 @@ class TestDeletingOnSQLite:
             Order,
         )
 
-        sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
+        sqlite_loom = Loom(dialect="sqlite", database="hi.db")
 
         class User(Model):
             __tablename__: TableColumn = TableColumn(name="users")
@@ -364,7 +364,7 @@ class TestDeletingOnSQLite:
         from dataloom import (
             Column,
             PrimaryKeyColumn,
-            Dataloom,
+            Loom,
             TableColumn,
             Model,
             CreatedAtColumn,
@@ -375,7 +375,7 @@ class TestDeletingOnSQLite:
             Filter,
         )
 
-        sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
+        sqlite_loom = Loom(dialect="sqlite", database="hi.db")
 
         class User(Model):
             __tablename__: TableColumn = TableColumn(name="users")

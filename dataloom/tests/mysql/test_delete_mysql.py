@@ -3,7 +3,7 @@ class TestDeletingOnMysql:
         from dataloom import (
             Column,
             PrimaryKeyColumn,
-            Dataloom,
+            Loom,
             TableColumn,
             Model,
             CreatedAtColumn,
@@ -13,7 +13,7 @@ class TestDeletingOnMysql:
         )
         from dataloom.keys import MySQLConfig
 
-        mysql_loom = Dataloom(
+        mysql_loom = Loom(
             dialect="mysql",
             database=MySQLConfig.database,
             password=MySQLConfig.password,
@@ -63,7 +63,7 @@ class TestDeletingOnMysql:
         from dataloom import (
             Column,
             PrimaryKeyColumn,
-            Dataloom,
+            Loom,
             TableColumn,
             Model,
             CreatedAtColumn,
@@ -74,7 +74,7 @@ class TestDeletingOnMysql:
         )
         from dataloom.keys import MySQLConfig
 
-        mysql_loom = Dataloom(
+        mysql_loom = Loom(
             dialect="mysql",
             database=MySQLConfig.database,
             password=MySQLConfig.password,
@@ -170,7 +170,7 @@ class TestDeletingOnMysql:
         from dataloom import (
             Column,
             PrimaryKeyColumn,
-            Dataloom,
+            Loom,
             TableColumn,
             Model,
             CreatedAtColumn,
@@ -181,7 +181,7 @@ class TestDeletingOnMysql:
         )
         from dataloom.keys import MySQLConfig
 
-        mysql_loom = Dataloom(
+        mysql_loom = Loom(
             dialect="mysql",
             database=MySQLConfig.database,
             password=MySQLConfig.password,
@@ -294,7 +294,7 @@ class TestDeletingOnMysql:
         from dataloom import (
             Column,
             PrimaryKeyColumn,
-            Dataloom,
+            Loom,
             TableColumn,
             Model,
             CreatedAtColumn,
@@ -308,7 +308,7 @@ class TestDeletingOnMysql:
         import pytest
         from dataloom.exceptions import InvalidArgumentsException
 
-        mysql_loom = Dataloom(
+        mysql_loom = Loom(
             dialect="mysql",
             database=MySQLConfig.database,
             password=MySQLConfig.password,
@@ -397,7 +397,7 @@ class TestDeletingOnMysql:
         from dataloom import (
             Column,
             PrimaryKeyColumn,
-            Dataloom,
+            Loom,
             TableColumn,
             Model,
             CreatedAtColumn,
@@ -409,7 +409,7 @@ class TestDeletingOnMysql:
         )
         from dataloom.keys import MySQLConfig
 
-        mysql_loom = Dataloom(
+        mysql_loom = Loom(
             dialect="mysql",
             database=MySQLConfig.database,
             password=MySQLConfig.password,

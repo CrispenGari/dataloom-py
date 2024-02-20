@@ -1,7 +1,7 @@
 class TestExperimentalDecoratorsOnSQLite:
     def test_initialize_decorator_fn(self):
         from dataloom import (
-            Dataloom,
+            Loom,
             Model,
             Column,
             PrimaryKeyColumn,
@@ -11,7 +11,7 @@ class TestExperimentalDecoratorsOnSQLite:
         )
         from dataloom.decorators import initialize
 
-        sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
+        sqlite_loom = Loom(dialect="sqlite", database="hi.db")
 
         class User(Model):
             __tablename__: TableColumn = TableColumn(name="users")

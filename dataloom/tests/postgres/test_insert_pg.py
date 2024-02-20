@@ -1,7 +1,7 @@
 class TestInsertingOnPG:
     def test_insetting_single_document(self):
         from dataloom import (
-            Dataloom,
+            Loom,
             Model,
             Column,
             PrimaryKeyColumn,
@@ -13,7 +13,7 @@ class TestInsertingOnPG:
         )
         from dataloom.keys import PgConfig
 
-        pg_loom = Dataloom(
+        pg_loom = Loom(
             dialect="postgres",
             database=PgConfig.database,
             password=PgConfig.password,
@@ -60,7 +60,7 @@ class TestInsertingOnPG:
 
     def test_insetting_multiple_document(self):
         from dataloom import (
-            Dataloom,
+            Loom,
             Model,
             Column,
             PrimaryKeyColumn,
@@ -72,7 +72,7 @@ class TestInsertingOnPG:
         )
         from dataloom.keys import PgConfig
 
-        pg_loom = Dataloom(
+        pg_loom = Loom(
             dialect="postgres",
             database=PgConfig.database,
             password=PgConfig.password,
@@ -125,13 +125,13 @@ class TestInsertingOnPG:
             ForeignKeyColumn,
             PrimaryKeyColumn,
             Column,
-            Dataloom,
+            Loom,
             ColumnValue,
             TableColumn,
         )
         from dataloom.keys import PgConfig
 
-        pg_loom = Dataloom(
+        pg_loom = Loom(
             dialect="postgres",
             database=PgConfig.database,
             password=PgConfig.password,
@@ -172,7 +172,7 @@ class TestInsertingOnPG:
 
     def test_insert_bulk_with_errors(self):
         from dataloom import (
-            Dataloom,
+            Loom,
             Model,
             Column,
             PrimaryKeyColumn,
@@ -186,7 +186,7 @@ class TestInsertingOnPG:
         from dataloom.keys import PgConfig
         import pytest
 
-        pg_loom = Dataloom(
+        pg_loom = Loom(
             dialect="postgres",
             database=PgConfig.database,
             password=PgConfig.password,

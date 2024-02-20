@@ -1,7 +1,7 @@
 class TestExperimentalDecoratorsOnPG:
     def test_initialize_decorator_fn(self):
         from dataloom import (
-            Dataloom,
+            Loom,
             Model,
             Column,
             PrimaryKeyColumn,
@@ -12,7 +12,7 @@ class TestExperimentalDecoratorsOnPG:
         from dataloom.decorators import initialize
         from dataloom.keys import PgConfig
 
-        pg_loom = Dataloom(
+        pg_loom = Loom(
             dialect="postgres",
             database=PgConfig.database,
             password=PgConfig.password,

@@ -22,7 +22,7 @@ class logger:
             sql_statement, file_name, dialect = fn(*args, **kwargs)
             with open(file_name, "a+") as f:
                 f.write(
-                    "[{time}] : Dataloom[{dialect}]: {sql_statement}\n".format(
+                    "[{time}] : Loom[{dialect}]: {sql_statement}\n".format(
                         dialect=dialect,
                         time=datetime.now().time(),
                         sql_statement=sql_statement,

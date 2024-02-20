@@ -3,7 +3,7 @@ class TestOperatorsOnPG:
         from dataloom import (
             Column,
             PrimaryKeyColumn,
-            Dataloom,
+            Loom,
             TableColumn,
             Model,
             CreatedAtColumn,
@@ -14,7 +14,7 @@ class TestOperatorsOnPG:
         )
         from dataloom.keys import PgConfig
 
-        pg_loom = Dataloom(
+        pg_loom = Loom(
             dialect="postgres",
             database=PgConfig.database,
             password=PgConfig.password,

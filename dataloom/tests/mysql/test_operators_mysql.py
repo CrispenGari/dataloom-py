@@ -3,7 +3,7 @@ class TestOperatorsOnMysql:
         from dataloom import (
             Column,
             PrimaryKeyColumn,
-            Dataloom,
+            Loom,
             TableColumn,
             Model,
             CreatedAtColumn,
@@ -14,7 +14,7 @@ class TestOperatorsOnMysql:
         )
         from dataloom.keys import MySQLConfig
 
-        mysql_loom = Dataloom(
+        mysql_loom = Loom(
             dialect="mysql",
             database=MySQLConfig.database,
             password=MySQLConfig.password,

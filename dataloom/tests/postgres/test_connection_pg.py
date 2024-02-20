@@ -3,10 +3,10 @@ import pytest
 
 class TestConnectionPG:
     def test_connect_with_non_existing_database(self):
-        from dataloom import Dataloom
+        from dataloom import Loom
         from dataloom.keys import PgConfig
 
-        pg_loom = Dataloom(
+        pg_loom = Loom(
             dialect="postgres",
             database="mew",
             password=PgConfig.password,
@@ -21,10 +21,10 @@ class TestConnectionPG:
         )
 
     def test_connect_with_wrong_password(self):
-        from dataloom import Dataloom
+        from dataloom import Loom
         from dataloom.keys import PgConfig
 
-        pg_loom = Dataloom(
+        pg_loom = Loom(
             dialect="postgres",
             database=PgConfig.database,
             password="root-",
@@ -40,10 +40,10 @@ class TestConnectionPG:
         )
 
     def test_connect_with_wrong_user(self):
-        from dataloom import Dataloom
+        from dataloom import Loom
         from dataloom.keys import PgConfig
 
-        pg_loom = Dataloom(
+        pg_loom = Loom(
             dialect="postgres",
             database=PgConfig.database,
             password=PgConfig.password,
@@ -59,12 +59,12 @@ class TestConnectionPG:
         )
 
     def test_connect_with_wrong_dialect(self):
-        from dataloom import Dataloom
+        from dataloom import Loom
         from dataloom.exceptions import UnsupportedDialectException
         from dataloom.keys import PgConfig
 
         with pytest.raises(UnsupportedDialectException) as exc_info:
-            pg_loom = Dataloom(
+            pg_loom = Loom(
                 dialect="peew",
                 database=PgConfig.database,
                 password=PgConfig.password,
@@ -78,10 +78,10 @@ class TestConnectionPG:
         )
 
     def test_connect_correct_connection(self):
-        from dataloom import Dataloom
+        from dataloom import Loom
         from dataloom.keys import PgConfig
 
-        pg_loom = Dataloom(
+        pg_loom = Loom(
             dialect="postgres",
             database=PgConfig.database,
             password=PgConfig.password,

@@ -1,7 +1,7 @@
 class TestAggregationLoadingOnMySQL:
     def test_find_many(self):
         from dataloom import (
-            Dataloom,
+            Loom,
             Model,
             Column,
             PrimaryKeyColumn,
@@ -17,7 +17,7 @@ class TestAggregationLoadingOnMySQL:
         from dataloom.exceptions import UnknownColumnException
         from dataloom.keys import MySQLConfig
 
-        mysql_loom = Dataloom(
+        mysql_loom = Loom(
             dialect="mysql",
             database=MySQLConfig.database,
             password=MySQLConfig.password,
@@ -124,7 +124,7 @@ class TestAggregationLoadingOnMySQL:
 
     def test_find_all(self):
         from dataloom import (
-            Dataloom,
+            Loom,
             Model,
             Column,
             PrimaryKeyColumn,
@@ -139,7 +139,7 @@ class TestAggregationLoadingOnMySQL:
         from dataloom.exceptions import UnknownColumnException
         from dataloom.keys import MySQLConfig
 
-        mysql_loom = Dataloom(
+        mysql_loom = Loom(
             dialect="mysql",
             database=MySQLConfig.database,
             password=MySQLConfig.password,

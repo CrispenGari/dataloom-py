@@ -1,7 +1,7 @@
 class TestQueryingPG:
     def test_find_by_pk_fn(self):
         from dataloom import (
-            Dataloom,
+            Loom,
             Model,
             Column,
             PrimaryKeyColumn,
@@ -16,7 +16,7 @@ class TestQueryingPG:
         from dataloom.keys import PgConfig
         from typing import Optional
 
-        pg_loom = Dataloom(
+        pg_loom = Loom(
             dialect="postgres",
             database=PgConfig.database,
             password=PgConfig.password,
@@ -70,7 +70,7 @@ class TestQueryingPG:
 
     def test_find_all_fn(self):
         from dataloom import (
-            Dataloom,
+            Loom,
             Model,
             Column,
             PrimaryKeyColumn,
@@ -85,7 +85,7 @@ class TestQueryingPG:
         import pytest
         from dataloom.exceptions import UnknownColumnException
 
-        pg_loom = Dataloom(
+        pg_loom = Loom(
             dialect="postgres",
             database=PgConfig.database,
             password=PgConfig.password,
@@ -145,7 +145,7 @@ class TestQueryingPG:
 
     def test_find_one_fn(self):
         from dataloom import (
-            Dataloom,
+            Loom,
             Model,
             Column,
             PrimaryKeyColumn,
@@ -161,7 +161,7 @@ class TestQueryingPG:
         import pytest
         from dataloom.exceptions import UnknownColumnException
 
-        pg_loom = Dataloom(
+        pg_loom = Loom(
             dialect="postgres",
             database=PgConfig.database,
             password=PgConfig.password,
@@ -248,7 +248,7 @@ class TestQueryingPG:
 
     def test_find_many(self):
         from dataloom import (
-            Dataloom,
+            Loom,
             Model,
             Column,
             PrimaryKeyColumn,
@@ -264,7 +264,7 @@ class TestQueryingPG:
         import pytest
         from dataloom.exceptions import UnknownColumnException
 
-        pg_loom = Dataloom(
+        pg_loom = Loom(
             dialect="postgres",
             database=PgConfig.database,
             password=PgConfig.password,

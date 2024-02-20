@@ -3,7 +3,7 @@ class TestInspectTableOnPG:
         from dataloom import (
             Column,
             PrimaryKeyColumn,
-            Dataloom,
+            Loom,
             TableColumn,
             Model,
             CreatedAtColumn,
@@ -13,7 +13,7 @@ class TestInspectTableOnPG:
         from dataloom.exceptions import UnknownColumnException
         import pytest
 
-        pg_loom = Dataloom(
+        pg_loom = Loom(
             dialect="postgres",
             database=PgConfig.database,
             password=PgConfig.password,

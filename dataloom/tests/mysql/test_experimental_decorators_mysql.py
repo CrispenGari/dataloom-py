@@ -1,7 +1,7 @@
 class TestExperimentalDecoratorsOnMySQL:
     def test_initialize_decorator_fn(self):
         from dataloom import (
-            Dataloom,
+            Loom,
             Model,
             Column,
             PrimaryKeyColumn,
@@ -12,7 +12,7 @@ class TestExperimentalDecoratorsOnMySQL:
         from dataloom.decorators import initialize
         from dataloom.keys import MySQLConfig
 
-        mysql_loom = Dataloom(
+        mysql_loom = Loom(
             dialect="mysql",
             database=MySQLConfig.database,
             password=MySQLConfig.password,

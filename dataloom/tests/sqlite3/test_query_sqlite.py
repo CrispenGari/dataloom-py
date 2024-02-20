@@ -1,7 +1,7 @@
 class TestQueryingSQLite:
     def test_find_by_pk_fn(self):
         from dataloom import (
-            Dataloom,
+            Loom,
             Model,
             Column,
             PrimaryKeyColumn,
@@ -15,7 +15,7 @@ class TestQueryingSQLite:
         from typing import Optional
         from dataloom.exceptions import UnknownColumnException
 
-        sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
+        sqlite_loom = Loom(dialect="sqlite", database="hi.db")
 
         class User(Model):
             __tablename__: Optional[TableColumn] = TableColumn(name="users")
@@ -66,7 +66,7 @@ class TestQueryingSQLite:
 
     def test_find_all_fn(self):
         from dataloom import (
-            Dataloom,
+            Loom,
             Model,
             Column,
             PrimaryKeyColumn,
@@ -80,7 +80,7 @@ class TestQueryingSQLite:
         from dataloom.exceptions import UnknownColumnException
         import pytest
 
-        sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
+        sqlite_loom = Loom(dialect="sqlite", database="hi.db")
 
         class User(Model):
             __tablename__: Optional[TableColumn] = TableColumn(name="users")
@@ -137,7 +137,7 @@ class TestQueryingSQLite:
 
     def test_find_one_fn(self):
         from dataloom import (
-            Dataloom,
+            Loom,
             Model,
             Column,
             PrimaryKeyColumn,
@@ -152,7 +152,7 @@ class TestQueryingSQLite:
         import pytest
         from dataloom.exceptions import UnknownColumnException
 
-        sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
+        sqlite_loom = Loom(dialect="sqlite", database="hi.db")
 
         class User(Model):
             __tablename__: Optional[TableColumn] = TableColumn(name="users")
@@ -236,7 +236,7 @@ class TestQueryingSQLite:
 
     def test_find_many(self):
         from dataloom import (
-            Dataloom,
+            Loom,
             Model,
             Column,
             PrimaryKeyColumn,
@@ -251,7 +251,7 @@ class TestQueryingSQLite:
         from dataloom.exceptions import UnknownColumnException
         import pytest
 
-        sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
+        sqlite_loom = Loom(dialect="sqlite", database="hi.db")
 
         class User(Model):
             __tablename__: Optional[TableColumn] = TableColumn(name="users")

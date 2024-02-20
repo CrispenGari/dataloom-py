@@ -5,7 +5,7 @@ class TestUpdateOnMySQL:
         from dataloom import (
             Column,
             CreatedAtColumn,
-            Dataloom,
+            Loom,
             ForeignKeyColumn,
             Model,
             PrimaryKeyColumn,
@@ -15,7 +15,7 @@ class TestUpdateOnMySQL:
         )
         from dataloom.keys import MySQLConfig
 
-        mysql_loom = Dataloom(
+        mysql_loom = Loom(
             dialect="mysql",
             database=MySQLConfig.database,
             password=MySQLConfig.password,
@@ -80,7 +80,7 @@ class TestUpdateOnMySQL:
         from dataloom import (
             Column,
             CreatedAtColumn,
-            Dataloom,
+            Loom,
             ForeignKeyColumn,
             Model,
             PrimaryKeyColumn,
@@ -92,7 +92,7 @@ class TestUpdateOnMySQL:
         from dataloom.keys import MySQLConfig
         from dataloom.exceptions import UnknownColumnException
 
-        mysql_loom = Dataloom(
+        mysql_loom = Loom(
             dialect="mysql",
             database=MySQLConfig.database,
             password=MySQLConfig.password,
@@ -175,7 +175,7 @@ class TestUpdateOnMySQL:
         from dataloom import (
             Column,
             CreatedAtColumn,
-            Dataloom,
+            Loom,
             ForeignKeyColumn,
             Model,
             PrimaryKeyColumn,
@@ -187,7 +187,7 @@ class TestUpdateOnMySQL:
         from dataloom.keys import MySQLConfig
         from dataloom.exceptions import UnknownColumnException
 
-        mysql_loom = Dataloom(
+        mysql_loom = Loom(
             dialect="mysql",
             database=MySQLConfig.database,
             password=MySQLConfig.password,
@@ -274,7 +274,7 @@ class TestUpdateOnMySQL:
         from dataloom import (
             Column,
             CreatedAtColumn,
-            Dataloom,
+            Loom,
             Model,
             PrimaryKeyColumn,
             TableColumn,
@@ -284,7 +284,7 @@ class TestUpdateOnMySQL:
         )
         from dataloom.keys import MySQLConfig
 
-        mysql_loom = Dataloom(
+        mysql_loom = Loom(
             dialect="mysql",
             database=MySQLConfig.database,
             password=MySQLConfig.password,
@@ -341,7 +341,7 @@ class TestUpdateOnMySQL:
         from dataloom import (
             Column,
             CreatedAtColumn,
-            Dataloom,
+            Loom,
             Model,
             PrimaryKeyColumn,
             TableColumn,
@@ -351,7 +351,7 @@ class TestUpdateOnMySQL:
         )
         from dataloom.keys import MySQLConfig
 
-        mysql_loom = Dataloom(
+        mysql_loom = Loom(
             dialect="mysql",
             database=MySQLConfig.database,
             password=MySQLConfig.password,

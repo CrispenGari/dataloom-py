@@ -1,5 +1,5 @@
 from dataloom import (
-    Dataloom,
+    Loom,
     Model,
     PrimaryKeyColumn,
     Column,
@@ -19,14 +19,14 @@ import json, time
 from typing import Optional
 from dataclasses import dataclass
 
-sqlite_loom = Dataloom(
+sqlite_loom = Loom(
     dialect="sqlite",
     database="hi.db",
     logs_filename="sqlite-logs.sql",
     sql_logger="console",
 )
 
-pg_loom = Dataloom(
+pg_loom = Loom(
     dialect="postgres",
     database="hi",
     password="root",
@@ -34,7 +34,7 @@ pg_loom = Dataloom(
     sql_logger="console",
 )
 
-mysql_loom = Dataloom(
+mysql_loom = Loom(
     dialect="mysql",
     database="hi",
     password="root",
@@ -150,7 +150,16 @@ for cat in ["general", "education", "tech", "sport"]:
         ],
     )
 
-res = mysql_loom.find_by_pk(Profile, pk=profileId, select={"id", "avatar"})
+posts = mysql_loom.find_many(
+    Post,
+    select="id",
+    filters=Filter(column="id", operator="gt", value=1),
+    group=Group(
+        column="id",
+        function="MAX",
+        having=Having(column="id", operator="in", value=(2, 3, 4)),
+        return_aggregation_column=False,
+    ),
+)
 
-profile = Profile(**res)
-print(profile.to_dict)
+print(posts)

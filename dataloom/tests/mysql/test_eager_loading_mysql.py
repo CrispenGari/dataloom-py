@@ -1,7 +1,7 @@
 class TestEagerLoadingOnMySQL:
     def test_find_by_pk(self):
         from dataloom import (
-            Dataloom,
+            Loom,
             Model,
             Column,
             PrimaryKeyColumn,
@@ -14,7 +14,7 @@ class TestEagerLoadingOnMySQL:
         )
         from dataloom.keys import MySQLConfig
 
-        mysql_loom = Dataloom(
+        mysql_loom = Loom(
             dialect="mysql",
             database=MySQLConfig.database,
             password=MySQLConfig.password,
@@ -240,7 +240,7 @@ class TestEagerLoadingOnMySQL:
 
     def test_find_one(self):
         from dataloom import (
-            Dataloom,
+            Loom,
             Model,
             Column,
             PrimaryKeyColumn,
@@ -254,7 +254,7 @@ class TestEagerLoadingOnMySQL:
         )
         from dataloom.keys import MySQLConfig
 
-        mysql_loom = Dataloom(
+        mysql_loom = Loom(
             dialect="mysql",
             database=MySQLConfig.database,
             password=MySQLConfig.password,
@@ -529,7 +529,7 @@ class TestEagerLoadingOnMySQL:
 
     def test_find_many(self):
         from dataloom import (
-            Dataloom,
+            Loom,
             Model,
             Column,
             PrimaryKeyColumn,
@@ -543,7 +543,7 @@ class TestEagerLoadingOnMySQL:
         )
         from dataloom.keys import MySQLConfig
 
-        mysql_loom = Dataloom(
+        mysql_loom = Loom(
             dialect="mysql",
             database=MySQLConfig.database,
             password=MySQLConfig.password,
@@ -834,7 +834,7 @@ class TestEagerLoadingOnMySQL:
 
     def test_unknown_relations(self):
         from dataloom import (
-            Dataloom,
+            Loom,
             Model,
             Column,
             PrimaryKeyColumn,
@@ -848,7 +848,7 @@ class TestEagerLoadingOnMySQL:
         import pytest
         from dataloom.exceptions import UnknownRelationException
 
-        mysql_loom = Dataloom(
+        mysql_loom = Loom(
             dialect="mysql",
             database=MySQLConfig.database,
             password=MySQLConfig.password,

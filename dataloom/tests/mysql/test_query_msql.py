@@ -1,7 +1,7 @@
 class TestQueryingMySQL:
     def test_find_by_pk_fn(self):
         from dataloom import (
-            Dataloom,
+            Loom,
             Model,
             Column,
             PrimaryKeyColumn,
@@ -16,7 +16,7 @@ class TestQueryingMySQL:
         from dataloom.keys import MySQLConfig
         from typing import Optional
 
-        mysql_loom = Dataloom(
+        mysql_loom = Loom(
             dialect="mysql",
             database=MySQLConfig.database,
             password=MySQLConfig.password,
@@ -73,7 +73,7 @@ class TestQueryingMySQL:
 
     def test_find_all_fn(self):
         from dataloom import (
-            Dataloom,
+            Loom,
             Model,
             Column,
             PrimaryKeyColumn,
@@ -88,7 +88,7 @@ class TestQueryingMySQL:
         import pytest
         from dataloom.exceptions import UnknownColumnException
 
-        mysql_loom = Dataloom(
+        mysql_loom = Loom(
             dialect="mysql",
             database=MySQLConfig.database,
             password=MySQLConfig.password,
@@ -150,7 +150,7 @@ class TestQueryingMySQL:
 
     def test_find_one_fn(self):
         from dataloom import (
-            Dataloom,
+            Loom,
             Model,
             Column,
             PrimaryKeyColumn,
@@ -166,7 +166,7 @@ class TestQueryingMySQL:
         import pytest
         from dataloom.exceptions import UnknownColumnException
 
-        mysql_loom = Dataloom(
+        mysql_loom = Loom(
             dialect="mysql",
             database=MySQLConfig.database,
             password=MySQLConfig.password,
@@ -255,7 +255,7 @@ class TestQueryingMySQL:
 
     def test_find_many(self):
         from dataloom import (
-            Dataloom,
+            Loom,
             Model,
             Column,
             PrimaryKeyColumn,
@@ -271,7 +271,7 @@ class TestQueryingMySQL:
         import pytest
         from dataloom.exceptions import UnknownColumnException
 
-        mysql_loom = Dataloom(
+        mysql_loom = Loom(
             dialect="mysql",
             database=MySQLConfig.database,
             password=MySQLConfig.password,

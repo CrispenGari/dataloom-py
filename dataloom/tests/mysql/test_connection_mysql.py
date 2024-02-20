@@ -4,10 +4,10 @@ from mysql import connector
 
 class TestConnectionMySQL:
     def test_connect_with_non_existing_database(self):
-        from dataloom import Dataloom
+        from dataloom import Loom
         from dataloom.keys import MySQLConfig
 
-        mysql_loom = Dataloom(
+        mysql_loom = Loom(
             dialect="mysql",
             database="non-exists",
             password=MySQLConfig.password,
@@ -20,10 +20,10 @@ class TestConnectionMySQL:
         assert exc_info.value.errno == 1049
 
     def test_connect_with_wrong_password(self):
-        from dataloom import Dataloom
+        from dataloom import Loom
         from dataloom.keys import MySQLConfig
 
-        mysql_loom = Dataloom(
+        mysql_loom = Loom(
             dialect="mysql",
             database=MySQLConfig.database,
             password="user",
@@ -39,10 +39,10 @@ class TestConnectionMySQL:
         assert exc_info.value.errno == 1045
 
     def test_connect_with_wrong_user(self):
-        from dataloom import Dataloom
+        from dataloom import Loom
         from dataloom.keys import MySQLConfig
 
-        mysql_loom = Dataloom(
+        mysql_loom = Loom(
             dialect="mysql",
             database=MySQLConfig.database,
             password=MySQLConfig.password,
@@ -57,12 +57,12 @@ class TestConnectionMySQL:
         assert exc_info.value.errno == 1045
 
     def test_connect_with_wrong_dialect(self):
-        from dataloom import Dataloom
+        from dataloom import Loom
         from dataloom.keys import MySQLConfig
         from dataloom.exceptions import UnsupportedDialectException
 
         with pytest.raises(UnsupportedDialectException) as exc_info:
-            mysql_loom = Dataloom(
+            mysql_loom = Loom(
                 dialect="peew",
                 database=MySQLConfig.database,
                 password="user",
@@ -77,10 +77,10 @@ class TestConnectionMySQL:
         )
 
     def test_connect_correct_connection(self):
-        from dataloom import Dataloom
+        from dataloom import Loom
         from dataloom.keys import MySQLConfig
 
-        mysql_loom = Dataloom(
+        mysql_loom = Loom(
             dialect="mysql",
             database=MySQLConfig.database,
             password=MySQLConfig.password,

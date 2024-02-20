@@ -25,12 +25,12 @@ from dataloom.types import (
     SQL_LOGGER_LITERAL,
     Group,
 )
-from dataloom.loom.interfaces import IDataloom
+from dataloom.loom.interfaces import ILoom
 
 
-class Dataloom(IDataloom):
+class Loom(ILoom):
     """
-    Dataloom
+    Loom
     --------
 
     This class allows you to define a loom object for your database connection.
@@ -56,8 +56,8 @@ class Dataloom(IDataloom):
 
     Examples
     --------
-    >>> from dataloom import Dataloom
-    ... loom = Dataloom(
+    >>> from dataloom import Loom
+    ... loom = Loom(
     ...    dialect="postgres",
     ...    database="hi",
     ...    password="root",
@@ -78,43 +78,6 @@ class Dataloom(IDataloom):
         sql_logger: Optional[SQL_LOGGER_LITERAL] = None,
         logs_filename: Optional[str] = "dataloom.sql",
     ) -> None:
-        """
-        Dataloom
-        --------
-
-        This class allows you to define a loom object for your database connection.
-
-        Parameters
-        ----------
-        database : str
-            The name of the database to which you will connect, for PostgreSQL or MySQL, and the file name for SQLite.
-        dialect : "mysql" | "postgres" | "sqlite"
-            The database dialect to which you want to connect; it is required.
-        user : str, optional
-            The database username with which you want to connect. It defaults to the dialect's default values.
-        host : str, optional
-            The database host to which you will connect. It defaults to the dialect's default values.
-        port : int, optional
-            The database port to which you will connect. It defaults to the dialect's default values.
-        password : str, optional
-            The database password for the specified user. It defaults to the dialect's default value.
-        sql_logger : "console" | "file"
-            The default logging platform for SQL statements. It defaults to None for no logs on either file or console.
-        logs_filename : str, optional
-            The logging file name for SQL statement logs if the sql_logger is set to "file"; otherwise, it defaults to "dataloom.sql".
-
-        Examples
-        --------
-        >>> from dataloom import Dataloom
-        ... loom = Dataloom(
-        ...    dialect="postgres",
-        ...    database="hi",
-        ...    password="root",
-        ...    user="postgres",
-        ...    sql_logger="console",
-        ... )
-
-        """
         self.database = database
         self.conn = None
         self.sql_logger = sql_logger
@@ -171,7 +134,7 @@ class Dataloom(IDataloom):
 
         Examples
         --------
-        >>> from dataloom import Dataloom, Model, ColumnValue, TableColumn, PrimaryKeyColumn, Column
+        >>> from dataloom import Loom, Model, ColumnValue, TableColumn, PrimaryKeyColumn, Column
         ... from typing import Optional
         ...
         ... class User(Model):
@@ -180,7 +143,7 @@ class Dataloom(IDataloom):
         ...     name = Column(type="text", nullable=False)
         ...     username = Column(type="varchar", unique=True, length=255)
         ...
-        ... loom = Dataloom(
+        ... loom = Loom(
         ...    dialect="postgres",
         ...    database="hi",
         ...    password="root",
@@ -223,7 +186,7 @@ class Dataloom(IDataloom):
 
         Examples
         --------
-        >>> from dataloom import Dataloom, Model, ColumnValue, TableColumn, PrimaryKeyColumn, Column
+        >>> from dataloom import Loom, Model, ColumnValue, TableColumn, PrimaryKeyColumn, Column
         ... from typing import Optional
         ...
         ... class User(Model):
@@ -232,7 +195,7 @@ class Dataloom(IDataloom):
         ...     name = Column(type="text", nullable=False)
         ...     username = Column(type="varchar", unique=True, length=255)
         ...
-        ... loom = Dataloom(
+        ... loom = Loom(
         ...    dialect="postgres",
         ...    database="hi",
         ...    password="root",
@@ -302,7 +265,7 @@ class Dataloom(IDataloom):
 
         Examples
         --------
-        >>> from dataloom import Dataloom, Model, Filter, TableColumn, PrimaryKeyColumn, Column
+        >>> from dataloom import Loom, Model, Filter, TableColumn, PrimaryKeyColumn, Column
         >>> from typing import Optional
         >>>
         >>> class User(Model):
@@ -312,7 +275,7 @@ class Dataloom(IDataloom):
         ...     username = Column(type="varchar", unique=True, length=255)
         ...     tokenVersion = Column(type="int", default=0)
         ...
-        >>> loom = Dataloom(
+        >>> loom = Loom(
         ...    dialect="postgres",
         ...    database="hi",
         ...    password="root",
@@ -379,7 +342,7 @@ class Dataloom(IDataloom):
 
         Examples
         --------
-        >>> from dataloom import Dataloom, Model, TableColumn, PrimaryKeyColumn, Column
+        >>> from dataloom import Loom, Model, TableColumn, PrimaryKeyColumn, Column
         ... from typing import Optional
         ...
         ... class User(Model):
@@ -389,7 +352,7 @@ class Dataloom(IDataloom):
         ...     username = Column(type="varchar", unique=True, length=255)
         ...     tokenVersion = Column(type="int", default=0)
         ...
-        ... loom = Dataloom(
+        ... loom = Loom(
         ...    dialect="postgres",
         ...    database="hi",
         ...    password="root",
@@ -449,7 +412,7 @@ class Dataloom(IDataloom):
 
         Examples
         --------
-        >>> from dataloom import Dataloom, Model, TableColumn, PrimaryKeyColumn, Column
+        >>> from dataloom import Loomdel, TableColumn, PrimaryKeyColumn, Column
         >>> from typing import Optional
         >>>
         >>> class User(Model):
@@ -459,7 +422,7 @@ class Dataloom(IDataloom):
         ...     username = Column(type="varchar", unique=True, length=255)
         ...     tokenVersion = Column(type="int", default=0)
         ...
-        >>> loom = Dataloom(
+        >>> loom = Loom(
         ...    dialect="postgres",
         ...    database="hi",
         ...    password="root",
@@ -519,7 +482,7 @@ class Dataloom(IDataloom):
 
         Examples
         --------
-        >>> from dataloom import Dataloom, Model, Filter, TableColumn, PrimaryKeyColumn, Column
+        >>> from dataloom import Loomter, TableColumn, PrimaryKeyColumn, Column
         >>> from typing import Optional
         >>>
         >>> class User(Model):
@@ -529,7 +492,7 @@ class Dataloom(IDataloom):
         ...     username = Column(type="varchar", unique=True, length=255)
         ...     tokenVersion = Column(type="int", default=0)
         ...
-        >>> loom = Dataloom(
+        >>> loom = Loom(
         ...    dialect="postgres",
         ...    database="hi",
         ...    password="root",
@@ -581,7 +544,7 @@ class Dataloom(IDataloom):
 
         Examples
         --------
-        >>> from dataloom import Dataloom, Model, TableColumn, PrimaryKeyColumn, Column, ColumnValue
+        >>> from dataloom import Loom, Model, TableColumn, PrimaryKeyColumn, Column, ColumnValue
         ... from typing import Optional
         ...
         ... class User(Model):
@@ -591,7 +554,7 @@ class Dataloom(IDataloom):
         ...     username = Column(type="varchar", unique=True, length=255)
         ...     tokenVersion = Column(type="int", default=0)
         ...
-        ... loom = Dataloom(
+        ... loom = Loom(
         ...    dialect="postgres",
         ...    database="hi",
         ...    password="root",
@@ -650,7 +613,7 @@ class Dataloom(IDataloom):
 
         Examples
         --------
-        >>> from dataloom import Dataloom, Model, Filter, ColumnValue, TableColumn, PrimaryKeyColumn, Column
+        >>> from dataloom import Loom, Model, Filter, ColumnValue, TableColumn, PrimaryKeyColumn, Column
         ... from typing import Optional
         ...
         ... class User(Model):
@@ -660,7 +623,7 @@ class Dataloom(IDataloom):
         ...     username = Column(type="varchar", unique=True, length=255)
         ...     tokenVersion = Column(type="int", default=0)
         ...
-        ... loom = Dataloom(
+        ... loom = Loom(
         ...    dialect="postgres",
         ...    database="hi",
         ...    password="root",
@@ -719,7 +682,7 @@ class Dataloom(IDataloom):
 
         Examples
         --------
-        >>> from dataloom import Dataloom, Model, Filter, ColumnValue, TableColumn, PrimaryKeyColumn, Column
+        >>> from dataloom import Loom, Model, Filter, ColumnValue, TableColumn, PrimaryKeyColumn, Column
         ... from typing import Optional
         ...
         ... class User(Model):
@@ -729,7 +692,7 @@ class Dataloom(IDataloom):
         ...     username = Column(type="varchar", unique=True, length=255)
         ...     tokenVersion = Column(type="int", default=0)
         ...
-        ... loom = Dataloom(
+        ... loom = Loom(
         ...    dialect="postgres",
         ...    database="hi",
         ...    password="root",
@@ -776,7 +739,7 @@ class Dataloom(IDataloom):
 
         Examples
         --------
-        >>> from dataloom import Dataloom, Model, TableColumn, PrimaryKeyColumn, Column
+        >>> from dataloom import Loom, Model, TableColumn, PrimaryKeyColumn, Column
         ... from typing import Optional
         ...
         ... class User(Model):
@@ -786,7 +749,7 @@ class Dataloom(IDataloom):
         ...     username = Column(type="varchar", unique=True, length=255)
         ...     tokenVersion = Column(type="int", default=0)
         ...
-        ... loom = Dataloom(
+        ... loom = Loom
         ...    dialect="postgres",
         ...    database="hi",
         ...    password="root",
@@ -839,7 +802,7 @@ class Dataloom(IDataloom):
 
         Examples
         --------
-        >>> from dataloom import Dataloom, Model, Filter, TableColumn, PrimaryKeyColumn, Column
+        >>> from dataloom import Loom, Model, Filter, TableColumn, PrimaryKeyColumn, Column
         >>> from typing import Optional
         >>>
         >>> class User(Model):
@@ -849,7 +812,7 @@ class Dataloom(IDataloom):
         ...     username = Column(type="varchar", unique=True, length=255)
         ...     tokenVersion = Column(type="int", default=0)
         ...
-        >>> loom = Dataloom(
+        >>> loom = Loom
         ...    dialect="postgres",
         ...    database="hi",
         ...    password="root",
@@ -904,7 +867,7 @@ class Dataloom(IDataloom):
 
         Examples
         --------
-        >>> from dataloom import Dataloom, Model, Filter, TableColumn, PrimaryKeyColumn, Column
+        >>> from dataloom import Loom, Model, Filter, TableColumn, PrimaryKeyColumn, Column
         >>> from typing import Optional
         >>>
         >>> class User(Model):
@@ -914,7 +877,7 @@ class Dataloom(IDataloom):
         ...     username = Column(type="varchar", unique=True, length=255)
         ...     tokenVersion = Column(type="int", default=0)
         ...
-        >>> loom = Dataloom(
+        >>> loom = Loom(
         ...    dialect="postgres",
         ...    database="hi",
         ...    password="root",
@@ -965,7 +928,7 @@ class Dataloom(IDataloom):
 
         Examples
         --------
-        >>> from dataloom import Dataloom, Model, Filter, ColumnValue, TableColumn, PrimaryKeyColumn, Column
+        >>> from dataloom import Loom Filter, ColumnValue, TableColumn, PrimaryKeyColumn, Column
         ... from typing import Optional
         ...
         ... class User(Model):
@@ -975,7 +938,7 @@ class Dataloom(IDataloom):
         ...     username = Column(type="varchar", unique=True, length=255)
         ...     tokenVersion = Column(type="int", default=0)
         ...
-        ... loom = Dataloom(
+        ... loom = Loom(
         ...    dialect="postgres",
         ...    database="hi",
         ...    password="root",
@@ -1033,7 +996,7 @@ class Dataloom(IDataloom):
 
         Examples
         --------
-        >>> from dataloom import Dataloom, Model, Filter, ColumnValue, TableColumn, PrimaryKeyColumn, Column
+        >>> from dataloom import Loom, Model, Filter, ColumnValue, TableColumn, PrimaryKeyColumn, Column
         ... from typing import Optional
         ...
         ... class User(Model):
@@ -1043,7 +1006,7 @@ class Dataloom(IDataloom):
         ...     username = Column(type="varchar", unique=True, length=255)
         ...     tokenVersion = Column(type="int", default=0)
         ...
-        ... loom = Dataloom(
+        ... loom = Loom
         ...    dialect="postgres",
         ...    database="hi",
         ...    password="root",
@@ -1099,7 +1062,7 @@ class Dataloom(IDataloom):
 
         Examples
         --------
-        >>> from dataloom import Dataloom, Model, TableColumn, PrimaryKeyColumn, Column
+        >>> from dataloom import Loom, Model, TableColumn, PrimaryKeyColumn, Column
         ... from typing import Optional
         ...
         ... class Category(Model):
@@ -1107,7 +1070,7 @@ class Dataloom(IDataloom):
         ...     id = PrimaryKeyColumn(type="int", auto_increment=True, nullable=False, unique=True)
         ...     type = Column(type="varchar", length=255, nullable=False)
         ...
-        ... loom = Dataloom(
+        ... loom = Loom
         ...    dialect="postgres",
         ...    database="hi",
         ...    password="root",
@@ -1148,8 +1111,8 @@ class Dataloom(IDataloom):
 
         Examples
         --------
-        >>> from dataloom import Dataloom
-        ... loom = Dataloom(
+        >>> from dataloom import Loom
+        ... loom = Loom(
         ...    dialect="postgres",
         ...    database="hi",
         ...    password="root",
@@ -1214,8 +1177,8 @@ class Dataloom(IDataloom):
 
         Examples
         --------
-        >>> from dataloom import Dataloom
-        ... loom = Dataloom(
+        >>> from dataloom import Loom
+        ... loom = Loom(
         ...    dialect="postgres",
         ...    database="hi",
         ...    password="root",
@@ -1299,9 +1262,9 @@ class Dataloom(IDataloom):
 
         Examples
         --------
-        >>> from dataloom import Dataloom, Model, TableColumn, PrimaryKeyColumn, Column
+        >>> from dataloom import Loom, Model, TableColumn, PrimaryKeyColumn, Column
         ... from typing import Optional
-        ... loom = Dataloom(
+        ... loom = Loom(
         ...    dialect="postgres",
         ...    database="hi",
         ...    password="root",
@@ -1404,9 +1367,9 @@ class Dataloom(IDataloom):
 
         Examples
         --------
-        >>> from dataloom import Dataloom, Model, TableColumn, PrimaryKeyColumn, Column
+        >>> from dataloom import Loom, Model, TableColumn, PrimaryKeyColumn, Column
         ... from typing import Optional
-        ... loom = Dataloom(
+        ... loom = Loom(
         ...    dialect="postgres",
         ...    database="hi",
         ...    password="root",

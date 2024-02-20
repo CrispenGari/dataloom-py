@@ -1,7 +1,7 @@
 class TestEagerLoadingOnPG:
     def test_find_by_pk(self):
         from dataloom import (
-            Dataloom,
+            Loom,
             Model,
             Column,
             PrimaryKeyColumn,
@@ -14,7 +14,7 @@ class TestEagerLoadingOnPG:
         )
         from dataloom.keys import PgConfig
 
-        pg_loom = Dataloom(
+        pg_loom = Loom(
             dialect="postgres",
             database=PgConfig.database,
             password=PgConfig.password,
@@ -240,7 +240,7 @@ class TestEagerLoadingOnPG:
 
     def test_find_one(self):
         from dataloom import (
-            Dataloom,
+            Loom,
             Model,
             Column,
             PrimaryKeyColumn,
@@ -254,7 +254,7 @@ class TestEagerLoadingOnPG:
         )
         from dataloom.keys import PgConfig
 
-        pg_loom = Dataloom(
+        pg_loom = Loom(
             dialect="postgres",
             database=PgConfig.database,
             password=PgConfig.password,
@@ -530,7 +530,7 @@ class TestEagerLoadingOnPG:
 
     def test_find_many(self):
         from dataloom import (
-            Dataloom,
+            Loom,
             Model,
             Column,
             PrimaryKeyColumn,
@@ -544,7 +544,7 @@ class TestEagerLoadingOnPG:
         )
         from dataloom.keys import PgConfig
 
-        pg_loom = Dataloom(
+        pg_loom = Loom(
             dialect="postgres",
             database=PgConfig.database,
             password=PgConfig.password,
@@ -886,7 +886,7 @@ class TestEagerLoadingOnPG:
 
     def test_unknown_relations(self):
         from dataloom import (
-            Dataloom,
+            Loom,
             Model,
             Column,
             PrimaryKeyColumn,
@@ -902,7 +902,7 @@ class TestEagerLoadingOnPG:
 
         from dataloom.keys import PgConfig
 
-        pg_loom = Dataloom(
+        pg_loom = Loom(
             dialect="postgres",
             database=PgConfig.database,
             password=PgConfig.password,

@@ -1,10 +1,10 @@
 class TestCreatingTableMysql:
     def test_2_pk_error(self):
-        from dataloom import Column, PrimaryKeyColumn, Dataloom, TableColumn, Model
+        from dataloom import Column, PrimaryKeyColumn, Loom, TableColumn, Model
         import pytest
         from dataloom.keys import MySQLConfig
 
-        mysql_loom = Dataloom(
+        mysql_loom = Loom(
             dialect="mysql",
             database=MySQLConfig.database,
             password=MySQLConfig.password,
@@ -29,10 +29,10 @@ class TestCreatingTableMysql:
 
     def test_no_pk_error(self):
         import pytest
-        from dataloom import Model, Dataloom, Column, TableColumn
+        from dataloom import Model, Loom, Column, TableColumn
         from dataloom.keys import MySQLConfig
 
-        mysql_loom = Dataloom(
+        mysql_loom = Loom(
             dialect="mysql",
             database=MySQLConfig.database,
             password=MySQLConfig.password,
@@ -51,10 +51,10 @@ class TestCreatingTableMysql:
         conn.close()
 
     def test_table_name(self):
-        from dataloom import Model, Dataloom, Column, PrimaryKeyColumn, TableColumn
+        from dataloom import Model, Loom, Column, PrimaryKeyColumn, TableColumn
         from dataloom.keys import MySQLConfig
 
-        mysql_loom = Dataloom(
+        mysql_loom = Loom(
             dialect="mysql",
             database=MySQLConfig.database,
             password=MySQLConfig.password,
@@ -77,7 +77,7 @@ class TestCreatingTableMysql:
         conn.close()
 
     def test_connect_sync(self):
-        from dataloom import Dataloom, Model, TableColumn, Column, PrimaryKeyColumn
+        from dataloom import Loom, Model, TableColumn, Column, PrimaryKeyColumn
         from dataloom.keys import MySQLConfig
 
         class User(Model):
@@ -92,7 +92,7 @@ class TestCreatingTableMysql:
             id = PrimaryKeyColumn(type="int", nullable=False, auto_increment=True)
             title = Column(type="text", nullable=False)
 
-        mysql_loom = Dataloom(
+        mysql_loom = Loom(
             dialect="mysql",
             database=MySQLConfig.database,
             password=MySQLConfig.password,
@@ -105,10 +105,10 @@ class TestCreatingTableMysql:
         conn.close()
 
     def test_syncing_tables(self):
-        from dataloom import Model, Dataloom, Column, PrimaryKeyColumn, TableColumn
+        from dataloom import Model, Loom, Column, PrimaryKeyColumn, TableColumn
         from dataloom.keys import MySQLConfig
 
-        mysql_loom = Dataloom(
+        mysql_loom = Loom(
             dialect="mysql",
             database=MySQLConfig.database,
             password=MySQLConfig.password,

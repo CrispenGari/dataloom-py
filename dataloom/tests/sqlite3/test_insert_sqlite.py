@@ -1,7 +1,7 @@
 class TestInsertingOnPG:
     def test_insetting_single_document(self):
         from dataloom import (
-            Dataloom,
+            Loom,
             Model,
             Column,
             PrimaryKeyColumn,
@@ -12,7 +12,7 @@ class TestInsertingOnPG:
             ColumnValue,
         )
 
-        sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
+        sqlite_loom = Loom(dialect="sqlite", database="hi.db")
 
         class User(Model):
             __tablename__: TableColumn = TableColumn(name="users")
@@ -56,7 +56,7 @@ class TestInsertingOnPG:
 
     def test_insetting_multiple_document(self):
         from dataloom import (
-            Dataloom,
+            Loom,
             Model,
             Column,
             PrimaryKeyColumn,
@@ -67,7 +67,7 @@ class TestInsertingOnPG:
             ColumnValue,
         )
 
-        sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
+        sqlite_loom = Loom(dialect="sqlite", database="hi.db")
 
         class User(Model):
             __tablename__: TableColumn = TableColumn(name="users")
@@ -115,12 +115,12 @@ class TestInsertingOnPG:
             ForeignKeyColumn,
             PrimaryKeyColumn,
             Column,
-            Dataloom,
+            Loom,
             ColumnValue,
             TableColumn,
         )
 
-        sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
+        sqlite_loom = Loom(dialect="sqlite", database="hi.db")
 
         class User(Model):
             __tablename__: TableColumn = TableColumn(name="users")
@@ -157,7 +157,7 @@ class TestInsertingOnPG:
 
     def test_insert_bulk_with_errors(self):
         from dataloom import (
-            Dataloom,
+            Loom,
             Model,
             Column,
             PrimaryKeyColumn,
@@ -171,7 +171,7 @@ class TestInsertingOnPG:
 
         import pytest
 
-        sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
+        sqlite_loom = Loom(dialect="sqlite", database="hi.db")
 
         class User(Model):
             __tablename__: TableColumn = TableColumn(name="users")
