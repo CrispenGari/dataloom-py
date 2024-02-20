@@ -68,18 +68,6 @@ class Profile(Model):
         onUpdate="CASCADE",
     )
 
-    def __init__(self, id: int | None, avatar: str | None, userId: int | None) -> None:
-        self.id = id
-        self.avatar = avatar
-        self.userId = userId
-
-    def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}:id={self.id}>"
-
-    @property
-    def to_dict(self):
-        return {"id": self.id, "avatar": self.avatar, "userId": self.userId}
-
 
 class Post(Model):
     __tablename__: Optional[TableColumn] = TableColumn(name="posts")
@@ -124,6 +112,13 @@ userId = mysql_loom.insert_one(
     values=ColumnValue(name="username", value="@miller"),
 )
 
+aff = mysql_loom.delete_bulk(
+    instance=User,
+    filters=Filter(column="id", value=1),
+)
+print(aff)
+
+
 userId2 = mysql_loom.insert_one(
     instance=User,
     values=ColumnValue(name="username", value="bob"),
@@ -155,27 +150,7 @@ for cat in ["general", "education", "tech", "sport"]:
         ],
     )
 
+res = mysql_loom.find_by_pk(Profile, pk=profileId, select={"id", "avatar"})
 
-profile = mysql_loom.find_all(
-    Post,
-    select=["title", "id"],
-    # filters=Filter(column="id", operator="gt", value=1),
-    group=[
-        Group(
-            column="id",
-            function="MAX",
-            having=[
-                Having(column="id", operator="in", value=(2, 3, 4)),
-                Having(column="id", operator="lt", value=10, join_next_with="OR"),
-            ],
-            return_aggregation_column=True,
-        ),
-        Group(
-            column="title",
-            function="COUNT",
-            having=Having(column="title", operator="eq", value=1),
-            return_aggregation_column=True,
-        ),
-    ],
-)
-print(profile)
+profile = Profile(**res)
+print(profile.to_dict)

@@ -448,8 +448,8 @@ affected_rows = pg_loom.update_one(
         ColumnValue(name="completed", value=True),
     ],
     filters=[
-        Filter(column="id", value=1, join_next_filter_with="AND"),
-        Filter(column="userId", value=1, join_next_filter_with="AND"),
+        Filter(column="id", value=1, join_next_with="AND"),
+        Filter(column="userId", value=1, join_next_with="AND"),
     ],
 )
 ```
@@ -460,7 +460,7 @@ So from the above example we are applying filters while updating a `Post` here a
 | `column` | The name of the column to apply the filter on | `String` | - |
 | `value` | The value to filter against | `Any` | - |
 | `operator` | The comparison operator to use for the filter | `'eq'`, `'neq'`. `'lt'`, `'gt'`, `'leq'`, `'geq'`, `'in'`, `'notIn'`, `'like'` | `'eq'` |
-| `join_next_filter_with` | The logical operator to join this filter with the next one | `'AND'`, `'OR'` | `'AND'` |
+| `join_next_with` | The logical operator to join this filter with the next one | `'AND'`, `'OR'` | `'AND'` |
 
 > 👉 : **Note:** You can apply either a list of filters or a single filter when filtering records.
 
@@ -478,8 +478,8 @@ re = pg_loom.update_one(
         ColumnValue(name="completed", value=True),
     ],
     filters=[
-        Filter(column="id",  value=1, join_next_filter_with="AND"),
-        Filter(column="userId", value=1, join_next_filter_with="AND"),
+        Filter(column="id",  value=1, join_next_with="AND"),
+        Filter(column="userId", value=1, join_next_with="AND"),
     ],
 )
 ```
@@ -787,8 +787,8 @@ Here is an example illustrating how to use the `update_one()` method:
 affected_rows = mysql_loom.update_one(
     instance=Post,
     filters=[
-        Filter(column="id", value=8, join_next_filter_with="OR"),
-        Filter(column="userId", value=1, join_next_filter_with="OR"),
+        Filter(column="id", value=8, join_next_with="OR"),
+        Filter(column="userId", value=1, join_next_with="OR"),
     ],
     values=[
         ColumnValue(name="title", value="Updated?"),
@@ -812,8 +812,8 @@ The `update_bulk()` method updates all records that match a filter in a database
 affected_rows = mysql_loom.update_bulk(
     instance=Post,
     filters=[
-        Filter(column="id", value=8, join_next_filter_with="OR"),
-        Filter(column="userId", value=1, join_next_filter_with="OR"),
+        Filter(column="id", value=8, join_next_with="OR"),
+        Filter(column="userId", value=1, join_next_with="OR"),
     ],
     values=[
         ColumnValue(name="title", value="Updated?"),
@@ -972,7 +972,7 @@ res2 = mysql_loom.delete_one(
 )
 ```
 
-As you have noticed, you can join your filters together and they will be applied sequentially using the [`join_next_filter_with`](#filter-class) which can be either `OR` or `AND` te default value is `AND`. Here is an of filter usage in sequential.
+As you have noticed, you can join your filters together and they will be applied sequentially using the [`join_next_with`](#filter-class) which can be either `OR` or `AND` te default value is `AND`. Here is an of filter usage in sequential.
 
 ```py
 res2 = mysql_loom.delete_one(
@@ -981,12 +981,12 @@ res2 = mysql_loom.delete_one(
     order=[Order(column="id", order="DESC")],
     filters=[
         Filter(column="id", value=1, operator="gt"),
-        Filter(column="userId", value=1, operator="eq", join_next_filter_with="OR"),
+        Filter(column="userId", value=1, operator="eq", join_next_with="OR"),
         Filter(
             column="title",
             value='"What are you doing general?"',
             operator="=",
-            join_next_filter_with="AND",
+            join_next_with="AND",
         ),
     ],
 )

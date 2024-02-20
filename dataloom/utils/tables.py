@@ -40,11 +40,7 @@ def get_table_filters(
                         f"Table {table_name} does not have column '{key}'."
                     )
                 op = get_operator(filter.operator)
-                join = (
-                    ""
-                    if len(filters) == idx + 1
-                    else f" {filter.join_next_filter_with}"
-                )
+                join = "" if len(filters) == idx + 1 else f" {filter.join_next_with}"
 
                 if op == "IN" or op == "NOT IN":
                     if is_collection(filter.value):

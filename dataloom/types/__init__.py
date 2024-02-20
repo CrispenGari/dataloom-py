@@ -34,6 +34,51 @@ AGGREGATION_LITERALS = Literal["AVG", "COUNT", "SUM", "MAX", "MIN"]
 
 @dataclass(kw_only=True, repr=False)
 class Having:
+    """
+    Having
+    ------
+
+    This class method is used to specify the filters to be applied on Grouped data during aggregation in dataloom.
+
+    Parameters
+    ----------
+    column : str
+        The name of the column to filter on.
+    operator : OPERATOR_LITERAL, optional
+        The operator to use for the filter. Default is "eq".
+    value : Any
+        The value to compare against.
+    join_next_with : "AND" | "OR", optional
+        The SQL operand to join the next filter with. Default is "AND".
+
+    Returns
+    -------
+    None
+        This method does not return any value.
+
+    See Also
+    --------
+    Filter : Class used to define filter conditions.
+    ColumnValue : Class for defining column values.
+    Order : Class for defining order specifications.
+
+    Examples
+    --------
+    >>> from dataloom import Group, Having
+    ...
+    ... posts = pg_loom.find_many(
+    ...     Post,
+    ...     select="id",
+    ...     filters=Filter(column="id", operator="gt", value=1),
+    ...     group=Group(
+    ...         column="id",
+    ...         function="MAX",
+    ...         having=Having(column="id", operator="in", value=(2, 3, 4)),
+    ...         return_aggregation_column=True,
+    ...    ),
+    ... )
+    """
+
     column: str = field(repr=False)
     operator: OPERATOR_LITERAL = field(repr=False, default="eq")
     value: Any = field(repr=False)
@@ -42,6 +87,51 @@ class Having:
 
 @dataclass(repr=False, kw_only=True)
 class Group:
+    """
+    Group
+    -----
+
+    This class is used for data aggregation and grouping data in dataloom.
+
+    Parameters
+    ----------
+    column : str
+        The name of the column to group by.
+    function : "COUNT" | "AVG" | "SUM" | "MIN" | "MAX", optional
+        The aggregation function to apply on the grouped data. Default is "COUNT".
+    having : list[Having] | Having | None, optional
+        Filters to apply to the grouped data. It can be a single Having object, a list of Having objects, or None to apply no filters. Default is None.
+    return_aggregation_column : bool, optional
+        Whether to return the aggregation column in the result. Default is False.
+
+    Returns
+    -------
+    None
+        This method does not return any value.
+
+    See Also
+    --------
+    Having : Class used to filter grouped data.
+    ColumnValue : Class for defining column values.
+    Order : Class for defining order specifications.
+
+    Examples
+    --------
+    >>> from dataloom import Group, Having
+    ...
+    ... posts = pg_loom.find_many(
+    ...     Post,
+    ...     select="id",
+    ...     filters=Filter(column="id", operator="gt", value=1),
+    ...     group=Group(
+    ...         column="id",
+    ...         function="MAX",
+    ...         having=Having(column="id", operator="in", value=(2, 3, 4)),
+    ...         return_aggregation_column=True,
+    ...    ),
+    ... )
+    """
+
     column: str = field(repr=False)
     function: AGGREGATION_LITERALS = field(default="COUNT", repr=False)
     having: Optional[list[Having] | Having] = field(default=None, repr=False)
@@ -64,7 +154,7 @@ class Filter:
         The operator to use for the filter.
     value : Any
         The value to compare against.
-    join_next_filter_with : "AND" | "OR" | None, optional
+    join_next_with : "AND" | "OR" | None, optional
         The SQL operand to join the next filter with. Default is "AND".
 
     Returns
@@ -74,6 +164,8 @@ class Filter:
 
     See Also
     --------
+    Group : Class used to group data.
+    Having : Class used to filter grouped data.
     ColumnValue : Class for defining column values.
     Order : Class for defining order specifications.
 
@@ -85,7 +177,7 @@ class Filter:
     ... affected_rows = loom.update_one(
     ...     User,
     ...     filters=[
-    ...         Filter(column="id", value=1, operator="eq", join_next_filter_with="OR"),
+    ...         Filter(column="id", value=1, operator="eq", join_next_with="OR"),
     ...         Filter(column="username", value="miller"),
     ...     ],
     ...     values=[
@@ -102,7 +194,7 @@ class Filter:
     column: str = field(repr=False)
     operator: OPERATOR_LITERAL = field(repr=False, default="eq")
     value: Any = field(repr=False)
-    join_next_filter_with: Optional[SLQ_OPERAND_LITERAL] = field(default="AND")
+    join_next_with: Optional[SLQ_OPERAND_LITERAL] = field(default="AND")
 
 
 @dataclass(kw_only=True, repr=False)
@@ -129,6 +221,8 @@ class ColumnValue[T]:
     --------
     Filter : Class for defining filters.
     Order : Class for defining order specifications.
+    Group : Class used to group data.
+    Having : Class used to filter grouped data.
 
     Examples
     --------
@@ -192,6 +286,8 @@ class Order:
     Include : Class for defining included models.
     Filter : Class for defining filters.
     ColumnValue : Class for defining column values.
+    Group : Class used to group data.
+    Having : Class used to filter grouped data.
 
     Examples
     --------
@@ -223,61 +319,6 @@ class Order:
 
     column: str = field(repr=False)
     order: Literal["ASC", "DESC"] = field(repr=False, default="ASC")
-
-    def __init__(self, column: str, order: Literal["ASC", "DESC"] = "ASC") -> None:
-        """
-        Order
-        -----
-
-        Constructor method for the Order class.
-
-        Parameters
-        ----------
-        column : str
-            The name of the column to order by.
-        order : Literal['ASC', 'DESC'], optional
-            The order direction. Default is "ASC" (ascending).
-
-        Returns
-        -------
-        None
-            This method does not return any value.
-
-        See Also
-        --------
-        Include : Class for defining included models.
-        Filter : Class for defining filters.
-        ColumnValue : Class for defining column values.
-
-        Examples
-        --------
-        >>> from dataloom import Order, Include, Model
-        ...
-        ... class User(Model):
-        ...     __tablename__: Optional[TableColumn] = TableColumn(name="users")
-        ...     id = PrimaryKeyColumn(type="int", auto_increment=True)
-        ...     name = Column(type="text", nullable=False)
-        ...     username = Column(type="varchar", unique=True, length=255)
-        ...
-        ... class Post(Model):
-        ...     __tablename__: Optional[TableColumn] = TableColumn(name="posts")
-        ...     id = PrimaryKeyColumn(type="int", auto_increment=True)
-        ...     title = Column(type="text", nullable=False)
-        ...     content = Column(type="text", nullable=False)
-        ...     userId = ForeignKeyColumn(User, maps_to="1-N", type="int", required=False, onDelete="CASCADE", onUpdate="CASCADE")
-        ...
-        ... # Including posts for a user with ID 1 and ordering by ID in descending order
-        ... # and then by createdAt in descending order
-        ... users = loom.find_many(
-        ...     User,
-        ...     pk=1,
-        ...     include=[Include(Post, limit=2, offset=0, maps_to="1-N")],
-        ...     order=[Order(column="id", order="DESC"), Order(column="createdAt", order="DESC")]
-        ... )
-
-        """
-        self.column = column
-        self.order = order
 
 
 @dataclass(kw_only=True, repr=False)
@@ -315,6 +356,8 @@ class Include[Model]:
     Order: Class for defining order specifications.
     Filter : Class for defining filters.
     ColumnValue : Class for defining column values.
+    Group : Class used to group data.
+    Having : Class used to filter grouped data.
 
     Examples
     --------

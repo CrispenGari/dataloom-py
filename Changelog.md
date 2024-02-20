@@ -46,7 +46,7 @@ We have release the new `dataloom` Version `1.1.0` (`2024-02-12`)
     )
   ```
 
-- Now `return_dict` has bee removed as an option in dataloom in the query functions like `find_by_pk`, `find_one`, `find_many` and `find_all` now works starting from this version. If you enjoy working with python objects you have to maneuver them manually using experimental features.
+- Now `return_dict` has bee removed as an option in `dataloom` in the query functions like `find_by_pk`, `find_one`, `find_many` and `find_all` now works starting from this version. If you enjoy working with python objects you have to maneuver them manually using experimental features.
 
   ```py
   from dataloom.decorators import initialize
@@ -77,8 +77,45 @@ We have release the new `dataloom` Version `1.1.0` (`2024-02-12`)
   - These are `experimental` decorators they are little bit slow and they work perfect in a single instance, you can not nest relationships on them.
   - You can use them if you know how your data is structured and also if you know how to manipulate dictionaries
 
+- Deprecated ~~`join_next_filter_with`~~ to the use of `join_next_with`
+- Values that was required as `list` e.g, `select`, `include` etc can now be passed as a single value.
+
+  - **Before**
+
+  ```py
+  res = mysql_loom.find_by_pk(Profile, pk=profileId, select={"id", "avatar"}) # invalid
+  res = mysql_loom.find_by_pk(Profile, pk=profileId, select=("id", "avatar")) # invalid
+  res = mysql_loom.find_by_pk(Profile, pk=profileId, select="id") # invalid
+  res = mysql_loom.find_by_pk(Profile, pk=profileId, select=["id"]) # valid
+
+  ```
+
+  - **Now**
+
+  ```py
+  res = mysql_loom.find_by_pk(Profile, pk=profileId, select={"id", "avatar"}) # valid
+  res = mysql_loom.find_by_pk(Profile, pk=profileId, select=("id", "avatar")) # valid
+  res = mysql_loom.find_by_pk(Profile, pk=profileId, select="id") # valid
+  res = mysql_loom.find_by_pk(Profile, pk=profileId, select=["id"]) # valid
+
+  ```
+
 - Updated the documentation.
-- Grouping data in queries will also be part of this release, using the class `Group`
+- Grouping data in queries will also be part of this release, using the class `Group` and `Having`.
+
+```py
+posts = pg_loom.find_many(
+          Post,
+          select="id",
+          filters=Filter(column="id", operator="gt", value=1),
+          group=Group(
+              column="id",
+              function="MAX",
+              having=Having(column="id", operator="in", value=(2, 3, 4)),
+              return_aggregation_column=True,
+          ),
+)
+```
 
 =====
 Dataloom **`1.0.2`**
@@ -128,7 +165,3 @@ We are pleased to release `dataloom` ORM for python version `3.12` and above. Th
 - Filter Records
 - Select field in records
 - etc.
-
-```
-
-```

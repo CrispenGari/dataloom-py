@@ -1,7 +1,7 @@
 from dataloom.model import Model
 from dataloom.types import Filter, Order, Include, Group, DIALECT_LITERAL
 from typing import Callable, Any, Optional
-from dataloom.utils import get_args
+from dataloom.utils import get_args, is_collection
 from abc import ABC, abstractclassmethod
 from dataloom.loom.subqueries import subquery
 
@@ -12,11 +12,11 @@ class Query(ABC):
         self,
         instance: Model,
         filters: Optional[Filter | list[Filter]] = None,
-        select: list[str] = [],
+        select: Optional[list[str] | str] = [],
         include: list[Model] = [],
         limit: Optional[int] = None,
         offset: Optional[int] = None,
-        order: Optional[list[Order]] = [],
+        order: Optional[list[Order] | Order] = [],
     ) -> list:
         raise NotImplementedError("The find_many method was not implemented.")
 
@@ -24,11 +24,11 @@ class Query(ABC):
     def find_all(
         self,
         instance: Model,
-        select: list[str] = [],
-        include: list[Include] = [],
+        select: Optional[list[str] | str] = [],
+        include: Optional[list[Include] | Include] = [],
         limit: Optional[int] = None,
         offset: Optional[int] = None,
-        order: Optional[list[Order]] = [],
+        order: Optional[list[Order] | Order] = [],
     ) -> list:
         raise NotImplementedError("The find_all method was not implemented.")
 
@@ -37,8 +37,8 @@ class Query(ABC):
         self,
         instance: Model,
         pk,
-        select: list[str] = [],
-        include: list[Include] = [],
+        select: Optional[list[str] | str] = [],
+        include: Optional[list[Include] | Include] = [],
     ) -> dict | None:
         raise NotImplementedError("The find_by_pk method was not implemented.")
 
@@ -47,8 +47,8 @@ class Query(ABC):
         self,
         instance: Model,
         filters: Optional[Filter | list[Filter]] = None,
-        select: list[str] = [],
-        include: list[Include] = [],
+        select: Optional[list[str] | str] = [],
+        include: Optional[list[Include] | Include] = [],
         offset: Optional[int] = None,
     ) -> dict | None:
         raise NotImplementedError("The find_one method was not implemented.")
@@ -65,14 +65,20 @@ class query(Query):
         self,
         instance: Model,
         filters: Optional[Filter | list[Filter]] = None,
-        select: list[str] = [],
+        select: Optional[list[str] | str] = [],
         include: list[Model] = [],
         limit: Optional[int] = None,
         offset: Optional[int] = None,
-        order: Optional[list[Order]] = [],
-        group: Optional[list[Group]] = [],
+        order: Optional[list[Order] | Order] = [],
+        group: Optional[list[Group] | Group] = [],
     ) -> list:
         data = []
+
+        if not is_collection(include):
+            include = [include]
+        if not is_collection(group):
+            group = [group]
+
         if len(include) == 0:
             sql, params, fields, having_values = instance._get_select_where_stm(
                 dialect=self.dialect,
@@ -100,20 +106,26 @@ class query(Query):
                 limit=limit,
                 order=order,
                 offset=offset,
+                group=group,
             )
         return data
 
     def find_all(
         self,
         instance: Model,
-        select: list[str] = [],
-        include: list[Include] = [],
+        select: Optional[list[str] | str] = [],
+        include: Optional[list[Include] | Include] = [],
         limit: Optional[int] = None,
         offset: Optional[int] = None,
-        order: Optional[list[Order]] = [],
-        group: Optional[list[Group]] = [],
+        order: Optional[list[Order] | Order] = [],
+        group: Optional[list[Group] | Group] = [],
     ) -> list:
         data = []
+        if not is_collection(include):
+            include = [include]
+        if not is_collection(group):
+            group = [group]
+
         if len(include) == 0:
             sql, params, fields, having_values = instance._get_select_where_stm(
                 dialect=self.dialect,
@@ -138,6 +150,7 @@ class query(Query):
                 limit=limit,
                 order=order,
                 offset=offset,
+                group=group,
             )
         return data
 
@@ -145,8 +158,8 @@ class query(Query):
         self,
         instance: Model,
         pk,
-        select: list[str] = [],
-        include: list[Include] = [],
+        select: Optional[list[str] | str] = [],
+        include: Optional[list[Include] | Include] = [],
     ) -> dict | None:
         # what is the name of the primary key column? well we will find out
         sql, fields, _includes = instance._get_select_by_pk_stm(
@@ -165,8 +178,8 @@ class query(Query):
         self,
         instance: Model,
         filters: Optional[Filter | list[Filter]] = None,
-        select: list[str] = [],
-        include: list[Include] = [],
+        select: Optional[list[str] | str] = [],
+        include: Optional[list[Include] | Include] = [],
         offset: Optional[int] = None,
     ) -> dict | None:
         sql, params, fields, having_values = instance._get_select_where_stm(

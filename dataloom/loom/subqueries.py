@@ -1,5 +1,5 @@
 from dataloom.utils import get_table_fields, get_args, is_collection
-from dataloom.types import DIALECT_LITERAL, Include, Filter, Order
+from dataloom.types import DIALECT_LITERAL, Include, Filter, Order, Group
 from dataloom.model import Model
 from dataclasses import dataclass
 from typing import Callable, Any, Optional
@@ -15,12 +15,17 @@ class subquery:
     def get_find_all_relations(
         self,
         parent: Model,
-        includes: list[Include] = [],
+        includes: list[Include] | Include = [],
         offset: Optional[int] = None,
         limit: Optional[int] = None,
-        select: list[str] = [],
-        order: Optional[list[Order]] = [],
+        select: list[str] | str = [],
+        order: Optional[list[Order] | Order] = [],
+        group: Optional[list[Group] | Group] = [],
     ):
+        if not is_collection(includes):
+            includes = [includes]
+        if not is_collection(select):
+            select = [select]
         sql, params = parent._get_select_pk_stm(
             dialect=self.dialect,
             limit=limit,
@@ -44,12 +49,18 @@ class subquery:
         self,
         parent: Model,
         filters: Optional[Filter | list[Filter]] = None,
-        includes: list[Include] = [],
+        includes: list[Include] | Include = [],
         offset: Optional[int] = None,
         limit: Optional[int] = None,
-        select: list[str] = [],
-        order: Optional[list[Order]] = [],
+        select: list[str] | str = [],
+        order: Optional[list[Order] | Order] = [],
+        group: Optional[list[Group] | Group] = [],
     ):
+        if not is_collection(includes):
+            includes = [includes]
+        if not is_collection(select):
+            select = [select]
+
         sql, params = parent._get_select_pk_stm(
             dialect=self.dialect,
             filters=filters,
@@ -97,9 +108,12 @@ class subquery:
         self,
         parent: Model,
         filters: Optional[Filter | list[Filter]] = None,
-        includes: list[Include] = [],
+        includes: list[Include] | Include = [],
         offset: Optional[int] = None,
     ):
+        if not is_collection(includes):
+            includes = [includes]
+
         _, _, fks, _ = get_table_fields(parent, dialect=self.dialect)
         sql, params = parent._get_select_pk_stm(
             dialect=self.dialect,
@@ -163,6 +177,9 @@ class subquery:
         return relations
 
     def get_find_by_pk_relations(self, parent: Model, pk, includes: list[Include] = []):
+        if not is_collection(includes):
+            includes = [includes]
+
         relations = dict()
         for include in includes:
             _, parent_pk_name, fks, _ = get_table_fields(

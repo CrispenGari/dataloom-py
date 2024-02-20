@@ -23,6 +23,7 @@ from dataloom.utils import (
     get_child_table_params,
     get_table_fields,
     get_groups,
+    is_collection,
 )
 
 
@@ -146,14 +147,15 @@ class Model:
         cls,
         dialect: DIALECT_LITERAL,
         filters: Optional[Filter | list[Filter]] = None,
-        select: list[str] = [],
+        select: Optional[list[str] | str] = [],
         limit: Optional[int] = None,
         offset: Optional[int] = None,
-        order: Optional[list[Order]] = [],
+        order: Optional[list[Order] | Order] = [],
         group: Optional[list[Group] | Group] = [],
     ):
+        if not is_collection(select):
+            select = [select]
         orders = []
-
         # what are the foreign keys?
 
         fields, pk_name, fks, updatedAtColumName = get_table_fields(
@@ -169,11 +171,13 @@ class Model:
                 if dialect == "postgres"
                 else f"`{_order.column}` {_order.order}"
             )
+
         for column in select:
             if column not in fields:
                 raise UnknownColumnException(
                     f'The table "{cls._get_table_name()}" does not have a column "{column}".'
                 )
+
         placeholder_filters, placeholder_filter_values = get_table_filters(
             table_name=cls._get_table_name(),
             dialect=dialect,
@@ -223,28 +227,27 @@ class Model:
             raise UnsupportedDialectException(
                 "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
             )
-        return (
-            sql,
-            placeholder_filter_values,
-            (
-                fields + []
-                if not return_aggregation_column
-                else fields + group_fns
-                if len(select) == 0
-                else select + []
-                if not return_aggregation_column
-                else select + group_fns
-            ),
-            having_values,
-        )
+
+        selected = []
+        if len(select) == 0:
+            selected = fields + group_fns if return_aggregation_column else fields
+        else:
+            selected = (
+                list(select) + group_fns if return_aggregation_column else list(select)
+            )
+
+        return (sql, placeholder_filter_values, selected, having_values)
 
     @classmethod
     def _get_select_by_pk_stm(
         cls,
         dialect: DIALECT_LITERAL,
-        select: list[str] = [],
+        select: Optional[list[str] | str] = [],
         include: list[Include] = [],
     ):
+        if not is_collection(select):
+            select = [select]
+
         # what is the pk name?
         # what are the foreign keys?
         includes = []
@@ -254,7 +257,15 @@ class Model:
         fields, pk_name, fks, updatedAtColumName = get_table_fields(
             cls, dialect=dialect
         )
-        for column in select:
+        if is_collection(select):
+            for column in select:
+                if column not in fields:
+                    raise UnknownColumnException(
+                        f'The table "{cls._get_table_name()}" does not have a column "{column}".'
+                    )
+        else:
+            column = select
+            select = [select]
             if column not in fields:
                 raise UnknownColumnException(
                     f'The table "{cls._get_table_name()}" does not have a column "{column}".'
@@ -423,7 +434,7 @@ class Model:
         dialect: DIALECT_LITERAL,
         filters: Optional[Filter | list[Filter]] = None,
         offset: Optional[int] = None,
-        order: Optional[list[Order]] = [],
+        order: Optional[list[Order] | Order] = [],
     ):
         fields, pk_name, fks, updatedAtColumName = get_table_fields(
             cls, dialect=dialect
@@ -476,7 +487,7 @@ class Model:
         filters: Optional[Filter | list[Filter]] = None,
         limit: Optional[int] = None,
         offset: Optional[int] = None,
-        order: Optional[list[Order]] = [],
+        order: Optional[list[Order] | Order] = [],
     ):
         fields, pk_name, fks, updatedAtColumName = get_table_fields(
             cls, dialect=dialect
@@ -591,11 +602,13 @@ class Model:
         parent_pk_name: str,
         parent_table_name: str,
         child_foreign_key_name: str,
-        select: list[str] = [],
+        select: Optional[list[str] | str] = [],
         limit: Optional[int] = None,
         offset: Optional[int] = None,
-        order: Optional[list[Order]] = [],
+        order: Optional[list[Order] | Order] = [],
     ):
+        if not is_collection(select):
+            select = [select]
         # what is the pk name?
         # what are the foreign keys?
         fields, pk_name, fks, updatedAtColumName = get_table_fields(
@@ -645,11 +658,13 @@ class Model:
         child_pk_name: str,
         child_table_name: str,
         parent_fk_name: str,
-        select: list[str] = [],
+        select: Optional[list[str] | str] = [],
         limit: Optional[int] = None,
         offset: Optional[int] = None,
         order: list[Order] = [],
     ):
+        if not is_collection(select):
+            select = [select]
         # what is the pk name?
         # what are the foreign keys?
         fields, pk_name, fks, updatedAtColumName = get_table_fields(
@@ -698,7 +713,7 @@ class Model:
         filters: Optional[Filter | list[Filter]] = None,
         limit: Optional[int] = None,
         offset: Optional[int] = None,
-        order: Optional[list[Order]] = [],
+        order: Optional[list[Order] | Order] = [],
     ):
         orders = []
         fields, pk_name, fks, updatedAtColumName = get_table_fields(

@@ -257,12 +257,12 @@ class Dataloom(IDataloom):
         self,
         instance: Model,
         filters: Optional[Filter | list[Filter]] = None,
-        select: list[str] = [],
-        include: list[Include] = [],
+        select: Optional[list[str] | str] = [],
+        include: Optional[list[Include] | Include] = [],
         limit: Optional[int] = None,
         offset: Optional[int] = None,
-        order: Optional[list[Order]] = [],
-        group: Optional[list[Group]] = [],
+        order: Optional[list[Order] | Order] = [],
+        group: Optional[list[Group] | Group] = [],
     ) -> list:
         """
         find_many
@@ -276,21 +276,22 @@ class Dataloom(IDataloom):
             An instance of a Model class representing the table from which the rows need to be retrieved.
         filters : Filter | list[Filter] | None, optional
             Filters to apply when selecting the rows. It can be a single Filter object, a list of Filter objects, or None to apply no filters. Default is None.
-        select : list[str], optional
+        select : list[str] | str, optional
             Columns to select in the query. Default is an empty list, which selects all columns.
-        include : list[Include], optional
-            Include instances that contains Models to include in the query (e.g., for JOIN operations).
-
+        include : list[Include] | Include, optional
+            Include instances that contain Models to include in the query (e.g., for JOIN operations).
         limit : int | None, optional
             The maximum number of rows to retrieve. Default is None.
         offset : int | None, optional
             The offset of the rows to retrieve, useful for pagination. Default is None.
-        order : list[Order] | None, optional
+        order : list[Order] | Order, optional
             The order in which to retrieve rows. Default is an empty list.
+        group : list[Group] | Group, optional
+            The grouping of the retrieved rows. Default is an empty list.
 
         Returns
         -------
-        rows: list
+        rows : list
             A list of retrieved rows.
 
         See Also
@@ -302,16 +303,16 @@ class Dataloom(IDataloom):
         Examples
         --------
         >>> from dataloom import Dataloom, Model, Filter, TableColumn, PrimaryKeyColumn, Column
-        ... from typing import Optional
-        ...
-        ... class User(Model):
+        >>> from typing import Optional
+        >>>
+        >>> class User(Model):
         ...     __tablename__: Optional[TableColumn] = TableColumn(name="users")
         ...     id = PrimaryKeyColumn(type="int", auto_increment=True)
         ...     name = Column(type="text", nullable=False, default="Bob")
         ...     username = Column(type="varchar", unique=True, length=255)
         ...     tokenVersion = Column(type="int", default=0)
         ...
-        ... loom = Dataloom(
+        >>> loom = Dataloom(
         ...    dialect="postgres",
         ...    database="hi",
         ...    password="root",
@@ -319,10 +320,9 @@ class Dataloom(IDataloom):
         ...    sql_logger="console",
         ... )
         ...
-        ... # Retrieving users where id is greater than 2
-        ... users = loom.find_many(User, filters=[Filter(column="id", value=2, operator="gt")])
-        ... print(users)
-
+        >>> # Retrieving users where id is greater than 2
+        >>> users = loom.find_many(User, filters=[Filter(column="id", value=2, operator="gt")])
+        >>> print(users)
         """
         return query(dialect=self.dialect, _execute_sql=self._execute_sql).find_many(
             instance=instance,
@@ -338,12 +338,12 @@ class Dataloom(IDataloom):
     def find_all(
         self,
         instance: Model,
-        select: list[str] = [],
-        include: list[Include] = [],
+        select: Optional[list[str] | str] = [],
+        include: Optional[list[Include] | Include] = [],
         limit: Optional[int] = None,
         offset: Optional[int] = None,
-        order: Optional[list[Order]] = [],
-        group: Optional[list[Group]] = [],
+        order: Optional[list[Order] | Order] = [],
+        group: Optional[list[Group] | Group] = [],
     ) -> list:
         """
         find_all
@@ -416,8 +416,8 @@ class Dataloom(IDataloom):
         self,
         instance: Model,
         pk,
-        select: list[str] = [],
-        include: list[Include] = [],
+        select: Optional[list[str] | str] = [],
+        include: Optional[list[Include] | Include] = [],
     ):
         """
         find_by_pk
@@ -431,9 +431,9 @@ class Dataloom(IDataloom):
             An instance of a Model class representing the table from which the row needs to be retrieved.
         pk : Any
             The primary key value of the row to be retrieved.
-        select : list[str], optional
+        select : list[str] | str, optional
             Columns to select in the query. Default is an empty list, which selects all columns.
-        include : list[Include], optional
+        include : list[Include] | Include, optional
             Models to include in the query (e.g., for JOIN operations).
 
         Returns
@@ -450,16 +450,16 @@ class Dataloom(IDataloom):
         Examples
         --------
         >>> from dataloom import Dataloom, Model, TableColumn, PrimaryKeyColumn, Column
-        ... from typing import Optional
-        ...
-        ... class User(Model):
+        >>> from typing import Optional
+        >>>
+        >>> class User(Model):
         ...     __tablename__: Optional[TableColumn] = TableColumn(name="users")
         ...     id = PrimaryKeyColumn(type="int", auto_increment=True)
         ...     name = Column(type="text", nullable=False, default="Bob")
         ...     username = Column(type="varchar", unique=True, length=255)
         ...     tokenVersion = Column(type="int", default=0)
         ...
-        ... loom = Dataloom(
+        >>> loom = Dataloom(
         ...    dialect="postgres",
         ...    database="hi",
         ...    password="root",
@@ -467,11 +467,11 @@ class Dataloom(IDataloom):
         ...    sql_logger="console",
         ... )
         ...
-        ... # Retrieving the user with id=1
-        ... user = loom.find_by_pk(User, pk=1)
-        ... print(user)
-
+        >>> # Retrieving the user with id=1
+        >>> user = loom.find_by_pk(User, pk=1)
+        >>> print(user)
         """
+
         return query(dialect=self.dialect, _execute_sql=self._execute_sql).find_by_pk(
             include=include,
             pk=pk,
@@ -483,8 +483,8 @@ class Dataloom(IDataloom):
         self,
         instance: Model,
         filters: Optional[Filter | list[Filter]] = None,
-        select: list[str] = [],
-        include: list[Include] = [],
+        select: Optional[list[str] | str] = [],
+        include: Optional[list[Include] | Include] = [],
         offset: Optional[int] = None,
     ):
         """
@@ -499,9 +499,9 @@ class Dataloom(IDataloom):
             An instance of a Model class representing the table from which the row needs to be retrieved.
         filters : Filter | list[Filter] | None, optional
             Filters to apply when selecting the row. It can be a single Filter object, a list of Filter objects, or None to apply no filters. Default is None.
-        select : list[str], optional
+        select : list[str] | str, optional
             Columns to select in the query. Default is an empty list, which selects all columns.
-        include : list[Include], optional
+        include : list[Include] | Include, optional
             Models to include in the query (e.g., for JOIN operations).
         offset : int | None, optional
             The offset of the row to retrieve, useful for pagination. Default is None.
@@ -520,16 +520,16 @@ class Dataloom(IDataloom):
         Examples
         --------
         >>> from dataloom import Dataloom, Model, Filter, TableColumn, PrimaryKeyColumn, Column
-        ... from typing import Optional
-        ...
-        ... class User(Model):
+        >>> from typing import Optional
+        >>>
+        >>> class User(Model):
         ...     __tablename__: Optional[TableColumn] = TableColumn(name="users")
         ...     id = PrimaryKeyColumn(type="int", auto_increment=True)
         ...     name = Column(type="text", nullable=False, default="Bob")
         ...     username = Column(type="varchar", unique=True, length=255)
         ...     tokenVersion = Column(type="int", default=0)
         ...
-        ... loom = Dataloom(
+        >>> loom = Dataloom(
         ...    dialect="postgres",
         ...    database="hi",
         ...    password="root",
@@ -537,10 +537,9 @@ class Dataloom(IDataloom):
         ...    sql_logger="console",
         ... )
         ...
-        ... # Retrieving a single user based on filters
-        ... user = loom.find_one(User, filters=[Filter(column="id", value=1, operator="eq")])
-        ... print(user)
-
+        >>> # Retrieving a single user based on filters
+        >>> user = loom.find_one(User, filters=[Filter(column="id", value=1, operator="eq")])
+        >>> print(user)
         """
         return query(dialect=self.dialect, _execute_sql=self._execute_sql).find_one(
             instance=instance,
@@ -809,7 +808,7 @@ class Dataloom(IDataloom):
         instance: Model,
         filters: Optional[Filter | list[Filter]] = [],
         offset: Optional[int] = None,
-        order: Optional[list[Order]] = [],
+        order: Optional[list[Order] | Order] = [],
     ) -> int:
         """
         delete_one
@@ -830,7 +829,7 @@ class Dataloom(IDataloom):
 
         Returns
         -------
-        deleted_rows: int
+        deleted_rows : int
             The number of rows deleted (0 or 1).
 
         See Also
@@ -841,16 +840,16 @@ class Dataloom(IDataloom):
         Examples
         --------
         >>> from dataloom import Dataloom, Model, Filter, TableColumn, PrimaryKeyColumn, Column
-        ... from typing import Optional
-        ...
-        ... class User(Model):
+        >>> from typing import Optional
+        >>>
+        >>> class User(Model):
         ...     __tablename__: Optional[TableColumn] = TableColumn(name="users")
         ...     id = PrimaryKeyColumn(type="int", auto_increment=True)
         ...     name = Column(type="text", nullable=False, default="Bob")
         ...     username = Column(type="varchar", unique=True, length=255)
         ...     tokenVersion = Column(type="int", default=0)
         ...
-        ... loom = Dataloom(
+        >>> loom = Dataloom(
         ...    dialect="postgres",
         ...    database="hi",
         ...    password="root",
@@ -858,10 +857,9 @@ class Dataloom(IDataloom):
         ...    sql_logger="console",
         ... )
         ...
-        ... # Deleting a user based on filters
-        ... num_rows_deleted = loom.delete_one(User, filters=[Filter(column="id", value=1, operator="eq")])
-        ... print(num_rows_deleted)
-
+        >>> # Deleting a user based on filters
+        >>> num_rows_deleted = loom.delete_one(User, filters=[Filter(column="id", value=1, operator="eq")])
+        >>> print(num_rows_deleted)
         """
         return delete(dialect=self.dialect, _execute_sql=self._execute_sql).delete_one(
             instance=instance, offset=offset, order=order, filters=filters
@@ -873,7 +871,7 @@ class Dataloom(IDataloom):
         filters: Optional[Filter | list[Filter]] = None,
         limit: Optional[int] = None,
         offset: Optional[int] = None,
-        order: Optional[list[Order]] = [],
+        order: Optional[list[Order] | Order] = [],
     ) -> int:
         """
         delete_bulk
@@ -896,7 +894,7 @@ class Dataloom(IDataloom):
 
         Returns
         -------
-        affected_rows: int
+        affected_rows : int
             The number of rows deleted.
 
         See Also
@@ -907,16 +905,16 @@ class Dataloom(IDataloom):
         Examples
         --------
         >>> from dataloom import Dataloom, Model, Filter, TableColumn, PrimaryKeyColumn, Column
-        ... from typing import Optional
-        ...
-        ... class User(Model):
+        >>> from typing import Optional
+        >>>
+        >>> class User(Model):
         ...     __tablename__: Optional[TableColumn] = TableColumn(name="users")
         ...     id = PrimaryKeyColumn(type="int", auto_increment=True)
         ...     name = Column(type="text", nullable=False, default="Bob")
         ...     username = Column(type="varchar", unique=True, length=255)
         ...     tokenVersion = Column(type="int", default=0)
         ...
-        ... loom = Dataloom(
+        >>> loom = Dataloom(
         ...    dialect="postgres",
         ...    database="hi",
         ...    password="root",
@@ -924,10 +922,9 @@ class Dataloom(IDataloom):
         ...    sql_logger="console",
         ... )
         ...
-        ... # Deleting users based on filters
-        ... num_rows_deleted = loom.delete_bulk(User, filters=[Filter(column="tokenVersion", value=2, operator="eq")])
-        ... print(num_rows_deleted)
-
+        >>> # Deleting users based on filters
+        >>> num_rows_deleted = loom.delete_bulk(User, filters=[Filter(column="tokenVersion", value=2, operator="eq")])
+        >>> print(num_rows_deleted)
         """
         return delete(dialect=self.dialect, _execute_sql=self._execute_sql).delete_bulk(
             instance=instance, offset=offset, order=order, filters=filters, limit=limit
