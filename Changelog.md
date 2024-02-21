@@ -9,6 +9,9 @@ We have release the new `dataloom` Version `2.0.0` (`2024-02-12`)
 ##### Features
 
 - Renaming the class `Dataloom` to `Loom`.
+  ```py
+  from dataloom import Loom
+  ```
 - Eager data fetching in relationships
 
   - Now you can fetch your child relationship together in your query
@@ -119,7 +122,7 @@ posts = pg_loom.find_many(
 ```
 
 =====
-Loom **`1.0.2`**
+Dataloom **`1.0.2`**
 =====
 
 We have release the new `dataloom` Version `1.0.2` (`2024-02-12`)
@@ -129,7 +132,7 @@ We have release the new `dataloom` Version `1.0.2` (`2024-02-12`)
 We have updated the documentation so that it can look more colorful.
 
 =====
-Loom **`1.0.1`**
+Dataloom **`1.0.1`**
 =====
 Change logs for the `dataloom` Version `1.0.1` (`2024-02-12`)
 
@@ -139,7 +142,7 @@ Change logs for the `dataloom` Version `1.0.1` (`2024-02-12`)
 - **SQL Loggers**: The SQL Loggers can now log `timestamps` not the log index especially for the `console` logger.
 
 =====
-Loom **`1.0.0`**
+Dataloom **`1.0.0`**
 =====
 
 ### Release Notes - `dataloom`
