@@ -1,4 +1,5 @@
 import inspect
+from dataloom.utils.helpers import is_collection
 from dataloom.columns import (
     Column,
     CreatedAtColumn,
@@ -14,7 +15,11 @@ from dataloom.types import (
     Filter,
     ColumnValue,
 )
-from dataloom.exceptions import InvalidOperatorException, UnknownColumnException
+from dataloom.exceptions import (
+    InvalidOperatorException,
+    UnknownColumnException,
+    InvalidFilterValuesException,
+)
 from typing import Optional
 
 
@@ -27,7 +32,7 @@ def get_table_filters(
     placeholder_filter_values = []
     placeholder_filters = []
     if filters is not None:
-        if isinstance(filters, list):
+        if is_collection(filters):
             for idx, filter in enumerate(filters):
                 key = filter.column
                 if key not in fields:
@@ -35,27 +40,33 @@ def get_table_filters(
                         f"Table {table_name} does not have column '{key}'."
                     )
                 op = get_operator(filter.operator)
-                join = (
-                    ""
-                    if len(filters) == idx + 1
-                    else f" {filter.join_next_filter_with}"
-                )
+                join = "" if len(filters) == idx + 1 else f" {filter.join_next_with}"
 
                 if op == "IN" or op == "NOT IN":
-                    _list = ", ".join(
-                        ["?" if dialect == "sqlite" else "%s" for i in filter.value]
-                    )
-                    _key = (
-                        f'"{key}" {op} ({_list}) {join}'
-                        if dialect == "postgres"
-                        else f"`{key}` {op} ({_list}) {join}"
-                    )
+                    if is_collection(filter.value):
+                        _list = ", ".join(
+                            ["?" if dialect == "sqlite" else "%s" for i in filter.value]
+                        )
+                        _key = (
+                            f'"{key}" {op} ({_list}) {join}'
+                            if dialect == "postgres"
+                            else f"`{key}` {op} ({_list}) {join}"
+                        )
+                    else:
+                        raise InvalidFilterValuesException(
+                            f'The column "{filter.column}" value can only be a list, tuple or dictionary but got {type(filter.value)} .'
+                        )
                 else:
-                    _key = (
-                        f'"{key}" {op} %s {join}'
-                        if dialect == "postgres"
-                        else f"`{key}` {op} {'%s' if dialect == 'mysql' else '?'} {join}"
-                    )
+                    if not is_collection(filter.value):
+                        _key = (
+                            f'"{key}" {op} %s {join}'
+                            if dialect == "postgres"
+                            else f"`{key}` {op} {'%s' if dialect == 'mysql' else '?'} {join}"
+                        )
+                    else:
+                        raise InvalidFilterValuesException(
+                            f'The column "{filter.column}" value can not be a collection.'
+                        )
                 placeholder_filter_values.append(filter.value)
                 placeholder_filters.append(_key)
         else:
@@ -67,20 +78,30 @@ def get_table_filters(
                 )
             op = get_operator(filter.operator)
             if op == "IN" or op == "NOT IN":
-                _list = ", ".join(
-                    ["?" if dialect == "sqlite" else "%s" for i in filter.value]
-                )
-                _key = (
-                    f'"{key}" {op} ({_list})'
-                    if dialect == "postgres"
-                    else f"`{key}` {op} ({_list})"
-                )
+                if is_collection(filter.value):
+                    _list = ", ".join(
+                        ["?" if dialect == "sqlite" else "%s" for i in filter.value]
+                    )
+                    _key = (
+                        f'"{key}" {op} ({_list})'
+                        if dialect == "postgres"
+                        else f"`{key}` {op} ({_list})"
+                    )
+                else:
+                    raise InvalidFilterValuesException(
+                        f'The column "{filter.column}" value can only be a list, tuple or dictionary but got {type(filter.value)} .'
+                    )
             else:
-                _key = (
-                    f'"{key}" {op} %s'
-                    if dialect == "postgres"
-                    else f"`{key}` {op} {'%s' if dialect == 'mysql' else '?'}"
-                )
+                if not is_collection(filter.value):
+                    _key = (
+                        f'"{key}" {op} %s'
+                        if dialect == "postgres"
+                        else f"`{key}` {op} {'%s' if dialect == 'mysql' else '?'}"
+                    )
+                else:
+                    raise InvalidFilterValuesException(
+                        f'The column "{filter.column}" value can not be a collection.'
+                    )
             placeholder_filter_values.append(filter.value)
             placeholder_filters.append(_key)
     return placeholder_filters, placeholder_filter_values
@@ -97,7 +118,7 @@ def get_column_values(
     column_names = []
 
     if values is not None:
-        if isinstance(values, list):
+        if is_collection(values):
             for value in values:
                 key = value.name
                 v = value.value
@@ -170,15 +191,14 @@ def get_table_fields(model, dialect: DIALECT_LITERAL):
     pk_name = None
     updatedAtColumName = None
     fields = []
-    fks = dict()
+    fks = []
     for name, field in inspect.getmembers(model):
         if isinstance(field, Column):
             fields.append(name)
         elif isinstance(field, ForeignKeyColumn):
             fields.append(name)
             table_name = field.table._get_table_name()
-            fks[table_name] = name
-            fks["mapped_to"] = field.maps_to
+            fks.append({table_name: name, "mapped_to": field.maps_to})
         elif isinstance(field, PrimaryKeyColumn):
             fields.append(name)
             pk_name = f'"{name}"' if dialect == "postgres" else f"`{name}`"
@@ -195,7 +215,6 @@ def get_relationships(
     includes: list[dict], fks: dict, parent_table_name: str | None = None
 ):
     relationships = []
-    (includes)
     for include in includes:
         if parent_table_name is not None:
             fks = include["foreign_keys"]
@@ -236,14 +255,14 @@ def get_child_table_params(include: Include, dialect: DIALECT_LITERAL):
     orders = None
     select = include.select
     pk_name = None
-    table__name = include.model._get_table_name()
+    table_name = include.model._get_table_name()
     alias = include.model.__name__.lower()
     fields, pk_name, fks, _ = get_table_fields(include.model, dialect=dialect)
 
     for column in select:
         if column not in fields:
             raise UnknownColumnException(
-                f'The table "{table__name}" does not have a column "{column}".'
+                f'The table "{table_name}" does not have a column "{column}".'
             )
 
     return {
@@ -254,7 +273,7 @@ def get_child_table_params(include: Include, dialect: DIALECT_LITERAL):
         "limit": limit,
         "orders": orders,
         "select": select,
-        "table": table__name,
+        "table": table_name,
         "pk_name": pk_name,
         "foreign_keys": fks,
         "maps_to": include.maps_to,

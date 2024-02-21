@@ -3,7 +3,7 @@ class TestOperatorsSqlite:
         from dataloom import (
             Column,
             PrimaryKeyColumn,
-            Dataloom,
+            Loom,
             TableColumn,
             Model,
             CreatedAtColumn,
@@ -13,7 +13,7 @@ class TestOperatorsSqlite:
             Filter,
         )
 
-        sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
+        sqlite_loom = Loom(dialect="sqlite", database="hi.db")
 
         class User(Model):
             __tablename__: TableColumn = TableColumn(name="users")

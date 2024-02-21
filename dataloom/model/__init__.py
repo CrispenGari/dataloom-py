@@ -6,19 +6,24 @@ from dataloom.columns import (
     TableColumn,
 )
 from dataloom.statements import GetStatement
-from dataloom.types import Order, Include
+
 from typing import Optional
 from dataloom.types import (
     DIALECT_LITERAL,
     Filter,
     ColumnValue,
     INCREMENT_DECREMENT_LITERAL,
+    Order,
+    Include,
+    Group,
 )
 from dataloom.utils import (
     get_table_filters,
     get_column_values,
     get_child_table_params,
     get_table_fields,
+    get_groups,
+    is_collection,
 )
 
 
@@ -142,18 +147,16 @@ class Model:
         cls,
         dialect: DIALECT_LITERAL,
         filters: Optional[Filter | list[Filter]] = None,
-        select: list[str] = [],
+        select: Optional[list[str] | str] = [],
         limit: Optional[int] = None,
         offset: Optional[int] = None,
-        order: Optional[list[Order]] = [],
-        include: list[Include] = [],
+        order: Optional[list[Order] | Order] = [],
+        group: Optional[list[Group] | Group] = [],
     ):
+        if not is_collection(select):
+            select = [select]
         orders = []
-        includes = []
         # what are the foreign keys?
-
-        for _include in include:
-            includes.append(get_child_table_params(_include, dialect=dialect))
 
         fields, pk_name, fks, updatedAtColumName = get_table_fields(
             cls, dialect=dialect
@@ -174,12 +177,27 @@ class Model:
                 raise UnknownColumnException(
                     f'The table "{cls._get_table_name()}" does not have a column "{column}".'
                 )
+
         placeholder_filters, placeholder_filter_values = get_table_filters(
             table_name=cls._get_table_name(),
             dialect=dialect,
             fields=fields,
             filters=filters,
         )
+        (
+            group_fns,
+            group_columns,
+            having_columns,
+            having_values,
+            return_aggregation_column,
+        ) = get_groups(
+            fields=fields,
+            dialect=dialect,
+            select=select,
+            group=group,
+            table_name=cls._get_table_name(),
+        )
+
         if dialect == "postgres" or "mysql" or "sqlite":
             if len(placeholder_filters) == 0:
                 sql = GetStatement(
@@ -189,9 +207,9 @@ class Model:
                     limit=limit,
                     offset=offset,
                     orders=orders,
-                    includes=includes,
-                    fks=fks,
                     pk_name=pk_name,
+                    groups=(group_columns, group_fns),
+                    having=having_columns,
                 )
             else:
                 sql = GetStatement(
@@ -202,27 +220,34 @@ class Model:
                     limit=limit,
                     offset=offset,
                     orders=orders,
-                    includes=includes,
-                    fks=fks,
-                    pk_name=pk_name,
+                    groups=(group_columns, group_fns),
+                    having=having_columns,
                 )
         else:
             raise UnsupportedDialectException(
                 "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
             )
-        return (
-            sql,
-            placeholder_filter_values,
-            fields if len(select) == 0 else select,
-        )
+
+        selected = []
+        if len(select) == 0:
+            selected = fields + group_fns if return_aggregation_column else fields
+        else:
+            selected = (
+                list(select) + group_fns if return_aggregation_column else list(select)
+            )
+
+        return (sql, placeholder_filter_values, selected, having_values)
 
     @classmethod
     def _get_select_by_pk_stm(
         cls,
         dialect: DIALECT_LITERAL,
-        select: list[str] = [],
+        select: Optional[list[str] | str] = [],
         include: list[Include] = [],
     ):
+        if not is_collection(select):
+            select = [select]
+
         # what is the pk name?
         # what are the foreign keys?
         includes = []
@@ -232,7 +257,15 @@ class Model:
         fields, pk_name, fks, updatedAtColumName = get_table_fields(
             cls, dialect=dialect
         )
-        for column in select:
+        if is_collection(select):
+            for column in select:
+                if column not in fields:
+                    raise UnknownColumnException(
+                        f'The table "{cls._get_table_name()}" does not have a column "{column}".'
+                    )
+        else:
+            column = select
+            select = [select]
             if column not in fields:
                 raise UnknownColumnException(
                     f'The table "{cls._get_table_name()}" does not have a column "{column}".'
@@ -401,7 +434,7 @@ class Model:
         dialect: DIALECT_LITERAL,
         filters: Optional[Filter | list[Filter]] = None,
         offset: Optional[int] = None,
-        order: Optional[list[Order]] = [],
+        order: Optional[list[Order] | Order] = [],
     ):
         fields, pk_name, fks, updatedAtColumName = get_table_fields(
             cls, dialect=dialect
@@ -454,7 +487,7 @@ class Model:
         filters: Optional[Filter | list[Filter]] = None,
         limit: Optional[int] = None,
         offset: Optional[int] = None,
-        order: Optional[list[Order]] = [],
+        order: Optional[list[Order] | Order] = [],
     ):
         fields, pk_name, fks, updatedAtColumName = get_table_fields(
             cls, dialect=dialect
@@ -561,3 +594,160 @@ class Model:
                 "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
             )
         return sql
+
+    @classmethod
+    def _get_select_child_by_pk_stm(
+        cls,
+        dialect: DIALECT_LITERAL,
+        parent_pk_name: str,
+        parent_table_name: str,
+        child_foreign_key_name: str,
+        select: Optional[list[str] | str] = [],
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+        order: Optional[list[Order] | Order] = [],
+    ):
+        if not is_collection(select):
+            select = [select]
+        # what is the pk name?
+        # what are the foreign keys?
+        fields, pk_name, fks, updatedAtColumName = get_table_fields(
+            cls, dialect=dialect
+        )
+        orders = []
+        if order is not None:
+            for _order in order:
+                if _order.column not in fields:
+                    raise UnknownColumnException(
+                        f'The table "{cls._get_table_name()}" does not have a column "{_order.column}".'
+                    )
+                orders.append(
+                    f'"{_order.column}" {_order.order}'
+                    if dialect == "postgres"
+                    else f"`{_order.column}` {_order.order}"
+                )
+
+        for column in select:
+            if column not in fields:
+                raise UnknownColumnException(
+                    f'The table "{cls._get_table_name()}" does not have a column "{column}".'
+                )
+        if dialect == "postgres" or "mysql" or "sqlite":
+            sql = GetStatement(
+                dialect=dialect, model=cls, table_name=cls._get_table_name()
+            )._get_select_child_by_pk_command(
+                fields=select if len(select) != 0 else fields,
+                child_pk_name=pk_name,
+                parent_pk_name=parent_pk_name,
+                parent_table_name=parent_table_name,
+                child_foreign_key_name=child_foreign_key_name,
+                limit=limit,
+                offset=offset,
+                orders=orders,
+            )
+        else:
+            raise UnsupportedDialectException(
+                "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
+            )
+        return sql, fields if len(select) == 0 else select
+
+    @classmethod
+    def _get_select_parent_by_pk_stm(
+        cls,
+        dialect: DIALECT_LITERAL,
+        child_pk_name: str,
+        child_table_name: str,
+        parent_fk_name: str,
+        select: Optional[list[str] | str] = [],
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+        order: list[Order] = [],
+    ):
+        if not is_collection(select):
+            select = [select]
+        # what is the pk name?
+        # what are the foreign keys?
+        fields, pk_name, fks, updatedAtColumName = get_table_fields(
+            cls, dialect=dialect
+        )
+        orders = []
+        if order is not None:
+            for _order in order:
+                if _order.column not in fields:
+                    raise UnknownColumnException(
+                        f'The table "{cls._get_table_name()}" does not have a column "{_order.column}".'
+                    )
+                orders.append(
+                    f'"{_order.column}" {_order.order}'
+                    if dialect == "postgres"
+                    else f"`{_order.column}` {_order.order}"
+                )
+
+        for column in select:
+            if column not in fields:
+                raise UnknownColumnException(
+                    f'The table "{cls._get_table_name()}" does not have a column "{column}".'
+                )
+        if dialect == "postgres" or "mysql" or "sqlite":
+            sql = GetStatement(
+                dialect=dialect, model=cls, table_name=cls._get_table_name()
+            )._get_select_parent_by_pk_stm(
+                fields=select if len(select) != 0 else fields,
+                child_pk_name=child_pk_name,
+                child_table_name=child_table_name,
+                parent_fk_name=parent_fk_name,
+                limit=limit,
+                offset=offset,
+                orders=orders,
+            )
+        else:
+            raise UnsupportedDialectException(
+                "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
+            )
+        return sql, fields if len(select) == 0 else select
+
+    @classmethod
+    def _get_select_pk_stm(
+        cls,
+        dialect: DIALECT_LITERAL,
+        filters: Optional[Filter | list[Filter]] = None,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+        order: Optional[list[Order] | Order] = [],
+    ):
+        orders = []
+        fields, pk_name, fks, updatedAtColumName = get_table_fields(
+            cls, dialect=dialect
+        )
+        for _order in order:
+            if _order.column not in fields:
+                raise UnknownColumnException(
+                    f'The table "{cls._get_table_name()}" does not have a column "{_order.column}".'
+                )
+            orders.append(
+                f'"{_order.column}" {_order.order}'
+                if dialect == "postgres"
+                else f"`{_order.column}` {_order.order}"
+            )
+
+        placeholder_filters, placeholder_filter_values = get_table_filters(
+            table_name=cls._get_table_name(),
+            dialect=dialect,
+            fields=fields,
+            filters=filters,
+        )
+        if dialect == "postgres" or "mysql" or "sqlite":
+            sql = GetStatement(
+                dialect=dialect, model=cls, table_name=cls._get_table_name()
+            )._get_pk_command(
+                filters=placeholder_filters,
+                limit=limit,
+                offset=offset,
+                orders=orders,
+                pk_name=pk_name,
+            )
+        else:
+            raise UnsupportedDialectException(
+                "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
+            )
+        return sql, placeholder_filter_values

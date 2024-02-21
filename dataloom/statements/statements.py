@@ -82,6 +82,24 @@ class MySqlStatements:
         "SELECT {column_names} FROM {table_name} WHERE {filters} {options};".strip()
     )
 
+    # ------------- child parent bidirectional sub queries
+    SELECT_CHILD_BY_PK = """
+    SELECT {child_column_names} FROM {child_table_name} WHERE {child_pk_name} IN (
+        SELECT {child_foreign_key_name} FROM  (
+                    SELECT {child_foreign_key_name} FROM {parent_table_name} WHERE {parent_pk_name} = {parent_pk}
+        ) AS subquery
+    ) {orders} {limit} {offset};
+    """
+    SELECT_PARENT_BY_PK = """
+    SELECT {parent_column_names} FROM {parent_table_name} WHERE {parent_fk_name} IN (
+        SELECT {child_pk_name} FROM  (
+                    SELECT {child_pk_name} FROM {child_table_name} WHERE {child_pk_name} = {child_pk}
+        ) AS subquery
+    ) {orders} {limit} {offset};
+    """
+
+    GET_PK_COMMAND = "SELECT {pk_name} FROM {table_name} {filters} {options};".strip()
+
     # -------------- subqueries
 
     SELECT_BY_PK_INCLUDE_COMMAND = """
@@ -167,6 +185,19 @@ class Sqlite3Statements:
     SELECT_WHERE_COMMAND = (
         "SELECT {column_names} FROM {table_name} WHERE {filters} {options};".strip()
     )
+
+    # ------------- child parent bidirectional sub queries
+    SELECT_CHILD_BY_PK = """
+    SELECT {child_column_names} FROM {child_table_name} WHERE {child_pk_name} IN (
+        SELECT {child_foreign_key_name} FROM {parent_table_name} WHERE {parent_pk_name} = {parent_pk}
+    ) {orders} {limit} {offset};
+    """
+    SELECT_PARENT_BY_PK = """
+    SELECT {parent_column_names} FROM {parent_table_name} WHERE {parent_fk_name} IN (
+        SELECT {child_pk_name} FROM {child_table_name} WHERE {child_pk_name} = {child_pk}
+    ) {orders} {limit} {offset};
+    """
+    GET_PK_COMMAND = "SELECT {pk_name} FROM {table_name} {filters} {options};".strip()
 
     # -------------- subqueries
 
@@ -274,6 +305,20 @@ class PgStatements:
     SELECT_WHERE_COMMAND = (
         "SELECT {column_names} FROM {table_name} WHERE {filters} {options};".strip()
     )
+
+    # ------------- child parent bidirectional sub queries
+    SELECT_CHILD_BY_PK = """
+    SELECT {child_column_names} FROM {child_table_name} WHERE {child_pk_name} IN (
+        SELECT {child_foreign_key_name} FROM {parent_table_name} WHERE {parent_pk_name} = {parent_pk}
+    ) {orders} {limit} {offset};
+    """
+    SELECT_PARENT_BY_PK = """
+    SELECT {parent_column_names} FROM {parent_table_name} WHERE {parent_fk_name} IN (
+        SELECT {child_pk_name} FROM {child_table_name} WHERE {child_pk_name} = {child_pk}
+    ) {orders} {limit} {offset};
+    """
+
+    GET_PK_COMMAND = "SELECT {pk_name} FROM {table_name} {filters} {options};".strip()
     # -------------- subqueries
 
     SELECT_BY_PK_INCLUDE_COMMAND = """

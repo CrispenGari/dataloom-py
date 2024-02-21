@@ -3,7 +3,7 @@ class TestDeletingOnPG:
         from dataloom import (
             Column,
             PrimaryKeyColumn,
-            Dataloom,
+            Loom,
             TableColumn,
             Model,
             CreatedAtColumn,
@@ -14,7 +14,7 @@ class TestDeletingOnPG:
         from dataloom.keys import PgConfig
         from typing import Optional
 
-        pg_loom = Dataloom(
+        pg_loom = Loom(
             dialect="postgres",
             database=PgConfig.database,
             password=PgConfig.password,
@@ -62,7 +62,7 @@ class TestDeletingOnPG:
         from dataloom import (
             Column,
             PrimaryKeyColumn,
-            Dataloom,
+            Loom,
             TableColumn,
             Model,
             CreatedAtColumn,
@@ -74,7 +74,7 @@ class TestDeletingOnPG:
         from dataloom.keys import PgConfig
         from typing import Optional
 
-        pg_loom = Dataloom(
+        pg_loom = Loom(
             dialect="postgres",
             database=PgConfig.database,
             password=PgConfig.password,
@@ -169,7 +169,7 @@ class TestDeletingOnPG:
         from dataloom import (
             Column,
             PrimaryKeyColumn,
-            Dataloom,
+            Loom,
             TableColumn,
             Model,
             CreatedAtColumn,
@@ -182,7 +182,7 @@ class TestDeletingOnPG:
         from dataloom.keys import PgConfig
         from typing import Optional
 
-        pg_loom = Dataloom(
+        pg_loom = Loom(
             dialect="postgres",
             database=PgConfig.database,
             password=PgConfig.password,
@@ -295,7 +295,7 @@ class TestDeletingOnPG:
         from dataloom import (
             Column,
             PrimaryKeyColumn,
-            Dataloom,
+            Loom,
             TableColumn,
             Model,
             CreatedAtColumn,
@@ -307,7 +307,7 @@ class TestDeletingOnPG:
         )
         from dataloom.keys import PgConfig
 
-        pg_loom = Dataloom(
+        pg_loom = Loom(
             dialect="postgres",
             database=PgConfig.database,
             password=PgConfig.password,
@@ -384,7 +384,7 @@ class TestDeletingOnPG:
         from dataloom import (
             Column,
             PrimaryKeyColumn,
-            Dataloom,
+            Loom,
             TableColumn,
             Model,
             CreatedAtColumn,
@@ -396,7 +396,7 @@ class TestDeletingOnPG:
         )
         from dataloom.keys import PgConfig
 
-        pg_loom = Dataloom(
+        pg_loom = Loom(
             dialect="postgres",
             database=PgConfig.database,
             password=PgConfig.password,

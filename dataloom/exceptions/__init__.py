@@ -6,6 +6,10 @@ class InvalidArgumentsException(Exception):
     pass
 
 
+class InvalidPropertyException(Exception):
+    pass
+
+
 class TooManyPkException(Exception):
     pass
 
@@ -26,9 +30,17 @@ class InvalidColumnValuesException(ValueError):
     pass
 
 
+class InvalidFilterValuesException(ValueError):
+    pass
+
+
 class UnknownColumnException(ValueError):
     pass
 
 
 class InvalidOperatorException(ValueError):
+    pass
+
+
+class UnknownRelationException(Exception):
     pass

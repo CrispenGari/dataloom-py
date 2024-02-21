@@ -1,7 +1,7 @@
 class TestInsertingOnMySQL:
     def test_insetting_single_document(self):
         from dataloom import (
-            Dataloom,
+            Loom,
             Model,
             Column,
             PrimaryKeyColumn,
@@ -13,7 +13,7 @@ class TestInsertingOnMySQL:
         )
         from dataloom.keys import MySQLConfig
 
-        mysql_loom = Dataloom(
+        mysql_loom = Loom(
             dialect="mysql",
             database=MySQLConfig.database,
             password=MySQLConfig.password,
@@ -62,7 +62,7 @@ class TestInsertingOnMySQL:
 
     def test_insetting_multiple_document(self):
         from dataloom import (
-            Dataloom,
+            Loom,
             Model,
             Column,
             PrimaryKeyColumn,
@@ -74,7 +74,7 @@ class TestInsertingOnMySQL:
         )
         from dataloom.keys import MySQLConfig
 
-        mysql_loom = Dataloom(
+        mysql_loom = Loom(
             dialect="mysql",
             database=MySQLConfig.database,
             password=MySQLConfig.password,
@@ -127,13 +127,13 @@ class TestInsertingOnMySQL:
             ForeignKeyColumn,
             PrimaryKeyColumn,
             Column,
-            Dataloom,
+            Loom,
             ColumnValue,
             TableColumn,
         )
         from dataloom.keys import MySQLConfig
 
-        mysql_loom = Dataloom(
+        mysql_loom = Loom(
             dialect="mysql",
             database=MySQLConfig.database,
             password=MySQLConfig.password,
@@ -176,7 +176,7 @@ class TestInsertingOnMySQL:
 
     def test_insert_bulk_with_errors(self):
         from dataloom import (
-            Dataloom,
+            Loom,
             Model,
             Column,
             PrimaryKeyColumn,
@@ -190,7 +190,7 @@ class TestInsertingOnMySQL:
         import pytest
         from dataloom.exceptions import InvalidColumnValuesException
 
-        mysql_loom = Dataloom(
+        mysql_loom = Loom(
             dialect="mysql",
             database=MySQLConfig.database,
             password=MySQLConfig.password,

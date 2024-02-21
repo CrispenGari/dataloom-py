@@ -3,7 +3,7 @@ from dataloom.types import ColumnValue
 from dataloom.types import DIALECT_LITERAL
 from typing import Callable, Any
 from dataloom.exceptions import InvalidColumnValuesException
-from dataloom.utils import get_insert_bulk_attrs
+from dataloom.utils import get_insert_bulk_attrs, is_collection
 from abc import ABC, abstractclassmethod
 
 
@@ -40,11 +40,11 @@ class insert(Insert):
 
     def insert_bulk(self, instance: Model, values: list[list[ColumnValue]]) -> int:
         # ? ensure that the values that are passed is a list of a list and they inner list have the same length
-        if not isinstance(values, list):
+        if not is_collection(values):
             raise InvalidColumnValuesException(
                 "The insert_bulk method takes in values as lists of lists."
             )
-        all_list = [isinstance(v, list) for v in values]
+        all_list = [is_collection(v) for v in values]
         if not all(all_list):
             raise InvalidColumnValuesException(
                 "The insert_bulk method takes in values as lists of lists."

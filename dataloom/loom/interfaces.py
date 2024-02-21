@@ -7,7 +7,7 @@ from sqlite3 import Connection
 from mysql.connector.connection import MySQLConnectionAbstract
 
 
-class IDataloom(ABC):
+class ILoom(ABC):
     @abstractclassmethod
     def increment(
         self,
@@ -72,7 +72,6 @@ class IDataloom(ABC):
         filters: Optional[Filter | list[Filter]] = None,
         select: list[str] = [],
         include: list[Model] = [],
-        return_dict: bool = True,
         limit: Optional[int] = None,
         offset: Optional[int] = None,
         order: Optional[list[Order]] = [],
@@ -85,7 +84,6 @@ class IDataloom(ABC):
         instance: Model,
         select: list[str] = [],
         include: list[Include] = [],
-        return_dict: bool = True,
         limit: Optional[int] = None,
         offset: Optional[int] = None,
         order: Optional[list[Order]] = [],
@@ -99,7 +97,6 @@ class IDataloom(ABC):
         pk,
         select: list[str] = [],
         include: list[Include] = [],
-        return_dict: bool = True,
     ) -> dict | None:
         raise NotImplementedError("The find_by_pk method was not implemented.")
 
@@ -110,7 +107,6 @@ class IDataloom(ABC):
         filters: Optional[Filter | list[Filter]] = None,
         select: list[str] = [],
         include: list[Include] = [],
-        return_dict: bool = True,
         offset: Optional[int] = None,
     ) -> dict | None:
         raise NotImplementedError("The find_one method was not implemented.")

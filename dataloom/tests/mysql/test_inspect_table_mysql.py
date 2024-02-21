@@ -3,7 +3,7 @@ class TestInspectTableOnMysql:
         from dataloom import (
             Column,
             PrimaryKeyColumn,
-            Dataloom,
+            Loom,
             TableColumn,
             Model,
             CreatedAtColumn,
@@ -13,7 +13,7 @@ class TestInspectTableOnMysql:
         import pytest
         from dataloom.exceptions import UnknownColumnException
 
-        mysql_loom = Dataloom(
+        mysql_loom = Loom(
             dialect="mysql",
             database=MySQLConfig.database,
             password=MySQLConfig.password,

@@ -25,24 +25,27 @@
 6. **Cross-platform Compatibility**: `dataloom` works seamlessly across different operating systems, including `Windows`, `macOS`, and `Linux`.
 7. **Scalability**: Scale your application effortlessly with `dataloom`, whether it's a small project or a large-scale enterprise application.
 
-### ⚠️ Warning
-
-> **⚠️ Experimental Status of `dataloom`**: The `dataloom` module is currently in an experimental phase. As such, we strongly advise against using it in production environments until a major version is officially released and stability is ensured. During this experimental phase, the `dataloom` module may undergo significant changes, and its features are subject to refinement. We recommend monitoring the project updates and waiting for a stable release before incorporating it into production systems. Please exercise caution and consider alternative solutions for production use until the module reaches a stable release.
-
 ### Table of Contents
 
 - [dataloom](#dataloom)
   - [Why choose `dataloom`?](#why-choose-dataloom)
-- [⚠️ Warning](#️-warning)
 - [Table of Contents](#table-of-contents)
 - [Key Features:](#key-features)
 - [Installation](#installation)
 - [Python Version Compatibility](#python-version-compatibility)
 - [Usage](#usage)
 - [Connection](#connection)
+  - [`Postgres`](#postgres)
+  - [`MySQL`](#mysql)
+  - [`SQLite`](#sqlite)
 - [Dataloom Classes](#dataloom-classes)
+  - [`Loom` Class](#loom-class)
   - [`Model` Class](#model-class)
   - [`Column` Class](#column-class)
+    - [Column Datatypes](#column-datatypes)
+      - [1. `mysql`](#1-mysql)
+      - [2. `postgres`](#2-postgres)
+      - [3. `sqlite`](#3-sqlite)
   - [`PrimaryKeyColumn` Class](#primarykeycolumn-class)
   - [`ForeignKeyColumn` Class](#foreignkeycolumn-class)
   - [`CreatedAtColumn` Class](#createdatcolumn-class)
@@ -50,7 +53,9 @@
   - [`Filter` Class](#filter-class)
   - [`ColumnValue` Class](#columnvalue-class)
   - [`Order` Class](#order-class)
-  - [`Include`](#include)
+  - [`Include` Class](#include-class)
+  - [`Group` Class](#group-class)
+  - [`Having` Class](#having-class)
 - [Syncing Tables](#syncing-tables)
   - [1. The `sync` method.](#1-the-sync-method)
   - [2. The `connect_and_sync` method.](#2-the-connect_and_sync-method)
@@ -75,8 +80,26 @@
       - [Guidelines for Safe Usage](#guidelines-for-safe-usage)
 - [Ordering](#ordering)
 - [Filters](#filters)
+  - [Operators](#operators)
+- [Data Aggregation](#data-aggregation)
+  - [Aggregation Functions](#aggregation-functions)
 - [Utilities](#utilities)
-  - [`inspect`](#inspect)
+  - [1. `inspect`](#1-inspect)
+  - [2. `decorators`](#2-decorators)
+    - [`@initialize`](#initialize)
+- [Associations](#associations)
+  - [1. `1-1` Association](#1-1-1-association)
+    - [Inserting](#inserting)
+    - [Retrieving Records](#retrieving-records)
+  - [2. `N-1` Association](#2-n-1-association)
+    - [Inserting](#inserting-1)
+    - [Retrieving Records](#retrieving-records-1)
+  - [3. `1-N` Association](#3-1-n-association)
+    - [Inserting](#inserting-2)
+    - [Retrieving Records](#retrieving-records-2)
+  - [4. What about bidirectional queries?](#4-what-about-bidirectional-queries)
+    - [1. Child to Parent](#1-child-to-parent)
+    - [2. Parent to Child](#2-parent-to-child)
 - [What is coming next?](#what-is-coming-next)
 - [Contributing](#contributing)
 - [License](#license)
@@ -117,13 +140,17 @@ In this section we are going to go through how you can use our `orm` package in 
 
 ### Connection
 
-To use Dataloom, you need to establish a connection with a specific database `dialect`. The available dialect options are `mysql`, `postgres`, and `sqlite`. The following is an example of how you can establish a connection with postgres database.
+To use Dataloom, you need to establish a connection with a specific database `dialect`. The available dialect options are `mysql`, `postgres`, and `sqlite`.
+
+#### `Postgres`
+
+The following is an example of how you can establish a connection with postgres database.
 
 ```python
-from dataloom import Dataloom
+from dataloom import Loom
 
-# Create a Dataloom instance with PostgreSQL configuration
-pg_loom = Dataloom(
+# Create a Loom instance with PostgreSQL configuration
+pg_loom = Loom(
     dialect="postgres",
     database="hi",
     password="root",
@@ -143,13 +170,15 @@ if __name__ == "__main__":
     conn.close()
 ```
 
-To establish a connection with a `MySQL` database using Dataloom, you can use the following example:
+#### `MySQL`
+
+To establish a connection with a `MySQL` database using `Loom`, you can use the following example:
 
 ```python
-from dataloom import Dataloom
+from dataloom import Loom
 
-# Create a Dataloom instance with MySQL configuration
-mysql_loom = Dataloom(
+# Create a Loom instance with MySQL configuration
+mysql_loom = Loom(
     dialect="mysql",
     database="hi",
     password="root",
@@ -169,13 +198,15 @@ if __name__ == "__main__":
 
 ```
 
-To establish a connection with an `SQLite` database using Dataloom, you can use the following example:
+#### `SQLite`
+
+To establish a connection with an `SQLite` database using `Loom`, you can use the following example:
 
 ```python
-from dataloom import Dataloom
+from dataloom import Loom
 
-# Create a Dataloom instance with SQLite configuration
-sqlite_loom = Dataloom(
+# Create a Loom instance with SQLite configuration
+sqlite_loom = Loom(
     dialect="sqlite",
     database="hi.db",
     logs_filename="sqlite-logs.sql",
@@ -191,7 +222,29 @@ if __name__ == "__main__":
     conn.close()
 ```
 
-The `Dataloom` class takes in the following options:
+### Dataloom Classes
+
+The following are the list of classes that are available in `dataloom`.
+
+#### `Loom` Class
+
+This class is used to create a loom object that will be use to perform actions to a database. The following example show how you can create a `loom` object using this class.
+
+```python
+from dataloom import Loom
+loom = Loom(
+    dialect="postgres",
+    database="hi",
+    password="root",
+    user="postgres",
+    host="localhost",
+    sql_logger="console",
+    logs_filename="logs.sql",
+    port=5432,
+)
+```
+
+The `Loom` class takes in the following options:
 | Parameter | Description | Value Type | Default Value | Required |
 | --------------- | --------------------------------------------------------------------------------- | --------------- | -------------- | -------- |
 | `dialect` | Dialect for the database connection. Options are `mysql`, `postgres`, or `sqlite` | `str` or `None` | `None` | `Yes` |
@@ -203,15 +256,13 @@ The `Dataloom` class takes in the following options:
 | `logs_filename` | Filename for the query logs | `str` or `None` | `dataloom.sql` | `No` |
 | `port` | Port number for the database connection (only for `mysql` and `postgres`) | `int` or `None` | `None` | `No` |
 
-### Dataloom Classes
-
 #### `Model` Class
 
 A model in Dataloom is a top-level class that facilitates the creation of complex SQL tables using regular Python classes. This example demonstrates how to define two tables, `User` and `Post`, by creating classes that inherit from the `Model` class.
 
 ```py
 from dataloom import (
-    Dataloom,
+    Loom,
     Model,
     PrimaryKeyColumn,
     Column,
@@ -280,77 +331,88 @@ Here are some other options that you can pass to the `Column`:
 
 > Talking about data types, each `dialect` has its own accepted values. Here is a list of types supported by each and every `dialect`:
 
-1. `mysql`
+##### Column Datatypes
 
-   - `"int"` - Integer data type.
-   - `"smallint"` - Small integer data type.
-   - `"bigint"` - Big integer data type.
-   - `"float"` - Floating-point number data type.
-   - `"double"` - Double-precision floating-point number data type.
-   - `"numeric"` - Numeric or decimal data type.
-   - `"text"` - Text data type.
-   - `"varchar"` - Variable-length character data type.
-   - `"char"` - Fixed-length character data type.
-   - `"boolean"` - Boolean data type.
-   - `"date"` - Date data type.
-   - `"time"` - Time data type.
-   - `"timestamp"` - Timestamp data type.
-   - `"json"` - JSON (JavaScript Object Notation) data type.
-   - `"blob"` - Binary Large Object (BLOB) data type.
+In this section we will list all the `datatypes` that are supported for each dialect.
 
-2. `postgres`
+###### 1. `mysql`
 
-   - `"int"` - Integer data type (Alias: `"INTEGER"`).
-   - `"smallint"` - Small integer data type (Alias: `"SMALLINT"`).
-   - `"bigint"` - Big integer data type (Alias: `"BIGINT"`).
-   - `"serial"` - Auto-incrementing integer data type (Alias: `"SERIAL"`).
-   - `"bigserial"` - Auto-incrementing big integer data type (Alias: `"BIGSERIAL"`).
-   - `"smallserial"` - Auto-incrementing small integer data type (Alias: `"SMALLSERIAL"`).
-   - `"float"` - Real number data type (Alias: `"REAL"`).
-   - `"double precision"` - Double-precision floating-point number data type (Alias: `"DOUBLE PRECISION"`).
-   - `"numeric"` - Numeric data type (Alias: `"NUMERIC"`).
-   - `"text"` - Text data type.
-   - `"varchar"` - Variable-length character data type.
-   - `"char"` - Fixed-length character data type.
-   - `"boolean"` - Boolean data type.
-   - `"date"` - Date data type.
-   - `"time"` - Time data type.
-   - `"timestamp"` - Timestamp data type.
-   - `"interval"` - Time interval data type.
-   - `"uuid"` - UUID (Universally Unique Identifier) data type.
-   - `"json"` - JSON (JavaScript Object Notation) data type.
-   - `"jsonb"` - Binary JSON (JavaScript Object Notation) data type.
-   - `"bytea"` - Binary data type (Array of bytes).
-   - `"array"` - Array data type.
-   - `"inet"` - IP network address data type.
-   - `"cidr"` - Classless Inter-Domain Routing (CIDR) address data type.
-   - `"macaddr"` - MAC (Media Access Control) address data type.
-   - `"tsvector"` - Text search vector data type.
-   - `"point"` - Geometric point data type.
-   - `"line"` - Geometric line data type.
-   - `"lseg"` - Geometric line segment data type.
-   - `"box"` - Geometric box data type.
-   - `"path"` - Geometric path data type.
-   - `"polygon"` - Geometric polygon data type.
-   - `"circle"` - Geometric circle data type.
-   - `"hstore"` - Key-value pair store data type.
+| Data Type     | Description                                       |
+| ------------- | ------------------------------------------------- |
+| `"int"`       | Integer data type.                                |
+| `"smallint"`  | Small integer data type.                          |
+| `"bigint"`    | Big integer data type.                            |
+| `"float"`     | Floating-point number data type.                  |
+| `"double"`    | Double-precision floating-point number data type. |
+| `"numeric"`   | Numeric or decimal data type.                     |
+| `"text"`      | Text data type.                                   |
+| `"varchar"`   | Variable-length character data type.              |
+| `"char"`      | Fixed-length character data type.                 |
+| `"boolean"`   | Boolean data type.                                |
+| `"date"`      | Date data type.                                   |
+| `"time"`      | Time data type.                                   |
+| `"timestamp"` | Timestamp data type.                              |
+| `"json"`      | JSON (JavaScript Object Notation) data type.      |
+| `"blob"`      | Binary Large Object (BLOB) data type.             |
 
-3. `sqlite`
-   - `"int"` - Integer data type (Alias: `"INTEGER"`).
-   - `"smallint"` - Small integer data type (Alias: `"SMALLINT"`).
-   - `"bigint"` - Big integer data type (Alias: `"BIGINT"`).
-   - `"float"` - Real number data type (Alias: `"REAL"`).
-   - `"double precision"` - Double-precision floating-point number data type (Alias: `"DOUBLE"`).
-   - `"numeric"` - Numeric data type (Alias: `"NUMERIC"`).
-   - `"text"` - Text data type.
-   - `"varchar"` - Variable-length character data type.
-   - `"char"` - Fixed-length character data type.
-   - `"boolean"` - Boolean data type.
-   - `"date"` - Date data type.
-   - `"time"` - Time data type.
-   - `"timestamp"` - Timestamp data type.
-   - `"json"` - JSON (JavaScript Object Notation) data type.
-   - `"blob"` - Binary Large Object (BLOB) data type.
+###### 2. `postgres`
+
+| Data Type            | Description                                                                     |
+| -------------------- | ------------------------------------------------------------------------------- |
+| `"int"`              | Integer data type (Alias: `"INTEGER"`).                                         |
+| `"smallint"`         | Small integer data type (Alias: `"SMALLINT"`).                                  |
+| `"bigint"`           | Big integer data type (Alias: `"BIGINT"`).                                      |
+| `"serial"`           | Auto-incrementing integer data type (Alias: `"SERIAL"`).                        |
+| `"bigserial"`        | Auto-incrementing big integer data type (Alias: `"BIGSERIAL"`).                 |
+| `"smallserial"`      | Auto-incrementing small integer data type (Alias: `"SMALLSERIAL"`).             |
+| `"float"`            | Real number data type (Alias: `"REAL"`).                                        |
+| `"double precision"` | Double-precision floating-point number data type (Alias: `"DOUBLE PRECISION"`). |
+| `"numeric"`          | Numeric data type (Alias: `"NUMERIC"`).                                         |
+| `"text"`             | Text data type.                                                                 |
+| `"varchar"`          | Variable-length character data type.                                            |
+| `"char"`             | Fixed-length character data type.                                               |
+| `"boolean"`          | Boolean data type.                                                              |
+| `"date"`             | Date data type.                                                                 |
+| `"time"`             | Time data type.                                                                 |
+| `"timestamp"`        | Timestamp data type.                                                            |
+| `"interval"`         | Time interval data type.                                                        |
+| `"uuid"`             | UUID (Universally Unique Identifier) data type.                                 |
+| `"json"`             | JSON (JavaScript Object Notation) data type.                                    |
+| `"jsonb"`            | Binary JSON (JavaScript Object Notation) data type.                             |
+| `"bytea"`            | Binary data type (Array of bytes).                                              |
+| `"array"`            | Array data type.                                                                |
+| `"inet"`             | IP network address data type.                                                   |
+| `"cidr"`             | Classless Inter-Domain Routing (CIDR) address data type.                        |
+| `"macaddr"`          | MAC (Media Access Control) address data type.                                   |
+| `"tsvector"`         | Text search vector data type.                                                   |
+| `"point"`            | Geometric point data type.                                                      |
+| `"line"`             | Geometric line data type.                                                       |
+| `"lseg"`             | Geometric line segment data type.                                               |
+| `"box"`              | Geometric box data type.                                                        |
+| `"path"`             | Geometric path data type.                                                       |
+| `"polygon"`          | Geometric polygon data type.                                                    |
+| `"circle"`           | Geometric circle data type.                                                     |
+| `"hstore"`           | Key-value pair store data type.                                                 |
+
+###### 3. `sqlite`
+
+| Data Type            | Description                                       |
+| -------------------- | ------------------------------------------------- |
+| `"int"`              | Integer data type.                                |
+| `"smallint"`         | Small integer data type.                          |
+| `"bigint"`           | Big integer data type.                            |
+| `"float"`            | Real number data type.                            |
+| `"double precision"` | Double-precision floating-point number data type. |
+| `"numeric"`          | Numeric data type.                                |
+| `"text"`             | Text data type.                                   |
+| `"varchar"`          | Variable-length character data type.              |
+| `"char"`             | Fixed-length character data type.                 |
+| `"boolean"`          | Boolean data type.                                |
+| `"date"`             | Date data type.                                   |
+| `"time"`             | Time data type.                                   |
+| `"timestamp"`        | Timestamp data type.                              |
+| `"json"`             | JSON (JavaScript Object Notation) data type.      |
+| `"blob"`             | Binary Large Object (BLOB) data type.             |
 
 > Note: Every table is required to have a primary key column and this column should be 1. Let's talk about the `PrimaryKeyColumn`
 
@@ -369,7 +431,7 @@ class Post(Model):
 The following are the arguments that the `PrimaryKeyColumn` class accepts.
 | Argument | Description | Type | Default |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------ | --------------- | ------------- |
-| `type` | The datatype of your primary key. | `str` | `"bigserial`" |
+| `type` | The datatype of your primary key. | `str` | `"int`" |
 | `length` | Optional to specify the length of the type. If passed as `N` with type `T`, it yields an SQL statement with type `T(N)`. | `int` \| `None` | `None` |
 | `auto_increment`| Optional to specify if the column will automatically increment or not. |`bool` |`False` |
 |`default` | Optional to specify the default value in a column. |`any` |`None` |
@@ -433,8 +495,8 @@ affected_rows = pg_loom.update_one(
         ColumnValue(name="completed", value=True),
     ],
     filters=[
-        Filter(column="id", value=1, join_next_filter_with="AND"),
-        Filter(column="userId", value=1, join_next_filter_with="AND"),
+        Filter(column="id", value=1, join_next_with="AND"),
+        Filter(column="userId", value=1, join_next_with="AND"),
     ],
 )
 ```
@@ -445,9 +507,9 @@ So from the above example we are applying filters while updating a `Post` here a
 | `column` | The name of the column to apply the filter on | `String` | - |
 | `value` | The value to filter against | `Any` | - |
 | `operator` | The comparison operator to use for the filter | `'eq'`, `'neq'`. `'lt'`, `'gt'`, `'leq'`, `'geq'`, `'in'`, `'notIn'`, `'like'` | `'eq'` |
-| `join_next_filter_with` | The logical operator to join this filter with the next one | `'AND'`, `'OR'` | `'AND'` |
+| `join_next_with` | The logical operator to join this filter with the next one | `'AND'`, `'OR'` | `'AND'` |
 
-> 👉 : **Note:** You can apply either a list of filters or a single filter when filtering records.
+> 👍**Pro Tip:** Note You can apply either a list of filters or a single filter when filtering records.
 
 #### `ColumnValue` Class
 
@@ -463,8 +525,8 @@ re = pg_loom.update_one(
         ColumnValue(name="completed", value=True),
     ],
     filters=[
-        Filter(column="id",  value=1, join_next_filter_with="AND"),
-        Filter(column="userId", value=1, join_next_filter_with="AND"),
+        Filter(column="id",  value=1, join_next_with="AND"),
+        Filter(column="userId", value=1, join_next_with="AND"),
     ],
 )
 ```
@@ -493,14 +555,48 @@ posts = pg_loom.find_all(
 )
 ```
 
-> 👉 **Note:** When utilizing a list of orders, they are applied sequentially, one after the other:
+> 👍**Pro Tip:** Note when utilizing a list of orders, they are applied sequentially, one after the other:
 
 | Argument | Description                                                               | Type                | Default |
 | -------- | ------------------------------------------------------------------------- | ------------------- | ------- |
 | `column` | The name of the column to order by.                                       | `str`               | -       |
 | `order`  | The order direction, either `"ASC"` (ascending) or `"DESC"` (descending). | `"ASC"` or `"DESC"` | `"ASC"` |
 
-#### `Include`
+#### `Include` Class
+
+The `Include` class facilitates eager loading for models with relationships. Below is a table detailing the parameters available for the `Include` class:
+
+| Argument  | Description                                                             | Type                          | Default  | Required |
+| --------- | ----------------------------------------------------------------------- | ----------------------------- | -------- | -------- |
+| `model`   | The model to be included when eagerly fetching records.                 | `Model`                       | -        | Yes      |
+| `order`   | The list of order specifications for sorting the included data.         | `list[Order]`, optional       | `[]`     | No       |
+| `limit`   | The maximum number of records to include.                               | `int \| None`, optional       | `0`      | No       |
+| `offset`  | The number of records to skip before including.                         | `int \| None`, optional       | `0`      | No       |
+| `select`  | The list of columns to include.                                         | `list[str] \| None`, optional | `None`   | No       |
+| `has`     | The relationship type between the current model and the included model. | `INCLUDE_LITERAL`, optional   | `"many"` | No       |
+| `include` | The extra included models.                                              | `list[Include]`, optional     | `[]`     | No       |
+
+#### `Group` Class
+
+This class is used for data `aggregation` and grouping data in `dataloom`. Below is a table detailing the parameters available for the `Group` class:
+
+| Argument                    | Description                                             | Type                                          | Default   | Required |
+| --------------------------- | ------------------------------------------------------- | --------------------------------------------- | --------- | -------- |
+| `column`                    | The name of the column to group by.                     | `str`                                         |           | Yes      |
+| `function`                  | The aggregation function to apply on the grouped data.  | `"COUNT" \| "AVG" \| "SUM" \| "MIN" \| "MAX"` | `"COUNT"` | No       |
+| `having`                    | Filters to apply to the grouped data.                   | `list[Having] \| Having \| None`              | `None`    | No       |
+| `return_aggregation_column` | Whether to return the aggregation column in the result. | `bool`                                        | `False`   | No       |
+
+#### `Having` Class
+
+This class method is used to specify the filters to be applied on `Grouped` data during `aggregation` in `dataloom`. Below is a table detailing the parameters available for the `Group` class:
+
+| Argument         | Description                                   | Type                                   | Default | Required |
+| ---------------- | --------------------------------------------- | -------------------------------------- | ------- | -------- |
+| `column`         | The name of the column to filter on.          | `str`                                  |         | `Yes`    |
+| `operator`       | The operator to use for the filter.           | [`OPERATOR_LITERAL\|None`](#operators) | `"eq"`  | `No`     |
+| `value`          | The value to compare against.                 | `Any`                                  |         | `Yes`    |
+| `join_next_with` | The SQL operand to join the next filter with. | `"AND" \| "OR"\|None`                  | `"AND"` | `No`     |
 
 ### Syncing Tables
 
@@ -533,7 +629,7 @@ The `connect_and_sync` function proves to be very handy as it handles both the d
 ```py
 # ....
 
-sqlite_loom = Dataloom(
+sqlite_loom = Loom(
     dialect="sqlite", database="hi.db", logs_filename="sqlite-logs.sql", logging=True
 )
 conn, tables = sqlite_loom.connect_and_sync([Post, User], drop=True, force=True)
@@ -642,16 +738,17 @@ print(users) # ? [{'id': 1, 'username': '@miller'}]
 
 The `find_all()` method takes in the following arguments:
 
-| Argument   | Description                                    | Type          | Default | Required |
-| ---------- | ---------------------------------------------- | ------------- | ------- | -------- |
-| `instance` | The model class to retrieve documents from.    | `Model`       | `None`  | `Yes`    |
-| `select`   | List of fields to select from the documents.   | `list[str]`   | `None`  | `No`     |
-| `limit`    | Maximum number of documents to retrieve.       | `int`         | `None`  | `No`     |
-| `offset`   | Number of documents to skip before retrieving. | `int`         | `0`     | `No`     |
-| `order`    | List of columns to order the documents by.     | `list[Order]` | `None`  | `No`     |
-| `include`  | List of related models to eagerly load.        | `list[Model]` | `None`  | `No`     |
+| Argument   | Description                                                                                | Type                     | Default | Required |
+| ---------- | ------------------------------------------------------------------------------------------ | ------------------------ | ------- | -------- |
+| `instance` | The model class to retrieve documents from.                                                | `Model`                  | `None`  | `Yes`    |
+| `select`   | Collection or a string of fields to select from the documents.                             | `list[str]\|str`         | `None`  | `No`     |
+| `limit`    | Maximum number of documents to retrieve.                                                   | `int`                    | `None`  | `No`     |
+| `offset`   | Number of documents to skip before retrieving.                                             | `int`                    | `0`     | `No`     |
+| `order`    | Collection of columns to order the documents by.                                           | `list[Order]`            | `None`  | `No`     |
+| `include`  | Collection or a `Include` of related models to eagerly load.                               | `list[Include]\|Include` | `None`  | `No`     |
+| `group`    | Collection of `Group` which specifies how you want your data to be grouped during queries. | `list[Group]\|Group`     | `None`  | `No`     |
 
-> 👉 **Note:** Note that the `include` argument is not working at the moment. This argument allows us to eagerly load child relationships from the parent model.
+> 👍 **Pro Tip**: A collection can be any python iterable, the supported iterables are `list`, `set`, `tuple`.
 
 ##### 2. `find_many()`
 
@@ -671,17 +768,18 @@ print(users) # ? [{'id': 1, 'username': '@miller'}]
 
 The `find_many()` method takes in the following arguments:
 
-| Argument   | Description                                    | Type                     | Default | Required |
-| ---------- | ---------------------------------------------- | ------------------------ | ------- | -------- |
-| `instance` | The model class to retrieve documents from.    | `Model`                  | `None`  | `Yes`    |
-| `filters`  | List of filters to apply to the query.         | `list[Filter] \| Filter` | `None`  | `No`     |
-| `select`   | List of fields to select from the documents.   | `list[str]`              | `None`  | `No`     |
-| `limit`    | Maximum number of documents to retrieve.       | `int`                    | `None`  | `No`     |
-| `offset`   | Number of documents to skip before retrieving. | `int`                    | `0`     | `No`     |
-| `order`    | List of columns to order the documents by.     | `list[Order]`            | `None`  | `No`     |
-| `include`  | List of related models to eagerly load.        | `list[Model]`            | `None`  | `No`     |
+| Argument   | Description                                                                                | Type                     | Default | Required |
+| ---------- | ------------------------------------------------------------------------------------------ | ------------------------ | ------- | -------- |
+| `instance` | The model class to retrieve documents from.                                                | `Model`                  | `None`  | `Yes`    |
+| `select`   | Collection or a string of fields to select from the documents.                             | `list[str]\|str`         | `None`  | `No`     |
+| `limit`    | Maximum number of documents to retrieve.                                                   | `int`                    | `None`  | `No`     |
+| `offset`   | Number of documents to skip before retrieving.                                             | `int`                    | `0`     | `No`     |
+| `order`    | Collection of columns to order the documents by.                                           | `list[Order]`            | `None`  | `No`     |
+| `include`  | Collection or a `Include` of related models to eagerly load.                               | `list[Include]\|Include` | `None`  | `No`     |
+| `group`    | Collection of `Group` which specifies how you want your data to be grouped during queries. | `list[Group]\|Group`     | `None`  | `No`     |
+| `filters`  | Collection of `Filter` or a `Filter` to apply to the query.                                | `list[Filter] \| Filter` | `None`  | `No`     |
 
-> The distinction between the `find_all()` and `find_many()` methods lies in the fact that `find_many()` enables you to apply specific filters, whereas `find_all()` retrieves all the documents within the specified model.
+> 👍 **Pro Tip**: The distinction between the `find_all()` and `find_many()` methods lies in the fact that `find_many()` enables you to apply specific filters, whereas `find_all()` retrieves all the documents within the specified model.
 
 ##### 3. `find_one()`
 
@@ -698,14 +796,13 @@ print(user) # ? {'id': 1, 'username': '@miller'}
 
 This method take the following as arguments
 
-| Argument      | Description                                                          | Type                             | Default | Required |
-| ------------- | -------------------------------------------------------------------- | -------------------------------- | ------- | -------- |
-| `instance`    | The model class to retrieve instances from.                          | `Model`                          |         | `Yes`    |
-| `filters`     | Filter or list of filters to apply to the query.                     | `Filter \| list[Filter] \| None` | `None`  | `No`     |
-| `select`      | List of fields to select from the instances.                         | `list[str]`                      | `[]`    | `No`     |
-| `include`     | List of related models to eagerly load.                              | `list[Include]`                  | `[]`    | `No`     |
-| `return_dict` | Flag indicating whether to return the result as a dictionary or not. | `bool`                           | `True`  | `No`     |
-| `offset`      | Number of instances to skip before retrieving.                       | `int \| None`                    | `None`  | `No`     |
+| Argument   | Description                                                                                | Type                             | Default | Required |
+| ---------- | ------------------------------------------------------------------------------------------ | -------------------------------- | ------- | -------- |
+| `instance` | The model class to retrieve instances from.                                                | `Model`                          |         | `Yes`    |
+| `filters`  | `Filter` or a collection of `Filter` to apply to the query.                                | `Filter \| list[Filter] \| None` | `None`  | `No`     |
+| `select`   | Collection of `str` or `str` of which is the name of the columns or column to be selected. | `list[str]\|str`                 | `[]`    | `No`     |
+| `include`  | Collection of `Include` or a single `Include` of related models to eagerly load.           | `list[Include]\|Include`         | `[]`    | `No`     |
+| `offset`   | Number of instances to skip before retrieving.                                             | `int \| None`                    | `None`  | `No`     |
 
 ##### 4. `find_by_pk()`
 
@@ -718,13 +815,12 @@ print(user) # ? {'id': 1, 'username': '@miller'}
 
 The method takes the following as arguments:
 
-| Argument      | Description                                                          | Type            | Default | Required |
-| ------------- | -------------------------------------------------------------------- | --------------- | ------- | -------- |
-| `instance`    | The model class to retrieve instances from.                          | `Model`         |         | `Yes`    |
-| `pk`          | The primary key value to use for retrieval.                          | `Any`           |         | `Yes`    |
-| `select`      | List of fields to select from the instances.                         | `list[str]`     | `[]`    | `No`     |
-| `include`     | List of related models to eagerly load.                              | `list[Include]` | `[]`    | `No`     |
-| `return_dict` | Flag indicating whether to return the result as a dictionary or not. | `bool`          | `True`  | `No`     |
+| Argument   | Description                                                                        | Type            | Default | Required |
+| ---------- | ---------------------------------------------------------------------------------- | --------------- | ------- | -------- |
+| `instance` | The model class to retrieve instances from.                                        | `Model`         |         | `Yes`    |
+| `pk`       | The primary key value to use for retrieval.                                        | `Any`           |         | `Yes`    |
+| `select`   | Collection column names to select from the instances.                              | `list[str]`     | `[]`    | `No`     |
+| `include`  | A Collection of `Include` or a single `Include` of related models to eagerly load. | `list[Include]` | `[]`    | `No`     |
 
 #### 3. Updating a record
 
@@ -750,11 +846,11 @@ affected_rows = mysql_loom.update_by_pk(
 
 The above method takes in the following as arguments:
 
-| Argument   | Description                                                     | Type                               | Default | Required |
-| ---------- | --------------------------------------------------------------- | ---------------------------------- | ------- | -------- |
-| `instance` | The model class for which to update the instance.               | `Model`                            |         | `Yes`    |
-| `pk`       | The primary key value of the instance to update.                | `Any`                              |         | `Yes`    |
-| `values`   | Single or list of column-value pairs to update in the instance. | `ColumnValue \| list[ColumnValue]` |         | `Yes`    |
+| Argument   | Description                                                                            | Type                               | Default | Required |
+| ---------- | -------------------------------------------------------------------------------------- | ---------------------------------- | ------- | -------- |
+| `instance` | The model class for which to update the instance.                                      | `Model`                            |         | `Yes`    |
+| `pk`       | The primary key value of the instance to update.                                       | `Any`                              |         | `Yes`    |
+| `values`   | Single or Collection of [`ColumnValue`](#columnvalue-class) to update in the instance. | `ColumnValue \| list[ColumnValue]` |         | `Yes`    |
 
 ##### 2. `update_one()`
 
@@ -764,8 +860,8 @@ Here is an example illustrating how to use the `update_one()` method:
 affected_rows = mysql_loom.update_one(
     instance=Post,
     filters=[
-        Filter(column="id", value=8, join_next_filter_with="OR"),
-        Filter(column="userId", value=1, join_next_filter_with="OR"),
+        Filter(column="id", value=8, join_next_with="OR"),
+        Filter(column="userId", value=1, join_next_with="OR"),
     ],
     values=[
         ColumnValue(name="title", value="Updated?"),
@@ -775,11 +871,11 @@ affected_rows = mysql_loom.update_one(
 
 The method takes the following as arguments:
 
-| Argument   | Description                                                     | Type                               | Default | Required |
-| ---------- | --------------------------------------------------------------- | ---------------------------------- | ------- | -------- |
-| `instance` | The model class for which to update the instance(s).            | `Model`                            |         | `Yes`    |
-| `filters`  | Filter or list of filters to apply to the update query.         | `Filter \| list[Filter] \| None`   |         | `Yes`    |
-| `values`   | Single or list of column-value pairs to update in the instance. | `ColumnValue \| list[ColumnValue]` |         | `Yes`    |
+| Argument   | Description                                                           | Type                               | Default | Required |
+| ---------- | --------------------------------------------------------------------- | ---------------------------------- | ------- | -------- |
+| `instance` | The model class for which to update the instance(s).                  | `Model`                            |         | `Yes`    |
+| `filters`  | Filter or collection of filters to apply to the update query.         | `Filter \| list[Filter] \| None`   |         | `Yes`    |
+| `values`   | Single or collection of column-value pairs to update in the instance. | `ColumnValue \| list[ColumnValue]` |         | `Yes`    |
 
 ##### 3. `update_bulk()`
 
@@ -789,8 +885,8 @@ The `update_bulk()` method updates all records that match a filter in a database
 affected_rows = mysql_loom.update_bulk(
     instance=Post,
     filters=[
-        Filter(column="id", value=8, join_next_filter_with="OR"),
-        Filter(column="userId", value=1, join_next_filter_with="OR"),
+        Filter(column="id", value=8, join_next_with="OR"),
+        Filter(column="userId", value=1, join_next_with="OR"),
     ],
     values=[
         ColumnValue(name="title", value="Updated?"),
@@ -800,11 +896,11 @@ affected_rows = mysql_loom.update_bulk(
 
 The above method takes in the following as argument:
 
-| Argument   | Description                                                     | Type                               | Default | Required |
-| ---------- | --------------------------------------------------------------- | ---------------------------------- | ------- | -------- |
-| `instance` | The model class for which to update instances.                  | `Model`                            |         | `Yes`    |
-| `filters`  | Filter or list of filters to apply to the update query.         | `Filter \| list[Filter] \| None`   |         | `Yes`    |
-| `values`   | Single or list of column-value pairs to update in the instance. | `ColumnValue \| list[ColumnValue]` |         | `Yes`    |
+| Argument   | Description                                                           | Type                               | Default | Required |
+| ---------- | --------------------------------------------------------------------- | ---------------------------------- | ------- | -------- |
+| `instance` | The model class for which to update instances.                        | `Model`                            |         | `Yes`    |
+| `filters`  | Filter or collection of filters to apply to the update query.         | `Filter \| list[Filter] \| None`   |         | `Yes`    |
+| `values`   | Single or collection of column-value pairs to update in the instance. | `ColumnValue \| list[ColumnValue]` |         | `Yes`    |
 
 #### 4. Deleting a record
 
@@ -841,12 +937,12 @@ affected_rows = mysql_loom.delete_one(
 
 The method takes in the following arguments:
 
-| Argument   | Description                                                | Type                             | Default | Required |
-| ---------- | ---------------------------------------------------------- | -------------------------------- | ------- | -------- |
-| `instance` | The model class from which to delete the instance(s).      | `Model`                          |         | `Yes`    |
-| `filters`  | Filter or list of filters to apply to the deletion query.  | `Filter \| list[Filter] \| None` | `None`  | `No`     |
-| `offset`   | Number of instances to skip before deleting.               | `int \| None`                    | `None`  | `No`     |
-| `order`    | List of columns to order the instances by before deletion. | `list[Order] \| None`            | `[]`    | `No`     |
+| Argument   | Description                                                                           | Type                             | Default | Required |
+| ---------- | ------------------------------------------------------------------------------------- | -------------------------------- | ------- | -------- |
+| `instance` | The model class from which to delete the instance(s).                                 | `Model`                          |         | `Yes`    |
+| `filters`  | Filter or collection of filters to apply to the deletion query.                       | `Filter \| list[Filter] \| None` | `None`  | `No`     |
+| `offset`   | Number of instances to skip before deleting.                                          | `int \| None`                    | `None`  | `No`     |
+| `order`    | Collection of `Order` or as single `Order` to order the instances by before deletion. | `list[Order] \| Order\| None`    | `[]`    | `No`     |
 
 ##### 3. `delete_bulk()`
 
@@ -860,13 +956,13 @@ affected_rows = mysql_loom.delete_bulk(
 
 The method takes the following as arguments:
 
-| Argument   | Description                                                | Type                             | Default | Required |
-| ---------- | ---------------------------------------------------------- | -------------------------------- | ------- | -------- |
-| `instance` | The model class from which to delete instances.            | `Model`                          |         | `Yes`    |
-| `filters`  | Filter or list of filters to apply to the deletion query.  | `Filter \| list[Filter] \| None` | `None`  | `No`     |
-| `limit`    | Maximum number of instances to delete.                     | `int \| None`                    | `None`  | `No`     |
-| `offset`   | Number of instances to skip before deleting.               | `int \| None`                    | `None`  | `No`     |
-| `order`    | List of columns to order the instances by before deletion. | `list[Order] \| None`            | `[]`    | `No`     |
+| Argument   | Description                                                                          | Type                             | Default | Required |
+| ---------- | ------------------------------------------------------------------------------------ | -------------------------------- | ------- | -------- |
+| `instance` | The model class from which to delete instances.                                      | `Model`                          |         | `Yes`    |
+| `filters`  | Filter or collection of filters to apply to the deletion query.                      | `Filter \| list[Filter] \| None` | `None`  | `No`     |
+| `limit`    | Maximum number of instances to delete.                                               | `int \| None`                    | `None`  | `No`     |
+| `offset`   | Number of instances to skip before deleting.                                         | `int \| None`                    | `None`  | `No`     |
+| `order`    | Collection of `Order` or a single `Order` to order the instances by before deletion. | `list[Order] \|Order\| None`     | `[]`    | `No`     |
 
 ###### Warning: Potential Risk with `delete_bulk()`
 
@@ -933,7 +1029,7 @@ There are different find of filters that you can use when filtering documents fo
 res2 = mysql_loom.delete_one(
     instance=Post,
     offset=0,
-    order=[Order(column="id", order="DESC")],
+    order=Order(column="id", order="DESC"),
     filters=Filter(column="id", value=1, operator="gt"),
 )
 ```
@@ -949,7 +1045,7 @@ res2 = mysql_loom.delete_one(
 )
 ```
 
-As you have noticed, you can join your filters together and they will be applied sequentially using the [`join_next_filter_with`](#filter-class) which can be either `OR` or `AND` te default value is `AND`. Here is an of filter usage in sequential.
+As you have noticed, you can join your filters together and they will be applied sequentially using the [`join_next_with`](#filter-class) which can be either `OR` or `AND` te default value is `AND`. Here is an of filter usage in sequential.
 
 ```py
 res2 = mysql_loom.delete_one(
@@ -958,16 +1054,18 @@ res2 = mysql_loom.delete_one(
     order=[Order(column="id", order="DESC")],
     filters=[
         Filter(column="id", value=1, operator="gt"),
-        Filter(column="userId", value=1, operator="eq", join_next_filter_with="OR"),
+        Filter(column="userId", value=1, operator="eq", join_next_with="OR"),
         Filter(
             column="title",
             value='"What are you doing general?"',
             operator="=",
-            join_next_filter_with="AND",
+            join_next_with="AND",
         ),
     ],
 )
 ```
+
+##### Operators
 
 You can use the `operator` to match the values. Here is the table of description for these filters.
 
@@ -1125,13 +1223,72 @@ The following table show you some expression that you can use with this `like` o
 | `[!charlist]%` | Finds values that start with any character not in the specified character list.                                          |
 | `_pattern_`    | Finds values that have any single character followed by the specified pattern and then followed by any single character. |
 
+### Data Aggregation
+
+With the [`Having`](#having-class) and the [`Group`](#group-class) classes you can perform some powerful powerful queries. In this section we are going to demonstrate an example of how we can do the aggregate queries.
+
+```py
+posts = mysql_loom.find_many(
+    Post,
+    select="id",
+    filters=Filter(column="id", operator="gt", value=1),
+    group=Group(
+        column="id",
+        function="MAX",
+        having=Having(column="id", operator="in", value=(2, 3, 4)),
+        return_aggregation_column=True,
+    ),
+)
+```
+
+The following will be the output from the above query.
+
+```shell
+[{'id': 2, 'MAX(`id`)': 2}, {'id': 3, 'MAX(`id`)': 3}, {'id': 4, 'MAX(`id`)': 4}]
+```
+
+However you can remove the aggregation column from the above query by specifying the `return_aggregation_column` to be `False`:
+
+```py
+posts = mysql_loom.find_many(
+    Post,
+    select="id",
+    filters=Filter(column="id", operator="gt", value=1),
+    group=Group(
+        column="id",
+        function="MAX",
+        having=Having(column="id", operator="in", value=(2, 3, 4)),
+        return_aggregation_column=False,
+    ),
+)
+print(posts)
+```
+
+This will output:
+
+```shell
+[{'id': 2}, {'id': 3}, {'id': 4}]
+```
+
+#### Aggregation Functions
+
+You can use the following aggregation functions that dataloom supports:
+
+| Aggregation Function | Description                                      |
+| -------------------- | ------------------------------------------------ |
+| `"AVG"`              | Computes the average of the values in the group. |
+| `"COUNT"`            | Counts the number of items in the group.         |
+| `"SUM"`              | Computes the sum of the values in the group.     |
+| `"MAX"`              | Retrieves the maximum value in the group.        |
+| `"MIN"`              | Retrieves the minimum value in the group.        |
+
+> 👍 **Pro Tip**: Note that data aggregation only works without `eager` loading and also works only with [`find_may()`](#2-find_many) and [`find_all()`](#1-find_all) in dataloom.
+
 ### Utilities
 
 Dataloom comes up with some utility functions that works on an instance of a model. This is very useful when debuging your tables to see how do they look like. These function include:
 
-1. `inspect()`
-
-#### `inspect`
+#### 1. `inspect`
 
 This function takes in a model as argument and inspect the model fields or columns. The following examples show how we can use this handy function in inspecting table names.
 
@@ -1167,11 +1324,583 @@ Output:
 
 The `inspect` function take the following arguments.
 
+| Argument      | Description                                            | Type        | Default                                   | Required |
+| ------------- | ------------------------------------------------------ | ----------- | ----------------------------------------- | -------- |
+| `instance`    | The model instance to inspect.                         | `Model`     | -                                         | Yes      |
+| `fields`      | The list of fields to include in the inspection.       | `list[str]` | `["name", "type", "nullable", "default"]` | No       |
+| `print_table` | Flag indicating whether to print the inspection table. | `bool`      | `True`                                    | No       |
+
+#### 2. `decorators`
+
+These modules contain several decorators that can prove useful when creating models. These decorators originate from `dataloom.decorators`, and at this stage, we are referring to them as "experimental."
+
+##### `@initialize`
+
+Let's examine a model named `Profile`, which appears as follows:
+
+```py
+class Profile(Model):
+    __tablename__: Optional[TableColumn] = TableColumn(name="profiles")
+    id = PrimaryKeyColumn(type="int", auto_increment=True)
+    avatar = Column(type="text", nullable=False)
+    userId = ForeignKeyColumn(
+        User,
+        maps_to="1-1",
+        type="int",
+        required=True,
+        onDelete="CASCADE",
+        onUpdate="CASCADE",
+    )
+```
+
+This is simply a Python class that inherits from the top-level class `Model`. However, it lacks some useful `dunder` methods such as `__init__` and `__repr__`. In standard Python, we can achieve this functionality by using `dataclasses`. For example, we can modify our class as follows:
+
+```py
+from dataclasses import dataclass
+
+@dataclass
+class Profile(Model):
+    # ....
+
+```
+
+However, this approach doesn't function as expected in `dataloom` columns. Hence, we've devised these experimental decorators to handle the generation of essential dunder methods required for working with `dataloom`. If you prefer not to use decorators, you always have the option to manually create these dunder methods. Here's an example:
+
+```py
+class Profile(Model):
+    # ...
+    def __init__(self, id: int | None, avatar: str | None, userId: int | None) -> None:
+        self.id = id
+        self.avatar = avatar
+        self.userId = userId
+
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__}:id={self.id}>"
+
+    @property
+    def to_dict(self):
+        return {"id": self.id, "avatar": self.avatar, "userId": self.userId}
+```
+
+However, by using the `initialize` decorator, this functionality will be automatically generated for you. Here's all you need to do:
+
+```py
+from dataloom.decorators import initialize
+
+@initialize(repr=True, to_dict=True, init=True, repr_identifier="id")
+class Profile(Model):
+    # ...
+```
+
+> 👉 **Tip**: Dataloom has a clever way of skipping the `TableColumn` because it doesn't matter in this case.
+
+The `initialize` decorator takes the following arguments:
+
+| Argument          | Description                                                 | Type            | Default | Required |
+| ----------------- | ----------------------------------------------------------- | --------------- | ------- | -------- |
+| `to_dict`         | Flag indicating whether to generate a `to_dict` method.     | `bool`          | `False` | `No`     |
+| `init`            | Flag indicating whether to generate an `__init__` method.   | `bool`          | `True`  | `No`     |
+| `repr`            | Flag indicating whether to generate a `__repr__` method.    | `bool`          | `False` | `No`     |
+| `repr_identifier` | Identifier for the attribute used in the `__repr__` method. | `str` or `None` | `None`  | `No`     |
+
+> 👍**Pro Tip:** Note that this `decorator` function allows us to interact with our data from the database in an object-oriented way in Python. Below is an example illustrating this concept:
+
+```py
+profile = mysql_loom.find_by_pk(Profile, pk=1, select=["avatar", "id"])
+profile = Profile(**profile)
+print(profile)  # ? = <Profile:id=1>
+print(profile.avatar)  # ? hello.jpg
+```
+
+### Associations
+
+In dataloom you can create association using the `foreign-keys` column during model creation. You just have to specify a single model to have a relationship with another model using the [`ForeignKeyColum`](#foreignkeycolumn-class). Just by doing that dataloom will be able to learn bidirectional relationship between your models. Let's have a look at the following examples:
+
+#### 1. `1-1` Association
+
+Let's consider an example where we want to map the relationship between a `User` and a `Profile`:
+
+```py
+class User(Model):
+    __tablename__: Optional[TableColumn] = TableColumn(name="users")
+    id = PrimaryKeyColumn(type="int", auto_increment=True)
+    name = Column(type="text", nullable=False, default="Bob")
+    username = Column(type="varchar", unique=True, length=255)
+    tokenVersion = Column(type="int", default=0)
+
+class Profile(Model):
+    __tablename__: Optional[TableColumn] = TableColumn(name="profiles")
+    id = PrimaryKeyColumn(type="int", auto_increment=True)
+    avatar = Column(type="text", nullable=False)
+    userId = ForeignKeyColumn(
+        User,
+        maps_to="1-1",
+        type="int",
+        required=True,
+        onDelete="CASCADE",
+        onUpdate="CASCADE",
+    )
+
+```
+
+The above code demonstrates how to establish a `one-to-one` relationship between a `User` and a `Profile` using the `dataloom`.
+
+- `User` and `Profile` are two model classes inheriting from `Model`.
+- Each model is associated with a corresponding table in the database, defined by the `__tablename__` attribute.
+- Both models have a primary key column (`id`) defined using `PrimaryKeyColumn`.
+- Additional columns (`name`, `username`, `tokenVersion` for `User` and `avatar`, `userId` for `Profile`) are defined using `Column`.
+- The `userId` column in the `Profile` model establishes a foreign key relationship with the `id` column of the `User` model using `ForeignKeyColumn`. This relationship is specified to be a `one-to-one` relationship (`maps_to="1-1"`).
+- Various constraints such as `nullable`, `unique`, `default`, and foreign key constraints (`onDelete`, `onUpdate`) are specified for the columns.
+
+##### Inserting
+
+In the following code example we are going to demonstrate how we can create a `user` with a `profile`, first we need to create a user first so that we get reference to the user of the profile that we will create.
+
+```py
+userId = mysql_loom.insert_one(
+    instance=User,
+    values=ColumnValue(name="username", value="@miller"),
+)
+
+profileId = mysql_loom.insert_one(
+    instance=Profile,
+    values=[
+        ColumnValue(name="userId", value=userId),
+        ColumnValue(name="avatar", value="hello.jpg"),
+    ],
+)
+```
+
+This Python code snippet demonstrates how to insert data into the database using the `mysql_loom.insert_one` method, it also work on other methods like `insert_bulk`.
+
+1. **Inserting a User Record**:
+
+   - The `mysql_loom.insert_one` method is used to insert a new record into the `User` table.
+   - The `instance=User` parameter specifies that the record being inserted belongs to the `User` model.
+   - The `values=ColumnValue(name="username", value="@miller")` parameter specifies the values to be inserted into the `User` table, where the `username` column will be set to `"@miller"`.
+   - The ID of the newly inserted record is obtained and assigned to the variable `userId`.
+
+2. **Inserting a Profile Record**:
+   - Again, the `mysql_loom.insert_one` method is called to insert a new record into the `Profile` table.
+   - The `instance=Profile` parameter specifies that the record being inserted belongs to the `Profile` model.
+   - The `values` parameter is a list containing two `ColumnValue` objects:
+     - The first `ColumnValue` object specifies that the `userId` column of the `Profile` table will be set to the `userId` value obtained from the previous insertion.
+     - The second `ColumnValue` object specifies that the `avatar` column of the `Profile` table will be set to `"hello.jpg"`.
+   - The ID of the newly inserted record is obtained and assigned to the variable `profileId`.
+
+##### Retrieving Records
+
+The following example shows you how you can retrieve the data in a associations
+
+```py
+profile = mysql_loom.find_one(
+    instance=Profile,
+    select=["id", "avatar"],
+    filters=Filter(column="userId", value=userId),
+)
+user = mysql_loom.find_by_pk(
+    instance=User,
+    pk=userId,
+    select=["id", "username"],
+)
+user_with_profile = {**user, "profile": profile}
+print(user_with_profile) # ? = {'id': 1, 'username': '@miller', 'profile': {'id': 1, 'avatar': 'hello.jpg'}}
+```
+
+This Python code snippet demonstrates how to query data from the database using the `mysql_loom.find_one` and `mysql_loom.find_by_pk` methods, and combine the results of these two records that have association.
+
+1. **Querying a Profile Record**:
+
+   - The `mysql_loom.find_one` method is used to retrieve a single record from the `Profile` table.
+   - The `filters=Filter(column="userId", value=userId)` parameter filters the results to only include records where the `userId` column matches the `userId` value obtained from a previous insertion.
+
+2. **Querying a User Record**:
+
+   - The `mysql_loom.find_by_pk` method is used to retrieve a single record from the `User` table based on its primary key (`pk=userId`).
+   - The `instance=User` parameter specifies that the record being retrieved belongs to the `User` model.
+   - The `select=["id", "username"]` parameter specifies that only the `id` and `username` columns should be selected.
+   - The retrieved user data is assigned to the variable `user`.
+
+3. **Combining User and Profile Data**:
+   - The user data (`user`) and profile data (`profile`) are combined into a single dictionary (`user_with_profile`) using dictionary unpacking (`{**user, "profile": profile}`).
+   - This dictionary represents a user with their associated profile.
+
+> 🏒 We have realized that we are performing three steps when querying records, which can be verbose. However, in dataloom, we have introduced `eager` data fetching for all methods that retrieve data from the database. The following example demonstrates how we can achieve the same result as before using eager loading:
+
+```python
+# With eager loading
+user_with_profile = mysql_loom.find_by_pk(
+    instance=User,
+    pk=userId,
+    select=["id", "username"],
+    include=[Include(model=Profile, select=["id", "avatar"], has="one")],
+)
+print(user_with_profile) # ? = {'id': 1, 'username': '@miller', 'profile': {'id': 1, 'avatar': 'hello.jpg'}}
+```
+
+This Python code snippet demonstrates how to use eager loading with the `mysql_loom.find_by_pk` method to efficiently retrieve data from the `User` and `Profile` tables in a single query.
+
+- Eager loading allows us to retrieve related data from multiple tables in a single database query, reducing the need for multiple queries and improving performance.
+- In this example, the `include` parameter is used to specify eager loading for the `Profile` model associated with the `User` model.
+- By including the `Profile` model with the `User` model in the `find_by_pk` method call, we instruct the database to retrieve both the user data (`id` and `username`) and the associated profile data (`id` and `avatar`) in a single query.
+- This approach streamlines the data retrieval process and minimizes unnecessary database calls, leading to improved efficiency and performance in applications.
+
+#### 2. `N-1` Association
+
+Models can have `Many` to `One` relationship, it depends on how you define them. Let's have a look at the relationship between a `Category` and a `Post`. Many categories can belong to a single post.
+
+```py
+class Post(Model):
+    __tablename__: Optional[TableColumn] = TableColumn(name="posts")
+    id = PrimaryKeyColumn(type="int", auto_increment=True, nullable=False, unique=True)
+    completed = Column(type="boolean", default=False)
+    title = Column(type="varchar", length=255, nullable=False)
+    # timestamps
+    createdAt = CreatedAtColumn()
+    # relations
+    userId = ForeignKeyColumn(
+        User,
+        maps_to="1-N",
+        type="int",
+        required=True,
+        onDelete="CASCADE",
+        onUpdate="CASCADE",
+    )
+
+class Category(Model):
+    __tablename__: Optional[TableColumn] = TableColumn(name="categories")
+    id = PrimaryKeyColumn(type="int", auto_increment=True, nullable=False, unique=True)
+    type = Column(type="varchar", length=255, nullable=False)
+
+    postId = ForeignKeyColumn(
+        Post,
+        maps_to="N-1",
+        type="int",
+        required=True,
+        onDelete="CASCADE",
+        onUpdate="CASCADE",
+    )
+
+```
+
+In the provided code, we have two models: `Post` and `Category`. The relationship between these two models can be described as a `Many-to-One` relationship.
+
+This means that many categories can belong to a single post. In other words:
+
+- For each `Post` instance, there can be multiple `Category` instances associated with it.
+- However, each `Category` instance can only be associated with one `Post`.
+
+For example, consider a blogging platform where each `Post` represents an article and each `Category` represents a topic or theme. Each article (post) can be assigned to multiple topics (categories), such as "Technology", "Travel", "Food", etc. However, each topic (category) can only be associated with one specific article (post).
+
+This relationship allows for a hierarchical organization of data, where posts can be categorized into different topics or themes represented by categories.
+
+##### Inserting
+
+Let's illustrate the following example where we insert categories into a post with the `id` 1.
+
+```py
+for title in ["Hey", "Hello", "What are you doing", "Coding"]:
+    mysql_loom.insert_one(
+        instance=Post,
+        values=[
+            ColumnValue(name="userId", value=userId),
+            ColumnValue(name="title", value=title),
+        ],
+    )
+
+for cat in ["general", "education", "tech", "sport"]:
+    mysql_loom.insert_one(
+        instance=Category,
+        values=[
+            ColumnValue(name="postId", value=1),
+            ColumnValue(name="type", value=cat),
+        ],
+    )
+```
+
+- **Inserting Posts**
+  We're inserting new posts into the `Post` table. Each post is associated with a user (`userId`), and we're iterating over a list of titles to insert multiple posts.
+
+- **Inserting Categories**
+  We're inserting new categories into the `Category` table. Each category is associated with a specific post (`postId`), and we're inserting categories for a post with `id` 1.
+
+> In summary, we're creating a relationship between posts and categories by inserting records into their respective tables. Each category record is linked to a specific post record through the `postId` attribute.
+
+##### Retrieving Records
+
+Let's attempt to retrieve a post with an ID of `1` along with its corresponding categories. We can achieve this as follows:
+
+```py
+post = mysql_loom.find_by_pk(Post, 1, select=["id", "title"])
+categories = mysql_loom.find_many(
+    Category,
+    select=["type", "id"],
+    filters=Filter(column="postId", value=1),
+    order=[
+        Order(column="id", order="DESC"),
+    ],
+)
+post_with_categories = {**post, "categories": categories}
+print(post_with_categories)  # ? = {'id': 1, 'title': 'Hey', 'categories': [{'type': 'sport', 'id': 4}, {'type': 'tech', 'id': 3}, {'type': 'education', 'id': 2}, {'type': 'general', 'id': 1}]}
+```
+
+- We use the `mysql_loom.find_by_pk()` method to retrieve a single post (`Post`) with an `id` equal to 1. We select only specific columns (`id` and `title`) for the post.
+- We use the `mysql_loom.find_many()` method to retrieve multiple categories (`Category`) associated with the post. We select only specific columns (`type` and `id`) for the categories. We apply a filter to only fetch categories associated with the post with `postId` equal to 1. We sort the categories based on the `id` column in descending order.
+- We create a dictionary (`post_with_categories`) that contains the retrieved post and its associated categories. The post information is stored under the key `post`, and the categories information is stored under the key `categories`.
+
+> The above task can be accomplished using `eager` document retrieval as shown below.
+
+```py
+post_with_categories = mysql_loom.find_by_pk(
+    Post,
+    1,
+    select=["id", "title"],
+    include=[
+        Include(
+            model=Category,
+            select=["type", "id"],
+            order=[
+                Order(column="id", order="DESC"),
+            ],
+        )
+    ],
+)
+
+```
+
+The code snippet queries a database to retrieve a post with an `id` of `1` along with its associated categories. Here's a breakdown:
+
+1. **Querying for Post**:
+
+   - The `mysql_loom.find_by_pk()` method fetches a single post from the database.
+   - It specifies the `Post` model and ID `1`, retrieving only the `id` and `title` columns.
+
+2. **Including Categories**:
+
+   - The `include` parameter specifies additional related data to fetch.
+   - Inside `include`, an `Include` instance is created for categories related to the post.
+   - It specifies the `Category` model and selects only the `type` and `id` columns.
+   - Categories are ordered by `id` in descending order.
+
+3. **Result**:
+   - The result is stored in `post_with_categories`, containing the post information and associated categories.
+
+> In summary, this code is retrieving a specific post along with its categories from the database, and it's using `eager` loading to efficiently fetch related data in a single query.
+
+#### 3. `1-N` Association
+
+Let's consider a scenario where a `User` has multiple `Post`. here is how the relationships are mapped.
+
+```py
+class User(Model):
+    __tablename__: Optional[TableColumn] = TableColumn(name="users")
+    id = PrimaryKeyColumn(type="int", auto_increment=True)
+    name = Column(type="text", nullable=False, default="Bob")
+    username = Column(type="varchar", unique=True, length=255)
+    tokenVersion = Column(type="int", default=0)
+
+class Post(Model):
+    __tablename__: Optional[TableColumn] = TableColumn(name="posts")
+    id = PrimaryKeyColumn(type="int", auto_increment=True, nullable=False, unique=True)
+    completed = Column(type="boolean", default=False)
+    title = Column(type="varchar", length=255, nullable=False)
+    # timestamps
+    createdAt = CreatedAtColumn()
+    # relations
+    userId = ForeignKeyColumn(
+        User,
+        maps_to="1-N",
+        type="int",
+        required=True,
+        onDelete="CASCADE",
+        onUpdate="CASCADE"
+    )
+```
+
+So clearly we can see that when creating a `post` we need to have a `userId`
+
+##### Inserting
+
+Here is how we can insert a user and a post to the database tables.
+
+```py
+userId = mysql_loom.insert_one(
+    instance=User,
+    values=ColumnValue(name="username", value="@miller"),
+)
+for title in ["Hey", "Hello", "What are you doing", "Coding"]:
+    mysql_loom.insert_one(
+        instance=Post,
+        values=[
+            ColumnValue(name="userId", value=userId),
+            ColumnValue(name="title", value=title),
+        ],
+    )
+```
+
+We're performing database operations to insert records for a user and multiple posts associated with that user.
+
+- We insert a user record into the database using `mysql_loom.insert_one()` method.
+- We iterate over a list of titles.
+- For each title in the list, we insert a new post record into the database.
+- Each post is associated with the user we inserted earlier, identified by the `userId`.
+- The titles for the posts are set based on the titles in the list.
+
+##### Retrieving Records
+
+Now let's query the user with his respective posts. we can do it as follows:
+
+```py
+user = mysql_loom.find_by_pk(
+    User,
+    1,
+    select=["id", "username"],
+)
+posts = mysql_loom.find_many(
+    Post,
+    filters=Filter(column="userId", value=userId, operator="eq"),
+    select=["id", "title"],
+    order=[Order(column="id", order="DESC")],
+    limit=2,
+    offset=1,
+)
+
+user_with_posts = {**user, "posts": posts}
+print(
+    user_with_posts
+)  # ? = {'id': 1, 'username': '@miller', 'posts': [{'id': 3, 'title': 'What are you doing'}, {'id': 2, 'title': 'Hello'}]}
+```
+
+We're querying the database to retrieve information about a `user` and their associated `posts`.
+
+1. **Querying User**:
+
+   - We use `mysql_loom.find_by_pk()` to fetch a single user record from the database.
+   - The user's ID is specified as `1`.
+   - We select only the `id` and `username` columns for the user.
+
+2. **Querying Posts**:
+
+   - We use `mysql_loom.find_many()` to retrieve multiple post records associated with the user.
+   - A filter is applied to only fetch posts where the `userId` matches the ID of the user retrieved earlier.
+   - We select only the `id` and `title` columns for the posts.
+   - The posts are ordered by the `id` column in descending order.
+   - We set a limit of `2` posts to retrieve, and we skip the first post using an offset of `1`.
+   - We create a dictionary `user_with_posts` containing the user information and a list of their associated posts under the key `"posts"`.
+
+With eager loading this can be done as follows the above can be done as follows:
+
+```py
+user_with_posts = mysql_loom.find_by_pk(
+    User,
+    1,
+    select=["id", "username"],
+    include=[
+        Include(
+            model=Post,
+            select=["id", "title"],
+            order=[Order(column="id", order="DESC")],
+            limit=2,
+            offset=1,
+        )
+    ],
+)
+print(
+    user_with_posts
+)  # ? = {'id': 1, 'username': '@miller', 'posts': [{'id': 3, 'title': 'What are you doing'}, {'id': 2, 'title': 'Hello'}]}
+```
+
+- We use `mysql_loom.find_by_pk()` to fetch a single user record from the database.
+- The user's ID is specified as `1`.
+- We select only the `id` and `username` columns for the user.
+- Additionally, we include associated post records using `eager` loading.
+- Inside the `include` parameter, we specify the `Post` model and select only the `id` and `title` columns for the posts.
+- The posts are ordered by the `id` column in descending order.
+- We set a limit of `2` posts to retrieve, and we skip the first post using an offset of `1`.
+
+#### 4. What about bidirectional queries?
+
+In Dataloom, we support bidirectional relations with eager loading on-the-fly. You can query from a `parent` to a `child` and from a `child` to a `parent`. You just need to know how the relationship is mapped between these two models. In this case, the `has` option is very important in the `Include` class. Here are some examples demonstrating bidirectional querying between `user` and `post`, where the `user` is the parent table and the `post` is the child table in this case.
+
+##### 1. Child to Parent
+
+Here is an example illustrating how we can query a parent from child table.
+
+```py
+posts_users = mysql_loom.find_many(
+    Post,
+    limit=2,
+    offset=3,
+    order=[Order(column="id", order="DESC")],
+    select=["id", "title"],
+    include=[
+        Include(
+            model=User,
+            select=["id", "username"],
+            has="one",
+            include=[Include(model=Profile, select=["id", "avatar"], has="one")],
+        ),
+        Include(
+            model=Category,
+            select=["id", "type"],
+            order=[Order(column="id", order="DESC")],
+            has="many",
+            limit=2,
+        ),
+    ],
+)
+print(posts_users) # ? = [{'id': 1, 'title': 'Hey', 'user': {'id': 1, 'username': '@miller', 'profile': {'id': 1, 'avatar': 'hello.jpg'}}, 'categories': [{'id': 4, 'type': 'sport'}, {'id': 3, 'type': 'tech'}]}]
+```
+
+##### 2. Parent to Child
+
+Here is an example of how we can query a child table from parent table
+
+```py
+user_post = mysql_loom.find_by_pk(
+    User,
+    pk=userId,
+    select=["id", "username"],
+    include=[
+        Include(
+            model=Post,
+            limit=2,
+            offset=3,
+            order=[Order(column="id", order="DESC")],
+            select=["id", "title"],
+            include=[
+                Include(
+                    model=User,
+                    select=["id", "username"],
+                    has="one",
+                    include=[
+                        Include(model=Profile, select=["id", "avatar"], has="one")
+                    ],
+                ),
+                Include(
+                    model=Category,
+                    select=["id", "type"],
+                    order=[Order(column="id", order="DESC")],
+                    has="many",
+                    limit=2,
+                ),
+            ],
+        ),
+        Include(model=Profile, select=["id", "avatar"], has="one"),
+    ],
+)
+
+
+print(user_post) """ ? =
+{'id': 1, 'username': '@miller', 'user': {'id': 1, 'username': '@miller', 'profile': {'id': 1, 'avatar': 'hello.jpg'}}, 'categories': [{'id': 4, 'type': 'sport'}, {'id': 3, 'type': 'tech'}], 'posts': [{'id': 1, 'title': 'Hey', 'user': {'id': 1, 'username': '@miller', 'profile': {'id': 1, 'avatar': 'hello.jpg'}}, 'categories': [{'id': 4, 'type': 'sport'}, {'id': 3, 'type': 'tech'}]}], 'profile': {'id': 1, 'avatar': 'hello.jpg'}}
+"""
+
+```
+
 ### What is coming next?
 
-1. Associations
-2. Grouping
-3. Altering tables
+1. N-N associations
+2. Altering tables
 
 ### Contributing
 

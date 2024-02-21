@@ -3,11 +3,11 @@ import pytest
 
 class TestConnectionSQLite:
     def test_connect_with_wrong_dialect(self):
-        from dataloom import Dataloom
+        from dataloom import Loom
         from dataloom.exceptions import UnsupportedDialectException
 
         with pytest.raises(UnsupportedDialectException) as exc_info:
-            sqlite_loom = Dataloom(dialect="hay", database="hi.db")
+            sqlite_loom = Loom(dialect="hay", database="hi.db")
             conn = sqlite_loom.connect()
             conn.close()
 
@@ -17,9 +17,9 @@ class TestConnectionSQLite:
         )
 
     def test_connect_correct_connection(self):
-        from dataloom import Dataloom
+        from dataloom import Loom
 
-        sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
+        sqlite_loom = Loom(dialect="sqlite", database="hi.db")
         conn = sqlite_loom.connect()
         conn.close()
         assert conn is not None

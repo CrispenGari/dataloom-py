@@ -6,7 +6,7 @@ class TestUpdateOnSQLite:
         from dataloom import (
             Column,
             CreatedAtColumn,
-            Dataloom,
+            Loom,
             ForeignKeyColumn,
             Model,
             PrimaryKeyColumn,
@@ -15,7 +15,7 @@ class TestUpdateOnSQLite:
             ColumnValue,
         )
 
-        sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
+        sqlite_loom = Loom(dialect="sqlite", database="hi.db")
 
         class User(Model):
             __tablename__: Optional[TableColumn] = TableColumn(name="users")
@@ -74,7 +74,7 @@ class TestUpdateOnSQLite:
         from dataloom import (
             Column,
             CreatedAtColumn,
-            Dataloom,
+            Loom,
             ForeignKeyColumn,
             Model,
             PrimaryKeyColumn,
@@ -85,7 +85,7 @@ class TestUpdateOnSQLite:
         )
         from dataloom.exceptions import UnknownColumnException
 
-        sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
+        sqlite_loom = Loom(dialect="sqlite", database="hi.db")
 
         class User(Model):
             __tablename__: Optional[TableColumn] = TableColumn(name="users")
@@ -160,7 +160,7 @@ class TestUpdateOnSQLite:
         from dataloom import (
             Column,
             CreatedAtColumn,
-            Dataloom,
+            Loom,
             ForeignKeyColumn,
             Model,
             PrimaryKeyColumn,
@@ -171,7 +171,7 @@ class TestUpdateOnSQLite:
         )
         from dataloom.exceptions import UnknownColumnException
 
-        sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
+        sqlite_loom = Loom(dialect="sqlite", database="hi.db")
 
         class User(Model):
             __tablename__: Optional[TableColumn] = TableColumn(name="users")
@@ -242,7 +242,7 @@ class TestUpdateOnSQLite:
         from dataloom import (
             Column,
             CreatedAtColumn,
-            Dataloom,
+            Loom,
             Model,
             PrimaryKeyColumn,
             TableColumn,
@@ -251,7 +251,7 @@ class TestUpdateOnSQLite:
             ColumnValue,
         )
 
-        sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
+        sqlite_loom = Loom(dialect="sqlite", database="hi.db")
 
         class User(Model):
             __tablename__: Optional[TableColumn] = TableColumn(name="users")
@@ -304,7 +304,7 @@ class TestUpdateOnSQLite:
         from dataloom import (
             Column,
             CreatedAtColumn,
-            Dataloom,
+            Loom,
             Model,
             PrimaryKeyColumn,
             TableColumn,
@@ -313,7 +313,7 @@ class TestUpdateOnSQLite:
             ColumnValue,
         )
 
-        sqlite_loom = Dataloom(dialect="sqlite", database="hi.db")
+        sqlite_loom = Loom(dialect="sqlite", database="hi.db")
 
         class User(Model):
             __tablename__: Optional[TableColumn] = TableColumn(name="users")

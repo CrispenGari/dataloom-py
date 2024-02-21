@@ -1,10 +1,10 @@
 class TestCreatingTablePG:
     def test_2_pk_error(self):
-        from dataloom import Column, PrimaryKeyColumn, Dataloom, TableColumn, Model
+        from dataloom import Column, PrimaryKeyColumn, Loom, TableColumn, Model
         import pytest
         from dataloom.keys import PgConfig
 
-        pg_loom = Dataloom(
+        pg_loom = Loom(
             dialect="postgres",
             database=PgConfig.database,
             password=PgConfig.password,
@@ -29,10 +29,10 @@ class TestCreatingTablePG:
 
     def test_no_pk_error(self):
         import pytest
-        from dataloom import Model, Dataloom, Column, TableColumn
+        from dataloom import Model, Loom, Column, TableColumn
         from dataloom.keys import PgConfig
 
-        pg_loom = Dataloom(
+        pg_loom = Loom(
             dialect="postgres",
             database=PgConfig.database,
             password=PgConfig.password,
@@ -51,10 +51,10 @@ class TestCreatingTablePG:
         conn.close()
 
     def test_table_name(self):
-        from dataloom import Model, Dataloom, Column, PrimaryKeyColumn, TableColumn
+        from dataloom import Model, Loom, Column, PrimaryKeyColumn, TableColumn
         from dataloom.keys import PgConfig
 
-        pg_loom = Dataloom(
+        pg_loom = Loom(
             dialect="postgres",
             database=PgConfig.database,
             password=PgConfig.password,
@@ -77,7 +77,7 @@ class TestCreatingTablePG:
         conn.close()
 
     def test_connect_sync(self):
-        from dataloom import Dataloom, Model, TableColumn, Column, PrimaryKeyColumn
+        from dataloom import Loom, Model, TableColumn, Column, PrimaryKeyColumn
         from dataloom.keys import PgConfig
 
         class User(Model):
@@ -92,7 +92,7 @@ class TestCreatingTablePG:
             id = PrimaryKeyColumn(type="int", nullable=False, auto_increment=True)
             title = Column(type="text", nullable=False)
 
-        pg_loom = Dataloom(
+        pg_loom = Loom(
             dialect="postgres",
             database=PgConfig.database,
             password=PgConfig.password,
@@ -105,10 +105,10 @@ class TestCreatingTablePG:
         conn.close()
 
     def test_syncing_tables(self):
-        from dataloom import Model, Dataloom, Column, PrimaryKeyColumn, TableColumn
+        from dataloom import Model, Loom, Column, PrimaryKeyColumn, TableColumn
         from dataloom.keys import PgConfig
 
-        pg_loom = Dataloom(
+        pg_loom = Loom(
             dialect="postgres",
             database=PgConfig.database,
             password=PgConfig.password,

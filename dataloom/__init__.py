@@ -1,6 +1,5 @@
-from dataloom.loom import Dataloom
-
-from dataloom.types import Order, Include, Filter, ColumnValue
+from dataloom.loom import Loom
+from dataloom.types import Order, Include, Filter, ColumnValue, Group, Having
 from dataloom.model import Model
 from dataloom.columns import (
     PrimaryKeyColumn,
@@ -21,7 +20,9 @@ __all__ = [
     ForeignKeyColumn,
     UpdatedAtColumn,
     Column,
-    Dataloom,
+    Loom,
     TableColumn,
     Model,
+    Group,
+    Having,
 ]

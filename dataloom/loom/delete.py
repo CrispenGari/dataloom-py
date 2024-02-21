@@ -2,7 +2,7 @@ from dataloom.exceptions import InvalidArgumentsException
 from dataloom.model import Model
 from typing import Optional, Callable, Any
 from dataloom.types import Filter, DIALECT_LITERAL, Order
-from dataloom.utils import get_args
+from dataloom.utils import get_args, is_collection
 from abc import ABC, abstractclassmethod
 
 
@@ -17,7 +17,7 @@ class Delete(ABC):
         instance: Model,
         filters: Optional[Filter | list[Filter]] = [],
         offset: Optional[int] = None,
-        order: Optional[list[Order]] = [],
+        order: Optional[list[Order] | Order] = [],
     ) -> int:
         raise NotImplementedError("The delete_one function not implemented.")
 
@@ -28,7 +28,7 @@ class Delete(ABC):
         filters: Optional[Filter | list[Filter]] = None,
         limit: Optional[int] = None,
         offset: Optional[int] = None,
-        order: Optional[list[Order]] = [],
+        order: Optional[list[Order] | Order] = [],
     ) -> int:
         raise NotImplementedError("The delete_one function not implemented.")
 
@@ -52,14 +52,16 @@ class delete(Delete):
         instance: Model,
         filters: Optional[Filter | list[Filter]] = [],
         offset: Optional[int] = None,
-        order: Optional[list[Order]] = [],
+        order: Optional[list[Order] | Order] = [],
     ) -> int:
+        if not is_collection(filters):
+            filters = [filters]
+        if not is_collection(order):
+            order = [order]
         sql, params = instance._get_delete_where_stm(
             dialect=self.dialect, filters=filters, offset=offset, order=order
         )
-
         args = [*get_args(params)]
-
         if offset is not None:
             args.append(offset)
         affected_rows = self._execute_sql(sql, args=args, affected_rows=True)
@@ -71,8 +73,13 @@ class delete(Delete):
         filters: Optional[Filter | list[Filter]] = None,
         limit: Optional[int] = None,
         offset: Optional[int] = None,
-        order: Optional[list[Order]] = [],
+        order: Optional[list[Order] | Order] = [],
     ) -> int:
+        if not is_collection(filters):
+            filters = [filters]
+        if not is_collection(order):
+            order = [order]
+
         if offset is not None and limit is None and self.dialect == "mysql":
             raise InvalidArgumentsException(
                 f"You can not apply offset without limit on dialect '{self.dialect}'."

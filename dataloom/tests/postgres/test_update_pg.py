@@ -5,7 +5,7 @@ class TestUpdateOnPG:
         from dataloom import (
             Column,
             CreatedAtColumn,
-            Dataloom,
+            Loom,
             ForeignKeyColumn,
             Model,
             PrimaryKeyColumn,
@@ -15,7 +15,7 @@ class TestUpdateOnPG:
         )
         from dataloom.keys import PgConfig
 
-        pg_loom = Dataloom(
+        pg_loom = Loom(
             dialect="postgres",
             database=PgConfig.database,
             password=PgConfig.password,
@@ -79,7 +79,7 @@ class TestUpdateOnPG:
         from dataloom import (
             Column,
             CreatedAtColumn,
-            Dataloom,
+            Loom,
             ForeignKeyColumn,
             Model,
             PrimaryKeyColumn,
@@ -91,7 +91,7 @@ class TestUpdateOnPG:
         from dataloom.exceptions import UnknownColumnException
         from dataloom.keys import PgConfig
 
-        pg_loom = Dataloom(
+        pg_loom = Loom(
             dialect="postgres",
             database=PgConfig.database,
             password=PgConfig.password,
@@ -171,7 +171,7 @@ class TestUpdateOnPG:
         from dataloom import (
             Column,
             CreatedAtColumn,
-            Dataloom,
+            Loom,
             ForeignKeyColumn,
             Model,
             PrimaryKeyColumn,
@@ -183,7 +183,7 @@ class TestUpdateOnPG:
         from dataloom.exceptions import UnknownColumnException
         from dataloom.keys import PgConfig
 
-        pg_loom = Dataloom(
+        pg_loom = Loom(
             dialect="postgres",
             database=PgConfig.database,
             password=PgConfig.password,
@@ -265,7 +265,7 @@ class TestUpdateOnPG:
         from dataloom import (
             Column,
             CreatedAtColumn,
-            Dataloom,
+            Loom,
             Model,
             PrimaryKeyColumn,
             TableColumn,
@@ -275,7 +275,7 @@ class TestUpdateOnPG:
         )
         from dataloom.keys import PgConfig
 
-        pg_loom = Dataloom(
+        pg_loom = Loom(
             dialect="postgres",
             database=PgConfig.database,
             password=PgConfig.password,
@@ -332,7 +332,7 @@ class TestUpdateOnPG:
         from dataloom import (
             Column,
             CreatedAtColumn,
-            Dataloom,
+            Loom,
             Model,
             PrimaryKeyColumn,
             TableColumn,
@@ -342,7 +342,7 @@ class TestUpdateOnPG:
         )
         from dataloom.keys import PgConfig
 
-        pg_loom = Dataloom(
+        pg_loom = Loom(
             dialect="postgres",
             database=PgConfig.database,
             password=PgConfig.password,
