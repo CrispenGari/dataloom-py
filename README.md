@@ -25,15 +25,10 @@
 6. **Cross-platform Compatibility**: `dataloom` works seamlessly across different operating systems, including `Windows`, `macOS`, and `Linux`.
 7. **Scalability**: Scale your application effortlessly with `dataloom`, whether it's a small project or a large-scale enterprise application.
 
-### ⚠️ Warning
-
-> **⚠️ Experimental Status of `dataloom`**: The `dataloom` module is currently in an experimental phase. As such, we strongly advise against using it in production environments until a major version is officially released and stability is ensured. During this experimental phase, the `dataloom` module may undergo significant changes, and its features are subject to refinement. We recommend monitoring the project updates and waiting for a stable release before incorporating it into production systems. Please exercise caution and consider alternative solutions for production use until the module reaches a stable release.
-
 ### Table of Contents
 
 - [dataloom](#dataloom)
   - [Why choose `dataloom`?](#why-choose-dataloom)
-- [⚠️ Warning](#️-warning)
 - [Table of Contents](#table-of-contents)
 - [Key Features:](#key-features)
 - [Installation](#installation)
@@ -342,76 +337,82 @@ In this section we will list all the `datatypes` that are supported for each dia
 
 ###### 1. `mysql`
 
-- `"int"` - Integer data type.
-- `"smallint"` - Small integer data type.
-- `"bigint"` - Big integer data type.
-- `"float"` - Floating-point number data type.
-- `"double"` - Double-precision floating-point number data type.
-- `"numeric"` - Numeric or decimal data type.
-- `"text"` - Text data type.
-- `"varchar"` - Variable-length character data type.
-- `"char"` - Fixed-length character data type.
-- `"boolean"` - Boolean data type.
-- `"date"` - Date data type.
-- `"time"` - Time data type.
-- `"timestamp"` - Timestamp data type.
-- `"json"` - JSON (JavaScript Object Notation) data type.
-- `"blob"` - Binary Large Object (BLOB) data type.
+| Data Type     | Description                                       |
+| ------------- | ------------------------------------------------- |
+| `"int"`       | Integer data type.                                |
+| `"smallint"`  | Small integer data type.                          |
+| `"bigint"`    | Big integer data type.                            |
+| `"float"`     | Floating-point number data type.                  |
+| `"double"`    | Double-precision floating-point number data type. |
+| `"numeric"`   | Numeric or decimal data type.                     |
+| `"text"`      | Text data type.                                   |
+| `"varchar"`   | Variable-length character data type.              |
+| `"char"`      | Fixed-length character data type.                 |
+| `"boolean"`   | Boolean data type.                                |
+| `"date"`      | Date data type.                                   |
+| `"time"`      | Time data type.                                   |
+| `"timestamp"` | Timestamp data type.                              |
+| `"json"`      | JSON (JavaScript Object Notation) data type.      |
+| `"blob"`      | Binary Large Object (BLOB) data type.             |
 
 ###### 2. `postgres`
 
-- `"int"` - Integer data type (Alias: `"INTEGER"`).
-- `"smallint"` - Small integer data type (Alias: `"SMALLINT"`).
-- `"bigint"` - Big integer data type (Alias: `"BIGINT"`).
-- `"serial"` - Auto-incrementing integer data type (Alias: `"SERIAL"`).
-- `"bigserial"` - Auto-incrementing big integer data type (Alias: `"BIGSERIAL"`).
-- `"smallserial"` - Auto-incrementing small integer data type (Alias: `"SMALLSERIAL"`).
-- `"float"` - Real number data type (Alias: `"REAL"`).
-- `"double precision"` - Double-precision floating-point number data type (Alias: `"DOUBLE PRECISION"`).
-- `"numeric"` - Numeric data type (Alias: `"NUMERIC"`).
-- `"text"` - Text data type.
-- `"varchar"` - Variable-length character data type.
-- `"char"` - Fixed-length character data type.
-- `"boolean"` - Boolean data type.
-- `"date"` - Date data type.
-- `"time"` - Time data type.
-- `"timestamp"` - Timestamp data type.
-- `"interval"` - Time interval data type.
-- `"uuid"` - UUID (Universally Unique Identifier) data type.
-- `"json"` - JSON (JavaScript Object Notation) data type.
-- `"jsonb"` - Binary JSON (JavaScript Object Notation) data type.
-- `"bytea"` - Binary data type (Array of bytes).
-- `"array"` - Array data type.
-- `"inet"` - IP network address data type.
-- `"cidr"` - Classless Inter-Domain Routing (CIDR) address data type.
-- `"macaddr"` - MAC (Media Access Control) address data type.
-- `"tsvector"` - Text search vector data type.
-- `"point"` - Geometric point data type.
-- `"line"` - Geometric line data type.
-- `"lseg"` - Geometric line segment data type.
-- `"box"` - Geometric box data type.
-- `"path"` - Geometric path data type.
-- `"polygon"` - Geometric polygon data type.
-- `"circle"` - Geometric circle data type.
-- `"hstore"` - Key-value pair store data type.
+| Data Type            | Description                                                                     |
+| -------------------- | ------------------------------------------------------------------------------- |
+| `"int"`              | Integer data type (Alias: `"INTEGER"`).                                         |
+| `"smallint"`         | Small integer data type (Alias: `"SMALLINT"`).                                  |
+| `"bigint"`           | Big integer data type (Alias: `"BIGINT"`).                                      |
+| `"serial"`           | Auto-incrementing integer data type (Alias: `"SERIAL"`).                        |
+| `"bigserial"`        | Auto-incrementing big integer data type (Alias: `"BIGSERIAL"`).                 |
+| `"smallserial"`      | Auto-incrementing small integer data type (Alias: `"SMALLSERIAL"`).             |
+| `"float"`            | Real number data type (Alias: `"REAL"`).                                        |
+| `"double precision"` | Double-precision floating-point number data type (Alias: `"DOUBLE PRECISION"`). |
+| `"numeric"`          | Numeric data type (Alias: `"NUMERIC"`).                                         |
+| `"text"`             | Text data type.                                                                 |
+| `"varchar"`          | Variable-length character data type.                                            |
+| `"char"`             | Fixed-length character data type.                                               |
+| `"boolean"`          | Boolean data type.                                                              |
+| `"date"`             | Date data type.                                                                 |
+| `"time"`             | Time data type.                                                                 |
+| `"timestamp"`        | Timestamp data type.                                                            |
+| `"interval"`         | Time interval data type.                                                        |
+| `"uuid"`             | UUID (Universally Unique Identifier) data type.                                 |
+| `"json"`             | JSON (JavaScript Object Notation) data type.                                    |
+| `"jsonb"`            | Binary JSON (JavaScript Object Notation) data type.                             |
+| `"bytea"`            | Binary data type (Array of bytes).                                              |
+| `"array"`            | Array data type.                                                                |
+| `"inet"`             | IP network address data type.                                                   |
+| `"cidr"`             | Classless Inter-Domain Routing (CIDR) address data type.                        |
+| `"macaddr"`          | MAC (Media Access Control) address data type.                                   |
+| `"tsvector"`         | Text search vector data type.                                                   |
+| `"point"`            | Geometric point data type.                                                      |
+| `"line"`             | Geometric line data type.                                                       |
+| `"lseg"`             | Geometric line segment data type.                                               |
+| `"box"`              | Geometric box data type.                                                        |
+| `"path"`             | Geometric path data type.                                                       |
+| `"polygon"`          | Geometric polygon data type.                                                    |
+| `"circle"`           | Geometric circle data type.                                                     |
+| `"hstore"`           | Key-value pair store data type.                                                 |
 
 ###### 3. `sqlite`
 
-- `"int"` - Integer data type (Alias: `"INTEGER"`).
-- `"smallint"` - Small integer data type (Alias: `"SMALLINT"`).
-- `"bigint"` - Big integer data type (Alias: `"BIGINT"`).
-- `"float"` - Real number data type (Alias: `"REAL"`).
-- `"double precision"` - Double-precision floating-point number data type (Alias: `"DOUBLE"`).
-- `"numeric"` - Numeric data type (Alias: `"NUMERIC"`).
-- `"text"` - Text data type.
-- `"varchar"` - Variable-length character data type.
-- `"char"` - Fixed-length character data type.
-- `"boolean"` - Boolean data type.
-- `"date"` - Date data type.
-- `"time"` - Time data type.
-- `"timestamp"` - Timestamp data type.
-- `"json"` - JSON (JavaScript Object Notation) data type.
-- `"blob"` - Binary Large Object (BLOB) data type.
+| Data Type            | Description                                       |
+| -------------------- | ------------------------------------------------- |
+| `"int"`              | Integer data type.                                |
+| `"smallint"`         | Small integer data type.                          |
+| `"bigint"`           | Big integer data type.                            |
+| `"float"`            | Real number data type.                            |
+| `"double precision"` | Double-precision floating-point number data type. |
+| `"numeric"`          | Numeric data type.                                |
+| `"text"`             | Text data type.                                   |
+| `"varchar"`          | Variable-length character data type.              |
+| `"char"`             | Fixed-length character data type.                 |
+| `"boolean"`          | Boolean data type.                                |
+| `"date"`             | Date data type.                                   |
+| `"time"`             | Time data type.                                   |
+| `"timestamp"`        | Timestamp data type.                              |
+| `"json"`             | JSON (JavaScript Object Notation) data type.      |
+| `"blob"`             | Binary Large Object (BLOB) data type.             |
 
 > Note: Every table is required to have a primary key column and this column should be 1. Let's talk about the `PrimaryKeyColumn`
 
@@ -430,7 +431,7 @@ class Post(Model):
 The following are the arguments that the `PrimaryKeyColumn` class accepts.
 | Argument | Description | Type | Default |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------ | --------------- | ------------- |
-| `type` | The datatype of your primary key. | `str` | `"bigserial`" |
+| `type` | The datatype of your primary key. | `str` | `"int`" |
 | `length` | Optional to specify the length of the type. If passed as `N` with type `T`, it yields an SQL statement with type `T(N)`. | `int` \| `None` | `None` |
 | `auto_increment`| Optional to specify if the column will automatically increment or not. |`bool` |`False` |
 |`default` | Optional to specify the default value in a column. |`any` |`None` |
@@ -508,7 +509,7 @@ So from the above example we are applying filters while updating a `Post` here a
 | `operator` | The comparison operator to use for the filter | `'eq'`, `'neq'`. `'lt'`, `'gt'`, `'leq'`, `'geq'`, `'in'`, `'notIn'`, `'like'` | `'eq'` |
 | `join_next_with` | The logical operator to join this filter with the next one | `'AND'`, `'OR'` | `'AND'` |
 
-> 👉 : **Note:** You can apply either a list of filters or a single filter when filtering records.
+> 👍**Pro Tip:** Note You can apply either a list of filters or a single filter when filtering records.
 
 #### `ColumnValue` Class
 
@@ -554,7 +555,7 @@ posts = pg_loom.find_all(
 )
 ```
 
-> 👉 **Note:** When utilizing a list of orders, they are applied sequentially, one after the other:
+> 👍**Pro Tip:** Note when utilizing a list of orders, they are applied sequentially, one after the other:
 
 | Argument | Description                                                               | Type                | Default |
 | -------- | ------------------------------------------------------------------------- | ------------------- | ------- |
@@ -1402,7 +1403,7 @@ The `initialize` decorator takes the following arguments:
 | `repr`            | Flag indicating whether to generate a `__repr__` method.    | `bool`          | `False` | `No`     |
 | `repr_identifier` | Identifier for the attribute used in the `__repr__` method. | `str` or `None` | `None`  | `No`     |
 
-> Note that this `decorator` function allows us to interact with our data from the database in an object-oriented way in Python. Below is an example illustrating this concept:
+> 👍**Pro Tip:** Note that this `decorator` function allows us to interact with our data from the database in an object-oriented way in Python. Below is an example illustrating this concept:
 
 ```py
 profile = mysql_loom.find_by_pk(Profile, pk=1, select=["avatar", "id"])
