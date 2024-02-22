@@ -1,4 +1,20 @@
 ===
+Dataloom **`2.1.0`**
+===
+
+### Release Notes - `dataloom`
+
+We have release the new `dataloom` Version `2.1.0` (`2024-02-12`)
+
+##### Features
+
+- Connecting to databases using connection `uri` for all the supported dialects
+
+  ```py
+
+  ```
+
+===
 Dataloom **`2.0.0`**
 ===
 

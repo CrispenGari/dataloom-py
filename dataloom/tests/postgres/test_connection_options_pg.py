@@ -1,7 +1,7 @@
 import pytest
 
 
-class TestConnectionPG:
+class TestConnectionOptionsPG:
     def test_connect_with_non_existing_database(self):
         from dataloom import Loom
         from dataloom.keys import PgConfig

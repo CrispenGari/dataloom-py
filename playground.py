@@ -19,29 +19,26 @@ import json, time
 from typing import Optional
 from dataclasses import dataclass
 
-sqlite_loom = Loom(
-    dialect="sqlite",
-    database="hi.db",
-    logs_filename="sqlite-logs.sql",
-    sql_logger="console",
-)
+# sqlite_loom = Loom(
+#     connection_uri="sqlite:///database.db",
+#     dialect="sqlite",
+#     database="hi.db",
+#     logs_filename="sqlite-logs.sql",
+#     sql_logger="console",
+# )
+
+# conn = sqlite_loom.connect()
+
 
 pg_loom = Loom(
+    connection_uri="postgresql://postgres:root@localhost:5432/hi",
     dialect="postgres",
-    database="hi",
-    password="root",
-    user="postgres",
     sql_logger="console",
 )
 
 mysql_loom = Loom(
+    connection_uri="mysql://root:root@localhost:3306/hi",
     dialect="mysql",
-    database="hi",
-    password="root",
-    user="root",
-    host="localhost",
-    logs_filename="logs.sql",
-    port=3306,
     sql_logger="console",
 )
 
@@ -107,59 +104,59 @@ conn, tables = mysql_loom.connect_and_sync(
 )
 
 
-userId = mysql_loom.insert_one(
-    instance=User,
-    values=ColumnValue(name="username", value="@miller"),
-)
+# userId = mysql_loom.insert_one(
+#     instance=User,
+#     values=ColumnValue(name="username", value="@miller"),
+# )
 
-aff = mysql_loom.delete_bulk(
-    instance=User,
-    filters=Filter(column="id", value=1),
-)
-print(aff)
-
-
-userId2 = mysql_loom.insert_one(
-    instance=User,
-    values=ColumnValue(name="username", value="bob"),
-)
-
-profileId = mysql_loom.insert_one(
-    instance=Profile,
-    values=[
-        ColumnValue(name="userId", value=userId),
-        ColumnValue(name="avatar", value="hello.jpg"),
-    ],
-)
-for title in ["Hello", "Hello", "What are you doing", "Coding"]:
-    mysql_loom.insert_one(
-        instance=Post,
-        values=[
-            ColumnValue(name="userId", value=userId),
-            ColumnValue(name="title", value=title),
-        ],
-    )
+# aff = mysql_loom.delete_bulk(
+#     instance=User,
+#     filters=Filter(column="id", value=1),
+# )
+# print(aff)
 
 
-for cat in ["general", "education", "tech", "sport"]:
-    mysql_loom.insert_one(
-        instance=Category,
-        values=[
-            ColumnValue(name="postId", value=1),
-            ColumnValue(name="type", value=cat),
-        ],
-    )
+# userId2 = mysql_loom.insert_one(
+#     instance=User,
+#     values=ColumnValue(name="username", value="bob"),
+# )
 
-posts = mysql_loom.find_many(
-    Post,
-    select="id",
-    filters=Filter(column="id", operator="gt", value=1),
-    group=Group(
-        column="id",
-        function="MAX",
-        having=Having(column="id", operator="in", value=(2, 3, 4)),
-        return_aggregation_column=False,
-    ),
-)
+# profileId = mysql_loom.insert_one(
+#     instance=Profile,
+#     values=[
+#         ColumnValue(name="userId", value=userId),
+#         ColumnValue(name="avatar", value="hello.jpg"),
+#     ],
+# )
+# for title in ["Hello", "Hello", "What are you doing", "Coding"]:
+#     mysql_loom.insert_one(
+#         instance=Post,
+#         values=[
+#             ColumnValue(name="userId", value=userId),
+#             ColumnValue(name="title", value=title),
+#         ],
+#     )
 
-print(posts)
+
+# for cat in ["general", "education", "tech", "sport"]:
+#     mysql_loom.insert_one(
+#         instance=Category,
+#         values=[
+#             ColumnValue(name="postId", value=1),
+#             ColumnValue(name="type", value=cat),
+#         ],
+#     )
+
+# posts = mysql_loom.find_many(
+#     Post,
+#     select="id",
+#     filters=Filter(column="id", operator="gt", value=1),
+#     group=Group(
+#         column="id",
+#         function="MAX",
+#         having=Having(column="id", operator="in", value=(2, 3, 4)),
+#         return_aggregation_column=False,
+#     ),
+# )
+
+# print(posts)

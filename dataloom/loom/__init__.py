@@ -69,8 +69,9 @@ class Loom(ILoom):
 
     def __init__(
         self,
-        database: str,
         dialect: DIALECT_LITERAL,
+        connection_uri: Optional[str] = None,
+        database: Optional[str] = None,
         user: Optional[str] = None,
         host: Optional[str] = None,
         port: Optional[int] = None,
@@ -83,6 +84,7 @@ class Loom(ILoom):
         self.sql_logger = sql_logger
         self.dialect = dialect
         self.logs_filename = logs_filename
+        self.connection_uri = connection_uri
 
         try:
             config = instances[dialect]
@@ -1194,27 +1196,41 @@ class Loom(ILoom):
 
         """
         if self.dialect == "postgres":
-            options = ConnectionOptionsFactory.get_connection_options(
-                **self.connection_options
-            )
-            with psycopg2.connect(**options) as conn:
-                self.conn = conn
+            if self.connection_uri is None:
+                options = ConnectionOptionsFactory.get_connection_options(
+                    **self.connection_options
+                )
+                with psycopg2.connect(**options) as conn:
+                    self.conn = conn
+            else:
+                with psycopg2.connect(self.connection_uri) as conn:
+                    self.conn = conn
         elif self.dialect == "mysql":
-            options = ConnectionOptionsFactory.get_connection_options(
-                **self.connection_options
+            options = (
+                ConnectionOptionsFactory.get_connection_options(
+                    **self.connection_options
+                )
+                if self.connection_uri is None
+                else ConnectionOptionsFactory.get_mysql_uri_connection_options(
+                    self.connection_uri
+                )
             )
             self.conn = connector.connect(**options)
 
         elif self.dialect == "sqlite":
-            options = ConnectionOptionsFactory.get_connection_options(
-                **self.connection_options
-            )
-            if "database" in options:
-                with sqlite3.connect(options.get("database")) as conn:
-                    self.conn = conn
+            if self.connection_uri is None:
+                options = ConnectionOptionsFactory.get_connection_options(
+                    **self.connection_options
+                )
+                if "database" in options:
+                    with sqlite3.connect(options.get("database")) as conn:
+                        self.conn = conn
 
+                else:
+                    with sqlite3.connect(**options) as conn:
+                        self.conn = conn
             else:
-                with sqlite3.connect(**options) as conn:
+                with sqlite3.connect(self.connection_uri) as conn:
                     self.conn = conn
         else:
             raise UnsupportedDialectException(
@@ -1285,34 +1301,8 @@ class Loom(ILoom):
         ...     conn.close()
 
         """
-
         try:
-            if self.dialect == "postgres":
-                options = ConnectionOptionsFactory.get_connection_options(
-                    **self.connection_options
-                )
-                with psycopg2.connect(**options) as conn:
-                    self.conn = conn
-            elif self.dialect == "mysql":
-                options = ConnectionOptionsFactory.get_connection_options(
-                    **self.connection_options
-                )
-                self.conn = connector.connect(**options)
-
-            elif self.dialect == "sqlite":
-                options = ConnectionOptionsFactory.get_connection_options(
-                    **self.connection_options
-                )
-                if "database" in options:
-                    with sqlite3.connect(options.get("database")) as conn:
-                        self.conn = conn
-                else:
-                    with sqlite3.connect(**options) as conn:
-                        self.conn = conn
-            else:
-                raise UnsupportedDialectException(
-                    "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
-                )
+            self.conn = self.connect()
             self.sql_obj = SQL(
                 conn=self.conn,
                 dialect=self.dialect,
