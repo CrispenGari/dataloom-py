@@ -11,10 +11,29 @@ We have release the new `dataloom` Version `2.1.0` (`2024-02-21`)
 - Connecting to databases using connection `uri` for all the supported dialects
 
   ```py
+  # postgress
+  pg_loom = Loom(
+    dialect="postgres",
+    connection_uri = "postgressql://root:root@localhost:5432/hi",
+   # ...
+  )
+  # mysql
+  mysql_loom = Loom(
+    dialect="mysql",
+    connection_uri = "mysql://root:root@localhost:3306/hi",
+   # ...
+  )
 
+  # sqlite
+  sqlite_loom = Loom(
+    dialect="sqlite",
+   connection_uri = "sqlite:///hi.db",
+   # ...
+  )
   ```
 
 - updated documentation.
+-
 
 ===
 Dataloom **`2.0.0`**

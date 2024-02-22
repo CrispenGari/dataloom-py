@@ -170,6 +170,18 @@ if __name__ == "__main__":
     conn.close()
 ```
 
+In dataloom you can use connection uris to establish a connection to the database in `postgres` as follows:
+
+```py
+pg_loom = Loom(
+    dialect="postgres",
+    connection_uri = "postgressql://root:root@localhost:5432/hi",
+   # ...
+)
+```
+
+This will establish a connection with `postgres` with the database `hi`.
+
 #### `MySQL`
 
 To establish a connection with a `MySQL` database using `Loom`, you can use the following example:
@@ -198,6 +210,18 @@ if __name__ == "__main__":
 
 ```
 
+In dataloom you can use connection uris to establish a connection to the database in `mysql` as follows:
+
+```py
+mysql_loom = Loom(
+    dialect="mysql",
+    connection_uri = "mysql://root:root@localhost:3306/hi",
+   # ...
+)
+```
+
+This will establish a connection with `mysql` with the database `hi`.
+
 #### `SQLite`
 
 To establish a connection with an `SQLite` database using `Loom`, you can use the following example:
@@ -221,6 +245,18 @@ conn = sqlite_loom.connect()
 if __name__ == "__main__":
     conn.close()
 ```
+
+In dataloom you can use connection uris to establish a connection to the database in `sqlite` as follows:
+
+```py
+sqlite_loom = Loom(
+    dialect="sqlite",
+   connection_uri = "sqlite:///hi.db",
+   # ...
+)
+```
+
+This will establish a connection with `sqlite` with the database `hi`.
 
 ### Dataloom Classes
 
@@ -247,8 +283,9 @@ loom = Loom(
 The `Loom` class takes in the following options:
 | Parameter | Description | Value Type | Default Value | Required |
 | --------------- | --------------------------------------------------------------------------------- | --------------- | -------------- | -------- |
+| `connection_uri` | The connection `uri` for the specified dialect. | `str` or `None` | `None` | `No` |
 | `dialect` | Dialect for the database connection. Options are `mysql`, `postgres`, or `sqlite` | `str` or `None` | `None` | `Yes` |
-| `database` | Name of the database for `mysql` and `postgres`, filename for `sqlite` | `str` or `None` | `None` | `Yes` |
+| `database` | Name of the database for `mysql` and `postgres`, filename for `sqlite` | `str` or `None` | `None` | `No` |
 | `password` | Password for the database user (only for `mysql` and `postgres`) | `str` or `None` | `None` | `No` |
 | `user` | Database user (only for `mysql` and `postgres`) | `str` or `None` | `None` | `No` |
 | `host` | Database host (only for `mysql` and `postgres`) | `str` or `None` | `localhost` | `No` |
