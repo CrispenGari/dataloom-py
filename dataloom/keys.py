@@ -9,18 +9,16 @@ class PgConfig:
         password = "postgres"
         database = "postgres"
         user = "postgres"
-        host = "0.0.0.0"
+        host = "localhost"
         port = 5432
-        db = "hi"
-        connection_uri = f"postgresql://{user}:{password}@{host}:{port}/{db}"
+        connection_uri = f"postgresql://{user}:{password}@{host}:{port}/{database}"
     else:
         database = "postgres"
         user = "postgres"
         password = "root"
         host = "localhost"
         port = 5432
-        db = "hi"
-        connection_uri = f"postgresql://{user}:{password}@{host}:{port}/{db}"
+        connection_uri = f"postgresql://{user}:{password}@{host}:{port}/{database}"
 
 
 class MySQLConfig:
@@ -30,20 +28,18 @@ class MySQLConfig:
         user = "root"
         host = "0.0.0.0"
         port = 3306
-        db = "hi"
-        connection_uri = f"mysql://{user}:{password}@{host}:{port}/{db}"
+        connection_uri = f"mysql://{user}:{password}@{host}:{port}/{database}"
     else:
         database = "hi"
         user = "root"
         password = "root"
         host = "localhost"
         port = 3306
-        db = "hi"
-        connection_uri = f"mysql://{user}:{password}@{host}:{port}/{db}"
+        connection_uri = f"mysql://{user}:{password}@{host}:{port}/{database}"
 
 
 class SQLiteConfig:
     if push:
-        connection_uri = "sqlite:///database.db"
+        connection_uri = "sqlite:///hi.db"
     else:
-        connection_uri = r"C:\\Users\\RGaridzirai\\OneDrive - Walter Sisulu University\Desktop\\TINASHE CRISPEN G\\orm\\dataloom-py\\hi.db"
+        connection_uri = "sqlite:///hi.db"

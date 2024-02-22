@@ -27,3 +27,20 @@ class TestConnectionURISQLite:
         conn = sqlite_loom.connect()
         conn.close()
         assert conn is not None
+
+    def test_wrong_connection_uri(self):
+        from dataloom import Loom
+
+        from dataloom.exceptions import InvalidConnectionURI
+
+        with pytest.raises(InvalidConnectionURI) as exc_info:
+            pg_loom = Loom(
+                dialect="sqlite",
+                connection_uri="sqlite3://hi.db",
+            )
+            conn = pg_loom.connect()
+            conn.close()
+        assert (
+            str(exc_info.value)
+            == "Invalid connection uri for the dialect 'sqlite' valid examples are ('sqlite:///db.db', 'sqlite://db.db', 'sqlite:///path/to/database/db.db')."
+        )

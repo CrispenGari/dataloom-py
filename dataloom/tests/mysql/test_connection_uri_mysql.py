@@ -79,3 +79,21 @@ class TestConnectionURIMySQL:
         conn = mysql_loom.connect()
         conn.close()
         assert conn is not None
+
+    def test_wrong_connection_uri(self):
+        from dataloom import Loom
+        from dataloom.keys import MySQLConfig
+        from dataloom.exceptions import InvalidConnectionURI
+
+        with pytest.raises(InvalidConnectionURI) as exc_info:
+            pg_loom = Loom(
+                dialect="mysql",
+                connection_uri=f"mysq://{MySQLConfig.user}:{MySQLConfig.password}@{MySQLConfig.host}:{MySQLConfig.port}/{MySQLConfig.database}",
+            )
+            conn = pg_loom.connect()
+            conn.close()
+
+        assert (
+            str(exc_info.value)
+            == "Invalid connection uri for the dialect 'mysql' valid examples are ('mysql://user:password@localhost:3306/dbname')."
+        )

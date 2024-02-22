@@ -8,7 +8,7 @@ from dataloom.loom.delete import delete
 from dataloom.loom.query import query
 from dataloom.loom.insert import insert
 from dataloom.loom.sql import sql as SQL
-from dataloom.exceptions import UnsupportedDialectException
+from dataloom.exceptions import UnsupportedDialectException, InvalidConnectionURI
 from dataloom.model import Model
 from dataloom.statements import GetStatement
 from dataloom.conn import ConnectionOptionsFactory
@@ -37,7 +37,9 @@ class Loom(ILoom):
 
     Parameters
     ----------
-    database : str
+    connection_uri : str, optional
+        The connection string uri that you can use to connect to the database per dialect. Examples are 'postgresql://user:password@host:port/dbname', 'sqlite:///database.db', 'mysql://user:password@host:port/dbname' for postgres, sqlite and mysql respectively.
+    database : str, optional
         The name of the database to which you will connect, for PostgreSQL or MySQL, and the file name for SQLite.
     dialect : "mysql" | "postgres" | "sqlite"
         The database dialect to which you want to connect; it is required.
@@ -1203,18 +1205,26 @@ class Loom(ILoom):
                 with psycopg2.connect(**options) as conn:
                     self.conn = conn
             else:
+                if not self.connection_uri.startswith("postgresql:"):
+                    raise InvalidConnectionURI(
+                        f"Invalid connection uri for the dialect '{self.dialect}' valid examples are ('postgresql://user:password@localhost:5432/dbname')."
+                    )
                 with psycopg2.connect(self.connection_uri) as conn:
                     self.conn = conn
         elif self.dialect == "mysql":
-            options = (
-                ConnectionOptionsFactory.get_connection_options(
+            if self.connection_uri is None:
+                options = ConnectionOptionsFactory.get_connection_options(
                     **self.connection_options
                 )
-                if self.connection_uri is None
-                else ConnectionOptionsFactory.get_mysql_uri_connection_options(
-                    self.connection_uri
-                )
-            )
+            else:
+                if self.connection_uri.startswith("mysql:"):
+                    options = ConnectionOptionsFactory.get_mysql_uri_connection_options(
+                        self.connection_uri
+                    )
+                else:
+                    raise InvalidConnectionURI(
+                        f"Invalid connection uri for the dialect '{self.dialect}' valid examples are ('mysql://user:password@localhost:3306/dbname')."
+                    )
             self.conn = connector.connect(**options)
 
         elif self.dialect == "sqlite":
@@ -1225,12 +1235,24 @@ class Loom(ILoom):
                 if "database" in options:
                     with sqlite3.connect(options.get("database")) as conn:
                         self.conn = conn
-
                 else:
                     with sqlite3.connect(**options) as conn:
                         self.conn = conn
             else:
-                with sqlite3.connect(self.connection_uri) as conn:
+                import os
+                import re
+
+                if not self.connection_uri.startswith("sqlite:"):
+                    raise InvalidConnectionURI(
+                        f"Invalid connection uri for the dialect '{self.dialect}' valid examples are ('sqlite:///db.db', 'sqlite://db.db', 'sqlite:///path/to/database/db.db')."
+                    )
+                cwd = os.getcwd()
+                dbName = os.path.basename(self.connection_uri)
+                path = os.path.join(re.sub(r"sqlite:(/{2,})", "", self.connection_uri))
+                directory = os.path.join(cwd, path).replace(dbName, "")
+                if not os.path.exists(directory):
+                    os.makedirs(directory)
+                with sqlite3.connect(os.path.join(directory, dbName)) as conn:
                     self.conn = conn
         else:
             raise UnsupportedDialectException(

@@ -19,28 +19,28 @@ import json, time
 from typing import Optional
 from dataclasses import dataclass
 
-# sqlite_loom = Loom(
-#     connection_uri="sqlite:///database.db",
-#     dialect="sqlite",
-#     database="hi.db",
-#     logs_filename="sqlite-logs.sql",
+sqlite_loom = Loom(
+    connection_uri="sqlite://hello/database.db",
+    dialect="sqlite",
+    database="hi.db",
+    logs_filename="sqlite-logs.sql",
+    sql_logger="console",
+)
+
+conn = sqlite_loom.connect()
+
+
+# pg_loom = Loom(
+#     connection_uri="postgresql://postgres:root@localhost:5432/hi",
+#     dialect="postgres",
 #     sql_logger="console",
 # )
 
-# conn = sqlite_loom.connect()
-
-
-pg_loom = Loom(
-    connection_uri="postgresql://postgres:root@localhost:5432/hi",
-    dialect="postgres",
-    sql_logger="console",
-)
-
-mysql_loom = Loom(
-    connection_uri="mysql://root:root@localhost:3306/hi",
-    dialect="mysql",
-    sql_logger="console",
-)
+# mysql_loom = Loom(
+#     connection_uri="mysql://root:root@localhost:3306/hi",
+#     dialect="mysql",
+#     sql_logger="console",
+# )
 
 
 class User(Model):
@@ -99,9 +99,9 @@ class Category(Model):
     )
 
 
-conn, tables = mysql_loom.connect_and_sync(
-    [User, Profile, Post, Category], drop=True, force=True
-)
+# conn, tables = mysql_loom.connect_and_sync(
+#     [User, Profile, Post, Category], drop=True, force=True
+# )
 
 
 # userId = mysql_loom.insert_one(

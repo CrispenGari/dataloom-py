@@ -24,7 +24,7 @@ class TestConnectionURIPG:
 
         pg_loom = Loom(
             dialect="postgres",
-            connection_uri=f"postgresql://{PgConfig.user}:{PgConfig.password+'-'}@{PgConfig.host}:{PgConfig.port}/hi",
+            connection_uri=f"postgresql://{PgConfig.user}:{PgConfig.password+'-'}@{PgConfig.host}:{PgConfig.port}/{PgConfig.database}",
         )
         with pytest.raises(Exception) as exc_info:
             conn = pg_loom.connect()
@@ -41,7 +41,7 @@ class TestConnectionURIPG:
 
         pg_loom = Loom(
             dialect="postgres",
-            connection_uri=f"postgresql://postgre-u:{PgConfig.password}@{PgConfig.host}:{PgConfig.port}/hi",
+            connection_uri=f"postgresql://postgre-u:{PgConfig.password}@{PgConfig.host}:{PgConfig.port}/{PgConfig.database}",
         )
         with pytest.raises(Exception) as exc_info:
             conn = pg_loom.connect()
@@ -60,7 +60,7 @@ class TestConnectionURIPG:
         with pytest.raises(UnsupportedDialectException) as exc_info:
             pg_loom = Loom(
                 dialect="peew",
-                connection_uri=f"postgresql://{PgConfig.user}:{PgConfig.password}@{PgConfig.host}:{PgConfig.port}/hi",
+                connection_uri=f"postgresql://{PgConfig.user}:{PgConfig.password}@{PgConfig.host}:{PgConfig.port}/{PgConfig.database}",
             )
             conn = pg_loom.connect()
             conn.close()
@@ -75,9 +75,27 @@ class TestConnectionURIPG:
 
         pg_loom = Loom(
             dialect="postgres",
-            connection_uri=f"postgresql://{PgConfig.user}:{PgConfig.password}@{PgConfig.host}:{PgConfig.port}/hi",
+            connection_uri=f"postgresql://{PgConfig.user}:{PgConfig.password}@{PgConfig.host}:{PgConfig.port}/{PgConfig.database}",
         )
         conn = pg_loom.connect()
         conn.close()
 
         assert conn is not None
+
+    def test_wrong_connection_uri(self):
+        from dataloom import Loom
+        from dataloom.keys import PgConfig
+        from dataloom.exceptions import InvalidConnectionURI
+
+        with pytest.raises(InvalidConnectionURI) as exc_info:
+            pg_loom = Loom(
+                dialect="postgres",
+                connection_uri=f"postgresl://{PgConfig.user}:{PgConfig.password}@{PgConfig.host}:{PgConfig.port}/{PgConfig.database}",
+            )
+            conn = pg_loom.connect()
+            conn.close()
+
+        assert (
+            str(exc_info.value)
+            == "Invalid connection uri for the dialect 'postgres' valid examples are ('postgresql://user:password@localhost:5432/dbname')."
+        )
