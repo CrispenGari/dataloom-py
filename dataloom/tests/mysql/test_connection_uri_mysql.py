@@ -23,7 +23,7 @@ class TestConnectionURIMySQL:
 
         mysql_loom = Loom(
             dialect="mysql",
-            connection_uri=f"mysql://{MySQLConfig.user}:{MySQLConfig.password+'me'}@{MySQLConfig.host}:{MySQLConfig.port}/hi",
+            connection_uri=f"mysql://{MySQLConfig.user}:{MySQLConfig.password+'me'}@{MySQLConfig.host}:{MySQLConfig.port}/{MySQLConfig.database}",
         )
         with pytest.raises(connector.errors.ProgrammingError) as exc_info:
             conn = mysql_loom.connect()
@@ -40,7 +40,7 @@ class TestConnectionURIMySQL:
 
         mysql_loom = Loom(
             dialect="mysql",
-            connection_uri=f"mysql://hey:{MySQLConfig.password}@{MySQLConfig.host}:{MySQLConfig.port}/hi",
+            connection_uri=f"mysql://hey:{MySQLConfig.password}@{MySQLConfig.host}:{MySQLConfig.port}/{MySQLConfig.database}",
         )
         with pytest.raises(connector.errors.ProgrammingError) as exc_info:
             conn = mysql_loom.connect()
@@ -58,7 +58,7 @@ class TestConnectionURIMySQL:
         with pytest.raises(UnsupportedDialectException) as exc_info:
             mysql_loom = Loom(
                 dialect="dialect",
-                connection_uri=f"mysql://{MySQLConfig.user}:{MySQLConfig.password}@{MySQLConfig.host}:{MySQLConfig.port}/hi",
+                connection_uri=f"mysql://{MySQLConfig.user}:{MySQLConfig.password}@{MySQLConfig.host}:{MySQLConfig.port}/{MySQLConfig.database}",
             )
             conn = mysql_loom.connect()
             conn.close()
@@ -74,7 +74,7 @@ class TestConnectionURIMySQL:
 
         mysql_loom = Loom(
             dialect="mysql",
-            connection_uri=f"mysql://{MySQLConfig.user}:{MySQLConfig.password}@{MySQLConfig.host}:{MySQLConfig.port}/hi",
+            connection_uri=f"mysql://{MySQLConfig.user}:{MySQLConfig.password}@{MySQLConfig.host}:{MySQLConfig.port}/{MySQLConfig.database}",
         )
         conn = mysql_loom.connect()
         conn.close()
