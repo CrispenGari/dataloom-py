@@ -1,4 +1,10 @@
 class MySqlStatements:
+    # Altering tables
+
+    ALTER_TABLE_COMMAND = """
+    ALTER TABLE {table_name} {alterations};
+    """
+
     # describing tables
 
     DESCRIBE_TABLE_COMMAND = """
@@ -137,6 +143,11 @@ class MySqlStatements:
 
 
 class Sqlite3Statements:
+    # Altering tables
+
+    ALTER_TABLE_COMMAND = """
+    ALTER TABLE {table_name} {alterations};
+    """
     # describing table
 
     DESCRIBE_TABLE_COMMAND = """PRAGMA table_info({table_name});"""
@@ -254,6 +265,11 @@ class Sqlite3Statements:
 
 
 class PgStatements:
+    # Altering tables
+
+    ALTER_TABLE_COMMAND = """
+    ALTER TABLE {table_name} {alterations};
+    """
     # describing table
     DESCRIBE_TABLE_COMMAND = """
     SELECT {fields}

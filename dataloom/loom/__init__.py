@@ -69,6 +69,15 @@ class Loom(ILoom):
 
     """
 
+    def __get_database_name(self, uri: str) -> str | None:
+        if self.dialect == "postgres" or self.dialect == "mysql":
+            from urllib.parse import urlparse
+
+            components = urlparse(uri)
+            db = components.path.lstrip("/")
+            return db
+        return None
+
     def __init__(
         self,
         dialect: DIALECT_LITERAL,
@@ -81,12 +90,16 @@ class Loom(ILoom):
         sql_logger: Optional[SQL_LOGGER_LITERAL] = None,
         logs_filename: Optional[str] = "dataloom.sql",
     ) -> None:
-        self.database = database
         self.conn = None
         self.sql_logger = sql_logger
         self.dialect = dialect
         self.logs_filename = logs_filename
         self.connection_uri = connection_uri
+        self.database = (
+            database
+            if self.connection_uri is None
+            else self.__get_database_name(self.connection_uri)
+        )
 
         try:
             config = instances[dialect]
@@ -1128,7 +1141,7 @@ class Loom(ILoom):
 
         """
         sql = GetStatement(self.dialect)._get_tables_command
-        res = self._execute_sql(sql, fetchall=True)
+        res = self._execute_sql(sql, fetchall=True, _verbose=0)
         if self.dialect == "sqlite":
             return [t[0] for t in res if not str(t[0]).lower().startswith("sqlite_")]
         return [t[0] for t in res]
@@ -1331,19 +1344,8 @@ class Loom(ILoom):
                 sql_logger=self.sql_logger,
                 logs_filename=self.logs_filename,
             )
-            for model in models:
-                if drop or force:
-                    self._execute_sql(model._drop_sql(dialect=self.dialect))
-                    for sql in model._create_sql(dialect=self.dialect):
-                        if sql is not None:
-                            self._execute_sql(sql)
-                elif alter:
-                    pass
-                else:
-                    for sql in model._create_sql(dialect=self.dialect):
-                        if sql is not None:
-                            self._execute_sql(sql)
-            return self.conn, self.tables
+            tables = self.sync(models=models, drop=drop, force=force, alter=alter)
+            return self.conn, tables
         except Exception as e:
             raise Exception(e)
 
@@ -1407,7 +1409,37 @@ class Loom(ILoom):
                         if sql is not None:
                             self._execute_sql(sql)
                 elif alter:
-                    pass
+                    # 1. we only alter the table if it does exists
+                    # 2. if not we just have to create a new table
+                    if model._get_table_name() in self.tables:
+                        sql1 = model._get_describe_stm(
+                            dialect=self.dialect, fields=["column_name"]
+                        )
+                        args = None
+                        if self.dialect == "mysql":
+                            args = (self.database, model._get_table_name())
+                        elif self.dialect == "postgres":
+                            args = ("public", model._get_table_name())
+                        elif self.dialect == "sqlite":
+                            args = ()
+                        cols = self._execute_sql(
+                            sql1, _verbose=0, args=args, fetchall=True
+                        )
+                        if cols is not None:
+                            if self.dialect == "mysql":
+                                old_columns = [col for (col,) in cols]
+                            elif self.dialect == "postgres":
+                                old_columns = [col for (col,) in cols]
+                            else:
+                                old_columns = [col[1] for col in cols]
+                        sql = model._alter_sql(
+                            dialect=self.dialect, old_columns=old_columns
+                        )
+                        self._execute_sql(sql)
+                    else:
+                        for sql in model._create_sql(dialect=self.dialect):
+                            if sql is not None:
+                                self._execute_sql(sql)
                 else:
                     for sql in model._create_sql(dialect=self.dialect):
                         if sql is not None:

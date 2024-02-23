@@ -18,6 +18,7 @@ from dataloom.utils import (
     get_relationships,
     get_create_table_params,
     get_table_fields,
+    get_alter_table_params,
 )
 
 
@@ -147,28 +148,25 @@ class GetStatement[T]:
         return sql
 
     @property
-    def _get_create_table_command(self) -> Optional[str]:
+    def _get_create_table_command(self) -> Optional[list[str]]:
         # is the primary key defined in this table?
         _, pk_name, _, _ = get_table_fields(model=self.model, dialect=self.dialect)
-        pks, user_fields, predefined_fields, sql2 = get_create_table_params(
+        pks, user_fields, predefined_fields = get_create_table_params(
             dialect=self.dialect,
             model=self.model,
-            child_alias_name=self.model.__name__.lower(),
-            child_pk_name=pk_name,
-            child_name=self.model._get_table_name(),
         )
+
+        if len(pks) == 0:
+            raise PkNotDefinedException(
+                "Your table does not have a primary key column."
+            )
+        if len(pks) > 1:
+            raise TooManyPkException(
+                f"You have defined many field as primary keys which is not allowed. Fields ({', '.join(pks)}) are primary keys."
+            )
+        fields = [*user_fields, *predefined_fields]
+        fields_name = ", ".join(f for f in [" ".join(field) for field in fields])
         if self.dialect == "postgres":
-            # do we have a single primary key or not?
-            if len(pks) == 0:
-                raise PkNotDefinedException(
-                    "Your table does not have a primary key column."
-                )
-            if len(pks) > 1:
-                raise TooManyPkException(
-                    f"You have defined many field as primary keys which is not allowed. Fields ({', '.join(pks)}) are primary keys."
-                )
-            fields = [*user_fields, *predefined_fields]
-            fields_name = ", ".join(f for f in [" ".join(field) for field in fields])
             sql = (
                 PgStatements.CREATE_NEW_TABLE.format(
                     table_name=f'"{self.table_name}"', fields_name=fields_name
@@ -180,17 +178,6 @@ class GetStatement[T]:
             )
 
         elif self.dialect == "mysql":
-            # do we have a single primary key or not?
-            if len(pks) == 0:
-                raise PkNotDefinedException(
-                    "Your table does not have a primary key column."
-                )
-            if len(pks) > 1:
-                raise TooManyPkException(
-                    f"You have defined many field as primary keys which is not allowed. Fields ({', '.join(pks)}) are primary keys."
-                )
-            fields = [*user_fields, *predefined_fields]
-            fields_name = ", ".join(f for f in [" ".join(field) for field in fields])
             sql = (
                 MySqlStatements.CREATE_NEW_TABLE.format(
                     table_name=f"`{self.table_name}`", fields_name=fields_name
@@ -202,23 +189,12 @@ class GetStatement[T]:
             )
 
         elif self.dialect == "sqlite":
-            # do we have a single primary key or not?
-            if len(pks) == 0:
-                raise PkNotDefinedException(
-                    "Your table does not have a primary key column."
-                )
-            if len(pks) > 1:
-                raise TooManyPkException(
-                    f"You have defined many field as primary keys which is not allowed. Fields ({', '.join(pks)}) are primary keys."
-                )
-            fields = [*user_fields, *predefined_fields]
-            fields_name = ", ".join(f for f in [" ".join(field) for field in fields])
             sql = (
-                MySqlStatements.CREATE_NEW_TABLE.format(
+                Sqlite3Statements.CREATE_NEW_TABLE.format(
                     table_name=f"`{self.table_name}`", fields_name=fields_name
                 )
                 if not self.ignore_exists
-                else MySqlStatements.CREATE_NEW_TABLE_IF_NOT_EXITS.format(
+                else Sqlite3Statements.CREATE_NEW_TABLE_IF_NOT_EXITS.format(
                     table_name=f"`{self.table_name}`", fields_name=fields_name
                 )
             )
@@ -227,7 +203,7 @@ class GetStatement[T]:
             raise UnsupportedDialectException(
                 "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
             )
-        return [sql, sql2]
+        return [sql]
 
     def _get_select_where_command(
         self,
@@ -845,6 +821,46 @@ class GetStatement[T]:
                 options=" ".join(options),
                 pk_name=pk_name,
                 filters="" if len(filters) == 0 else "WHERE " + " ".join(filters),
+            )
+        else:
+            raise UnsupportedDialectException(
+                "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
+            )
+        return sql
+
+    def _get_alter_table_command(self, old_columns: list[str]) -> str:
+        """
+        1. get table columns
+        2. check if is new column
+        3. check if the column has been removed
+        """
+        _, pk_name, _, _ = get_table_fields(model=self.model, dialect=self.dialect)
+        pks, alterations = get_alter_table_params(
+            dialect=self.dialect, model=self.model, old_columns=old_columns
+        )
+
+        alterations = ", ".join(alterations)
+        # do we have a single primary key or not?
+        if len(pks) == 0:
+            raise PkNotDefinedException(
+                "Your table does not have a primary key column."
+            )
+        if len(pks) > 1:
+            raise TooManyPkException(
+                f"You have defined many field as primary keys which is not allowed. Fields ({', '.join(pks)}) are primary keys."
+            )
+        if self.dialect == "postgres":
+            sql = PgStatements.ALTER_TABLE_COMMAND.format(
+                table_name=f'"{self.table_name}"', alterations=alterations
+            )
+        elif self.dialect == "mysql":
+            sql = MySqlStatements.ALTER_TABLE_COMMAND.format(
+                table_name=f"`{self.table_name}`", alterations=alterations
+            )
+
+        elif self.dialect == "sqlite":
+            sql = Sqlite3Statements.ALTER_TABLE_COMMAND.format(
+                table_name=f"`{self.table_name}`", alterations=alterations
             )
         else:
             raise UnsupportedDialectException(

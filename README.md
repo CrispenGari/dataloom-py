@@ -278,6 +278,13 @@ loom = Loom(
     logs_filename="logs.sql",
     port=5432,
 )
+
+# OR with connection_uri
+loom = Loom(
+    dialect="mysql",
+    connection_uri = "mysql://root:root@localhost:3306/hi",
+   # ...
+)
 ```
 
 The `Loom` class takes in the following options:
