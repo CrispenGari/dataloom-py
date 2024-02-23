@@ -61,6 +61,7 @@ class sql(SQL):
         affected_rows: bool = False,
         operation: Optional[str] = None,
         _verbose: int = 1,
+        _is_script: bool = False,
     ) -> Any:
         # do we need to log the executed SQL?
         if self.sql_logger is not None and _verbose > 0:
@@ -128,13 +129,16 @@ class sql(SQL):
                     result = cursor.lastrowid
         elif self.dialect == "sqlite":
             cursor = self.conn.cursor()
-            if args is None:
-                cursor.execute(sql)
+            if _is_script:
+                cursor.executescript(sql)
             else:
-                if bulk:
-                    cursor.executemany(sql, args)
+                if args is None:
+                    cursor.execute(sql)
                 else:
-                    cursor.execute(sql, args)
+                    if bulk:
+                        cursor.executemany(sql, args)
+                    else:
+                        cursor.execute(sql, args)
             # options
             if bulk or affected_rows:
                 result = cursor.rowcount

@@ -46,8 +46,11 @@ class User(Model):
     id = PrimaryKeyColumn(type="int", auto_increment=True)
     name = Column(type="text", nullable=False, default="Bob")
     username = Column(type="varchar", unique=True, length=255)
-    bio = Column(type="varchar", unique=False, length=500)
+    bio = Column(type="varchar", unique=False, length=200, default="Hello world")
     tokenVersion = Column(type="int", default=0)
 
+    createdAt = CreatedAtColumn()
+    updatedAt = UpdatedAtColumn()
 
-conn, tables = pg_loom.connect_and_sync([User], alter=True)
+
+conn, tables = mysql_loom.connect_and_sync([User], alter=True)

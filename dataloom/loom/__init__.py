@@ -1158,6 +1158,7 @@ class Loom(ILoom):
         affected_rows: bool = False,
         operation: Optional[str] = None,
         _verbose: int = 1,
+        _is_script: bool = False,
     ) -> Any:
         return self.sql_obj.execute_sql(
             sql=sql,
@@ -1170,6 +1171,7 @@ class Loom(ILoom):
             fetchmany=fetchmany,
             affected_rows=affected_rows,
             _verbose=_verbose,
+            _is_script=_is_script,
         )
 
     def connect(
@@ -1435,7 +1437,7 @@ class Loom(ILoom):
                         sql = model._alter_sql(
                             dialect=self.dialect, old_columns=old_columns
                         )
-                        self._execute_sql(sql)
+                        self._execute_sql(sql, _is_script=self.dialect == "sqlite")
                     else:
                         for sql in model._create_sql(dialect=self.dialect):
                             if sql is not None:
