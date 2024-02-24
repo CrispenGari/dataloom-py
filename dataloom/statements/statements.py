@@ -1,4 +1,15 @@
 class MySqlStatements:
+    # Altering tables
+
+    ALTER_TABLE_COMMAND = """
+        -- Begin a transaction
+        START TRANSACTION;
+            {alterations}
+        -- Commit the transaction
+        COMMIT;
+    
+    """
+
     # describing tables
 
     DESCRIBE_TABLE_COMMAND = """
@@ -137,6 +148,29 @@ class MySqlStatements:
 
 
 class Sqlite3Statements:
+    # Altering tables
+
+    ALTER_TABLE_COMMAND = """
+    -- Begin a transaction
+    BEGIN TRANSACTION;
+    
+    -- Create a new table with the desired schema
+    {create_new_table_command}
+
+    -- Copy data from the old table to the new one
+    INSERT INTO {new_table_name} ({new_table_columns})
+    SELECT {new_table_columns}
+    FROM {old_table_name};
+
+    -- Drop the old table
+    DROP TABLE {old_table_name};
+
+    -- Rename the new table to the original table name
+    ALTER TABLE {new_table_name} RENAME TO {old_table_name};
+    
+    -- Commit the transaction
+    COMMIT;
+    """
     # describing table
 
     DESCRIBE_TABLE_COMMAND = """PRAGMA table_info({table_name});"""
@@ -254,6 +288,11 @@ class Sqlite3Statements:
 
 
 class PgStatements:
+    # Altering tables
+
+    ALTER_TABLE_COMMAND = """
+    {alterations}
+    """
     # describing table
     DESCRIBE_TABLE_COMMAND = """
     SELECT {fields}

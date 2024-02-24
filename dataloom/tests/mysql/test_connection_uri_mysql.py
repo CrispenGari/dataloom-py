@@ -2,16 +2,14 @@ import pytest
 from mysql import connector
 
 
-class TestConnectionMySQL:
+class TestConnectionURIMySQL:
     def test_connect_with_non_existing_database(self):
         from dataloom import Loom
         from dataloom.keys import MySQLConfig
 
         mysql_loom = Loom(
             dialect="mysql",
-            database="non-exists",
-            password=MySQLConfig.password,
-            user=MySQLConfig.user,
+            connection_uri=f"mysql://{MySQLConfig.user}:{MySQLConfig.password}@{MySQLConfig.host}:{MySQLConfig.port}/non-exists",
         )
         with pytest.raises(connector.errors.ProgrammingError) as exc_info:
             conn = mysql_loom.connect()
@@ -25,9 +23,7 @@ class TestConnectionMySQL:
 
         mysql_loom = Loom(
             dialect="mysql",
-            database=MySQLConfig.database,
-            password="user",
-            user=MySQLConfig.user,
+            connection_uri=f"mysql://{MySQLConfig.user}:{MySQLConfig.password+'me'}@{MySQLConfig.host}:{MySQLConfig.port}/{MySQLConfig.database}",
         )
         with pytest.raises(connector.errors.ProgrammingError) as exc_info:
             conn = mysql_loom.connect()
@@ -44,9 +40,7 @@ class TestConnectionMySQL:
 
         mysql_loom = Loom(
             dialect="mysql",
-            database=MySQLConfig.database,
-            password=MySQLConfig.password,
-            user="hey",
+            connection_uri=f"mysql://hey:{MySQLConfig.password}@{MySQLConfig.host}:{MySQLConfig.port}/{MySQLConfig.database}",
         )
         with pytest.raises(connector.errors.ProgrammingError) as exc_info:
             conn = mysql_loom.connect()
@@ -63,10 +57,8 @@ class TestConnectionMySQL:
 
         with pytest.raises(UnsupportedDialectException) as exc_info:
             mysql_loom = Loom(
-                dialect="peew",
-                database=MySQLConfig.database,
-                password="user",
-                user=MySQLConfig.user,
+                dialect="dialect",
+                connection_uri=f"mysql://{MySQLConfig.user}:{MySQLConfig.password}@{MySQLConfig.host}:{MySQLConfig.port}/{MySQLConfig.database}",
             )
             conn = mysql_loom.connect()
             conn.close()
@@ -82,10 +74,26 @@ class TestConnectionMySQL:
 
         mysql_loom = Loom(
             dialect="mysql",
-            database=MySQLConfig.database,
-            password=MySQLConfig.password,
-            user=MySQLConfig.user,
+            connection_uri=f"mysql://{MySQLConfig.user}:{MySQLConfig.password}@{MySQLConfig.host}:{MySQLConfig.port}/{MySQLConfig.database}",
         )
         conn = mysql_loom.connect()
         conn.close()
         assert conn is not None
+
+    def test_wrong_connection_uri(self):
+        from dataloom import Loom
+        from dataloom.keys import MySQLConfig
+        from dataloom.exceptions import InvalidConnectionURI
+
+        with pytest.raises(InvalidConnectionURI) as exc_info:
+            pg_loom = Loom(
+                dialect="mysql",
+                connection_uri=f"mysq://{MySQLConfig.user}:{MySQLConfig.password}@{MySQLConfig.host}:{MySQLConfig.port}/{MySQLConfig.database}",
+            )
+            conn = pg_loom.connect()
+            conn.close()
+
+        assert (
+            str(exc_info.value)
+            == "Invalid connection uri for the dialect 'mysql' valid examples are ('mysql://user:password@localhost:3306/dbname')."
+        )

@@ -4,7 +4,7 @@ from sqlite3.dbapi2 import Connection
 from os import PathLike
 from typing_extensions import TypeAlias
 from typing import Optional
-
+from urllib.parse import urlparse, parse_qs
 from dataloom.constants import instances
 
 
@@ -87,3 +87,21 @@ class ConnectionOptionsFactory:
             raise UnsupportedDialectException(
                 "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
             )
+
+    @staticmethod
+    def get_mysql_uri_connection_options(uri: str) -> dict:
+        components = urlparse(uri)
+        user = components.username
+        password = components.password
+        hostname = components.hostname
+        port = components.port
+        db = components.path.lstrip("/")
+
+        return {
+            "user": user,
+            "password": password,
+            "host": hostname,
+            "port": port,
+            "database": db,
+            **parse_qs(components.query),
+        }

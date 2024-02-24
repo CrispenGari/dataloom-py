@@ -8,7 +8,7 @@ from dataloom.loom.delete import delete
 from dataloom.loom.query import query
 from dataloom.loom.insert import insert
 from dataloom.loom.sql import sql as SQL
-from dataloom.exceptions import UnsupportedDialectException
+from dataloom.exceptions import UnsupportedDialectException, InvalidConnectionURI
 from dataloom.model import Model
 from dataloom.statements import GetStatement
 from dataloom.conn import ConnectionOptionsFactory
@@ -37,7 +37,9 @@ class Loom(ILoom):
 
     Parameters
     ----------
-    database : str
+    connection_uri : str, optional
+        The connection string uri that you can use to connect to the database per dialect. Examples are 'postgresql://user:password@host:port/dbname', 'sqlite:///database.db', 'mysql://user:password@host:port/dbname' for postgres, sqlite and mysql respectively.
+    database : str, optional
         The name of the database to which you will connect, for PostgreSQL or MySQL, and the file name for SQLite.
     dialect : "mysql" | "postgres" | "sqlite"
         The database dialect to which you want to connect; it is required.
@@ -67,10 +69,20 @@ class Loom(ILoom):
 
     """
 
+    def __get_database_name(self, uri: str) -> str | None:
+        if self.dialect == "postgres" or self.dialect == "mysql":
+            from urllib.parse import urlparse
+
+            components = urlparse(uri)
+            db = components.path.lstrip("/")
+            return db
+        return None
+
     def __init__(
         self,
-        database: str,
         dialect: DIALECT_LITERAL,
+        connection_uri: Optional[str] = None,
+        database: Optional[str] = None,
         user: Optional[str] = None,
         host: Optional[str] = None,
         port: Optional[int] = None,
@@ -78,11 +90,16 @@ class Loom(ILoom):
         sql_logger: Optional[SQL_LOGGER_LITERAL] = None,
         logs_filename: Optional[str] = "dataloom.sql",
     ) -> None:
-        self.database = database
         self.conn = None
         self.sql_logger = sql_logger
         self.dialect = dialect
         self.logs_filename = logs_filename
+        self.connection_uri = connection_uri
+        self.database = (
+            database
+            if self.connection_uri is None
+            else self.__get_database_name(self.connection_uri)
+        )
 
         try:
             config = instances[dialect]
@@ -1124,7 +1141,7 @@ class Loom(ILoom):
 
         """
         sql = GetStatement(self.dialect)._get_tables_command
-        res = self._execute_sql(sql, fetchall=True)
+        res = self._execute_sql(sql, fetchall=True, _verbose=0)
         if self.dialect == "sqlite":
             return [t[0] for t in res if not str(t[0]).lower().startswith("sqlite_")]
         return [t[0] for t in res]
@@ -1141,6 +1158,7 @@ class Loom(ILoom):
         affected_rows: bool = False,
         operation: Optional[str] = None,
         _verbose: int = 1,
+        _is_script: bool = False,
     ) -> Any:
         return self.sql_obj.execute_sql(
             sql=sql,
@@ -1153,6 +1171,7 @@ class Loom(ILoom):
             fetchmany=fetchmany,
             affected_rows=affected_rows,
             _verbose=_verbose,
+            _is_script=_is_script,
         )
 
     def connect(
@@ -1194,27 +1213,61 @@ class Loom(ILoom):
 
         """
         if self.dialect == "postgres":
-            options = ConnectionOptionsFactory.get_connection_options(
-                **self.connection_options
-            )
-            with psycopg2.connect(**options) as conn:
-                self.conn = conn
+            if self.connection_uri is None:
+                options = ConnectionOptionsFactory.get_connection_options(
+                    **self.connection_options
+                )
+                with psycopg2.connect(**options) as conn:
+                    self.conn = conn
+            else:
+                if not self.connection_uri.startswith("postgresql:"):
+                    raise InvalidConnectionURI(
+                        f"Invalid connection uri for the dialect '{self.dialect}' valid examples are ('postgresql://user:password@localhost:5432/dbname')."
+                    )
+                with psycopg2.connect(self.connection_uri) as conn:
+                    self.conn = conn
         elif self.dialect == "mysql":
-            options = ConnectionOptionsFactory.get_connection_options(
-                **self.connection_options
-            )
+            if self.connection_uri is None:
+                options = ConnectionOptionsFactory.get_connection_options(
+                    **self.connection_options
+                )
+            else:
+                if self.connection_uri.startswith("mysql:"):
+                    options = ConnectionOptionsFactory.get_mysql_uri_connection_options(
+                        self.connection_uri
+                    )
+                else:
+                    raise InvalidConnectionURI(
+                        f"Invalid connection uri for the dialect '{self.dialect}' valid examples are ('mysql://user:password@localhost:3306/dbname')."
+                    )
             self.conn = connector.connect(**options)
 
         elif self.dialect == "sqlite":
-            options = ConnectionOptionsFactory.get_connection_options(
-                **self.connection_options
-            )
-            if "database" in options:
-                with sqlite3.connect(options.get("database")) as conn:
-                    self.conn = conn
-
+            if self.connection_uri is None:
+                options = ConnectionOptionsFactory.get_connection_options(
+                    **self.connection_options
+                )
+                if "database" in options:
+                    with sqlite3.connect(options.get("database")) as conn:
+                        self.conn = conn
+                else:
+                    with sqlite3.connect(**options) as conn:
+                        self.conn = conn
             else:
-                with sqlite3.connect(**options) as conn:
+                import os
+                import re
+
+                if not self.connection_uri.startswith("sqlite:"):
+                    raise InvalidConnectionURI(
+                        f"Invalid connection uri for the dialect '{self.dialect}' valid examples are ('sqlite:///db.db', 'sqlite://db.db', 'sqlite:///path/to/database/db.db')."
+                    )
+                cwd = os.getcwd()
+                dbName = os.path.basename(self.connection_uri)
+                path = os.path.join(re.sub(r"sqlite:(/{2,})", "", self.connection_uri))
+                directory = os.path.join(cwd, path).replace(dbName, "")
+                if not os.path.exists(directory):
+                    os.makedirs(directory)
+                with sqlite3.connect(os.path.join(directory, dbName)) as conn:
                     self.conn = conn
         else:
             raise UnsupportedDialectException(
@@ -1285,53 +1338,16 @@ class Loom(ILoom):
         ...     conn.close()
 
         """
-
         try:
-            if self.dialect == "postgres":
-                options = ConnectionOptionsFactory.get_connection_options(
-                    **self.connection_options
-                )
-                with psycopg2.connect(**options) as conn:
-                    self.conn = conn
-            elif self.dialect == "mysql":
-                options = ConnectionOptionsFactory.get_connection_options(
-                    **self.connection_options
-                )
-                self.conn = connector.connect(**options)
-
-            elif self.dialect == "sqlite":
-                options = ConnectionOptionsFactory.get_connection_options(
-                    **self.connection_options
-                )
-                if "database" in options:
-                    with sqlite3.connect(options.get("database")) as conn:
-                        self.conn = conn
-                else:
-                    with sqlite3.connect(**options) as conn:
-                        self.conn = conn
-            else:
-                raise UnsupportedDialectException(
-                    "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
-                )
+            self.conn = self.connect()
             self.sql_obj = SQL(
                 conn=self.conn,
                 dialect=self.dialect,
                 sql_logger=self.sql_logger,
                 logs_filename=self.logs_filename,
             )
-            for model in models:
-                if drop or force:
-                    self._execute_sql(model._drop_sql(dialect=self.dialect))
-                    for sql in model._create_sql(dialect=self.dialect):
-                        if sql is not None:
-                            self._execute_sql(sql)
-                elif alter:
-                    pass
-                else:
-                    for sql in model._create_sql(dialect=self.dialect):
-                        if sql is not None:
-                            self._execute_sql(sql)
-            return self.conn, self.tables
+            tables = self.sync(models=models, drop=drop, force=force, alter=alter)
+            return self.conn, tables
         except Exception as e:
             raise Exception(e)
 
@@ -1395,7 +1411,37 @@ class Loom(ILoom):
                         if sql is not None:
                             self._execute_sql(sql)
                 elif alter:
-                    pass
+                    # 1. we only alter the table if it does exists
+                    # 2. if not we just have to create a new table
+                    if model._get_table_name() in self.tables:
+                        sql1 = model._get_describe_stm(
+                            dialect=self.dialect, fields=["column_name"]
+                        )
+                        args = None
+                        if self.dialect == "mysql":
+                            args = (self.database, model._get_table_name())
+                        elif self.dialect == "postgres":
+                            args = ("public", model._get_table_name())
+                        elif self.dialect == "sqlite":
+                            args = ()
+                        cols = self._execute_sql(
+                            sql1, _verbose=0, args=args, fetchall=True
+                        )
+                        if cols is not None:
+                            if self.dialect == "mysql":
+                                old_columns = [col for (col,) in cols]
+                            elif self.dialect == "postgres":
+                                old_columns = [col for (col,) in cols]
+                            else:
+                                old_columns = [col[1] for col in cols]
+                        sql = model._alter_sql(
+                            dialect=self.dialect, old_columns=old_columns
+                        )
+                        self._execute_sql(sql, _is_script=True)
+                    else:
+                        for sql in model._create_sql(dialect=self.dialect):
+                            if sql is not None:
+                                self._execute_sql(sql)
                 else:
                     for sql in model._create_sql(dialect=self.dialect):
                         if sql is not None:

@@ -14,36 +14,48 @@ from dataloom import (
     Group,
     Having,
 )
+
+"""
+ ALTER TABLE "users" ALTER COLUMN "bio" TYPE VARCHAR(200),
+ ALTER COLUMN "bio" DROP DEFAULT, ALTER COLUMN "bio" SET DEFAULT 'Hello world', ALTER COLUMN "bio" DROP NOT NULL, DROP CONSTRAINT IF EXISTS  "unique_bio";
+
+            ALTER TABLE "users" ALTER COLUMN "name" TYPE TEXT, ALTER COLUMN "name" DROP DEFAULT, ALTER COLUMN "name" SET DEFAULT 'Bob', ALTER COLUMN "name" DROP NOT NULL, ALTER COLUMN "name" SET NOT NULL, DROP CONSTRAINT IF EXISTS  "unique_name";
+            ALTER TABLE "users" ADD "p" BIGSERIAL REFERENCES "profiles"("id") ON DELETE SET NULL; 
+            ALTER TABLE "users" ALTER COLUMN "tokenVersion" TYPE INTEGER, ALTER COLUMN "tokenVersion" DROP DEFAULT, ALTER COLUMN "tokenVersion" SET DEFAULT '0', ALTER COLUMN "tokenVersion" DROP NOT NULL, DROP CONSTRAINT IF EXISTS  "unique_tokenVersion";
+            ALTER TABLE "users" ALTER COLUMN "username" TYPE VARCHAR(255), ALTER COLUMN "username" DROP DEFAULT, ALTER COLUMN "username" DROP NOT NULL, DROP CONSTRAINT IF EXISTS  "unique_username", ADD CONSTRAINT "unique_username" UNIQUE ("username");
+            ALTER TABLE "users" DROP COLUMN "p";
+"""
 from dataloom.decorators import initialize
 import json, time
 from typing import Optional
 from dataclasses import dataclass
 
 sqlite_loom = Loom(
+    connection_uri="sqlite://hello/database.db",
     dialect="sqlite",
     database="hi.db",
     logs_filename="sqlite-logs.sql",
     sql_logger="console",
 )
 
+
 pg_loom = Loom(
+    connection_uri="postgresql://postgres:root@localhost:5432/hi",
     dialect="postgres",
-    database="hi",
-    password="root",
-    user="postgres",
     sql_logger="console",
 )
 
 mysql_loom = Loom(
+    connection_uri="mysql://root:root@localhost:3306/hi",
     dialect="mysql",
-    database="hi",
-    password="root",
-    user="root",
-    host="localhost",
-    logs_filename="logs.sql",
-    port=3306,
     sql_logger="console",
 )
+
+
+class Profile(Model):
+    __tablename__: Optional[TableColumn] = TableColumn(name="profiles")
+    _id = PrimaryKeyColumn(type="int", auto_increment=True)
+    name = Column(type="text", nullable=False, default="Bob")
 
 
 class User(Model):
@@ -51,115 +63,22 @@ class User(Model):
     id = PrimaryKeyColumn(type="int", auto_increment=True)
     name = Column(type="text", nullable=False, default="Bob")
     username = Column(type="varchar", unique=True, length=255)
+    bio = Column(type="varchar", unique=False, length=200, default="Hello world")
     tokenVersion = Column(type="int", default=0)
 
-
-@initialize(repr=True, to_dict=True, init=True, repr_identifier="id")
-class Profile(Model):
-    __tablename__: Optional[TableColumn] = TableColumn(name="profiles")
-    id = PrimaryKeyColumn(type="int", auto_increment=True)
-    avatar = Column(type="text", nullable=False)
-    userId = ForeignKeyColumn(
-        User,
-        maps_to="1-1",
-        type="int",
-        required=True,
-        onDelete="CASCADE",
-        onUpdate="CASCADE",
-    )
-
-
-class Post(Model):
-    __tablename__: Optional[TableColumn] = TableColumn(name="posts")
-    id = PrimaryKeyColumn(type="int", auto_increment=True, nullable=False, unique=True)
-    completed = Column(type="boolean", default=False)
-    title = Column(type="varchar", length=255, nullable=False)
-    # timestamps
     createdAt = CreatedAtColumn()
-    # relations
-    userId = ForeignKeyColumn(
-        User,
-        maps_to="1-N",
+    updatedAt = UpdatedAtColumn()
+
+    profileId = ForeignKeyColumn(
+        Profile,
         type="int",
-        required=True,
+        maps_to="1-1",
         onDelete="CASCADE",
         onUpdate="CASCADE",
+        required=False,
     )
 
 
-class Category(Model):
-    __tablename__: Optional[TableColumn] = TableColumn(name="categories")
-    id = PrimaryKeyColumn(type="int", auto_increment=True, nullable=False, unique=True)
-    type = Column(type="varchar", length=255, nullable=False)
+conn, tables = pg_loom.connect_and_sync([Profile, User], alter=True)
 
-    postId = ForeignKeyColumn(
-        Post,
-        maps_to="N-1",
-        type="int",
-        required=True,
-        onDelete="CASCADE",
-        onUpdate="CASCADE",
-    )
-
-
-conn, tables = mysql_loom.connect_and_sync(
-    [User, Profile, Post, Category], drop=True, force=True
-)
-
-
-userId = mysql_loom.insert_one(
-    instance=User,
-    values=ColumnValue(name="username", value="@miller"),
-)
-
-aff = mysql_loom.delete_bulk(
-    instance=User,
-    filters=Filter(column="id", value=1),
-)
-print(aff)
-
-
-userId2 = mysql_loom.insert_one(
-    instance=User,
-    values=ColumnValue(name="username", value="bob"),
-)
-
-profileId = mysql_loom.insert_one(
-    instance=Profile,
-    values=[
-        ColumnValue(name="userId", value=userId),
-        ColumnValue(name="avatar", value="hello.jpg"),
-    ],
-)
-for title in ["Hello", "Hello", "What are you doing", "Coding"]:
-    mysql_loom.insert_one(
-        instance=Post,
-        values=[
-            ColumnValue(name="userId", value=userId),
-            ColumnValue(name="title", value=title),
-        ],
-    )
-
-
-for cat in ["general", "education", "tech", "sport"]:
-    mysql_loom.insert_one(
-        instance=Category,
-        values=[
-            ColumnValue(name="postId", value=1),
-            ColumnValue(name="type", value=cat),
-        ],
-    )
-
-posts = mysql_loom.find_many(
-    Post,
-    select="id",
-    filters=Filter(column="id", operator="gt", value=1),
-    group=Group(
-        column="id",
-        function="MAX",
-        having=Having(column="id", operator="in", value=(2, 3, 4)),
-        return_aggregation_column=False,
-    ),
-)
-
-print(posts)
+print(pg_loom.inspect(Profile, print_table=False))

@@ -55,11 +55,17 @@ class Model:
     """
 
     @classmethod
-    def _create_sql(cls, dialect: DIALECT_LITERAL, ignore_exists=True):
+    def _create_sql(cls, dialect: DIALECT_LITERAL):
         sqls = GetStatement(
             dialect=dialect, model=cls, table_name=cls._get_table_name()
         )._get_create_table_command
         return sqls
+
+    @classmethod
+    def _alter_sql(cls, dialect: DIALECT_LITERAL, old_columns: list[str]):
+        return GetStatement(
+            dialect=dialect, model=cls, table_name=cls._get_table_name()
+        )._get_alter_table_command(old_columns=old_columns)
 
     @classmethod
     def _get_table_name(self):

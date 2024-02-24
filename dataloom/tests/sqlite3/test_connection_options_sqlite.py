@@ -1,7 +1,7 @@
 import pytest
 
 
-class TestConnectionSQLite:
+class TestConnectionOptionsSQLite:
     def test_connect_with_wrong_dialect(self):
         from dataloom import Loom
         from dataloom.exceptions import UnsupportedDialectException

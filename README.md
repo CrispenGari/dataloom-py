@@ -80,7 +80,7 @@
       - [Guidelines for Safe Usage](#guidelines-for-safe-usage)
 - [Ordering](#ordering)
 - [Filters](#filters)
-  - [Operators](#operators)
+    - [Operators](#operators)
 - [Data Aggregation](#data-aggregation)
   - [Aggregation Functions](#aggregation-functions)
 - [Utilities](#utilities)
@@ -170,6 +170,18 @@ if __name__ == "__main__":
     conn.close()
 ```
 
+In dataloom you can use connection uris to establish a connection to the database in `postgres` as follows:
+
+```py
+pg_loom = Loom(
+    dialect="postgres",
+    connection_uri = "postgressql://root:root@localhost:5432/hi",
+   # ...
+)
+```
+
+This will establish a connection with `postgres` with the database `hi`.
+
 #### `MySQL`
 
 To establish a connection with a `MySQL` database using `Loom`, you can use the following example:
@@ -198,6 +210,18 @@ if __name__ == "__main__":
 
 ```
 
+In dataloom you can use connection uris to establish a connection to the database in `mysql` as follows:
+
+```py
+mysql_loom = Loom(
+    dialect="mysql",
+    connection_uri = "mysql://root:root@localhost:3306/hi",
+   # ...
+)
+```
+
+This will establish a connection with `mysql` with the database `hi`.
+
 #### `SQLite`
 
 To establish a connection with an `SQLite` database using `Loom`, you can use the following example:
@@ -222,6 +246,18 @@ if __name__ == "__main__":
     conn.close()
 ```
 
+In dataloom you can use connection uris to establish a connection to the database in `sqlite` as follows:
+
+```py
+sqlite_loom = Loom(
+    dialect="sqlite",
+   connection_uri = "sqlite:///hi.db",
+   # ...
+)
+```
+
+This will establish a connection with `sqlite` with the database `hi`.
+
 ### Dataloom Classes
 
 The following are the list of classes that are available in `dataloom`.
@@ -242,13 +278,21 @@ loom = Loom(
     logs_filename="logs.sql",
     port=5432,
 )
+
+# OR with connection_uri
+loom = Loom(
+    dialect="mysql",
+    connection_uri = "mysql://root:root@localhost:3306/hi",
+   # ...
+)
 ```
 
 The `Loom` class takes in the following options:
 | Parameter | Description | Value Type | Default Value | Required |
 | --------------- | --------------------------------------------------------------------------------- | --------------- | -------------- | -------- |
+| `connection_uri` | The connection `uri` for the specified dialect. | `str` or `None` | `None` | `No` |
 | `dialect` | Dialect for the database connection. Options are `mysql`, `postgres`, or `sqlite` | `str` or `None` | `None` | `Yes` |
-| `database` | Name of the database for `mysql` and `postgres`, filename for `sqlite` | `str` or `None` | `None` | `Yes` |
+| `database` | Name of the database for `mysql` and `postgres`, filename for `sqlite` | `str` or `None` | `None` | `No` |
 | `password` | Password for the database user (only for `mysql` and `postgres`) | `str` or `None` | `None` | `No` |
 | `user` | Database user (only for `mysql` and `postgres`) | `str` or `None` | `None` | `No` |
 | `host` | Database host (only for `mysql` and `postgres`) | `str` or `None` | `localhost` | `No` |
@@ -619,6 +663,8 @@ The method returns a list of table names that have been created or that exist in
 | `drop`   | Whether to drop tables during syncing or not.                   | `bool` | `False` |
 | `force`  | Forcefully drop tables during syncing or not.                   | `bool` | `False` |
 | `alter`  | Alter tables instead of dropping them during syncing or not.    | `bool` | `False` |
+
+> 🥇 **We recommend you to use `drop` or `force` if you are going to change or modify `foreign` and `primary` keys. This is because setting the option `alter` doe not have an effect on `primary` key columns.**
 
 > We've noticed two steps involved in starting to work with our `orm`. Initially, you need to create a connection and then synchronize the tables in another step.
 

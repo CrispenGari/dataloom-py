@@ -1,10 +1,51 @@
 ===
-Dataloom **`2.0.0`**
+Dataloom **`2.1.0`**
 ===
 
 ### Release Notes - `dataloom`
 
-We have release the new `dataloom` Version `2.0.0` (`2024-02-12`)
+We have release the new `dataloom` Version `2.1.0` (`2024-02-24`)
+
+##### Features
+
+- Connecting to databases using connection `uri` for all the supported dialects
+
+  ```py
+  # postgress
+  pg_loom = Loom(
+    dialect="postgres",
+    connection_uri = "postgressql://root:root@localhost:5432/hi",
+   # ...
+  )
+  # mysql
+  mysql_loom = Loom(
+    dialect="mysql",
+    connection_uri = "mysql://root:root@localhost:3306/hi",
+   # ...
+  )
+
+  # sqlite
+  sqlite_loom = Loom(
+    dialect="sqlite",
+   connection_uri = "sqlite:///hi.db",
+   # ...
+  )
+  ```
+
+- updated documentation.
+- enable table alterations as an option of `sync` and `connect_and_sync` function.
+  ```py
+  conn, tables = pg_loom.connect_and_sync([Profile, User], alter=True)
+  ```
+  > 🥇 **We recommend you to use `drop` or `force` if you are going to change or modify `foreign` and `primary` keys. This is because setting the option `alter` doe not have an effect on `primary` key columns.**
+
+===
+
+# Dataloom **`2.0.0`**
+
+### Release Notes - `dataloom`
+
+We have release the new `dataloom` Version `2.0.0` (`2024-02-21`)
 
 ##### Features
 
