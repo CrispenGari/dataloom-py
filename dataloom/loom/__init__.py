@@ -1437,7 +1437,7 @@ class Loom(ILoom):
                         sql = model._alter_sql(
                             dialect=self.dialect, old_columns=old_columns
                         )
-                        self._execute_sql(sql, _is_script=self.dialect == "sqlite")
+                        self._execute_sql(sql, _is_script=True)
                     else:
                         for sql in model._create_sql(dialect=self.dialect):
                             if sql is not None:

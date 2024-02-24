@@ -837,15 +837,8 @@ class GetStatement[T]:
             dialect=self.dialect, model=self.model, old_columns=old_columns
         ).get_alter_table_params
 
-        alterations = (
-            (
-                ", ".join(alterations)
-                if self.dialect == "mysql"
-                else " ".join(alterations)
-            )
-            if self.dialect != "sqlite"
-            else ""
-        )
+        alterations = " ".join(alterations) if self.dialect != "sqlite" else ""
+
         # do we have a single primary key or not?
         if len(pks) == 0:
             raise PkNotDefinedException(

@@ -8,6 +8,7 @@ from dataloom.columns import (
 )
 from dataloom.types import DIALECT_LITERAL
 import re
+from dataloom.exceptions import InvalidDropOperationException
 
 
 class AlterTable:
@@ -37,7 +38,7 @@ class AlterTable:
         if name in self.old_columns:
             self.old_columns = [c for c in self.old_columns if c != name]
             if self.dialect == "mysql":
-                return f"MODIFY COLUMN {col} {_values}"
+                return f"ALTER TABLE {self.table_name} MODIFY COLUMN {col} {_values};"
             elif self.dialect == "postgres":
                 default_alterations = ", ".join(
                     [
@@ -101,9 +102,9 @@ class AlterTable:
 
         else:
             if self.dialect == "mysql":
-                return f"ADD {col} {_values}"
+                return f"ALTER TABLE {self.table_name} ADD {col} {_values};"
             else:
-                return f"""ALTER TABLE {self.table_name} ADD COLUMN {col} {_values};"""
+                return f"""ALTER TABLE {self.table_name} ADD COLUMN IF NOT EXISTS {col} {_values};"""
 
     def created_at_alterations(self, name: str, field: CreatedAtColumn) -> str:
         col = f'"{name}"' if self.dialect == "postgres" else f"`{name}`"
@@ -111,16 +112,18 @@ class AlterTable:
         if name in self.old_columns:
             self.old_columns = [c for c in self.old_columns if c != name]
             if self.dialect == "mysql":
-                return f"MODIFY COLUMN {col} {field.created_at}"
+                return f"ALTER TABLE {self.table_name} MODIFY COLUMN {col} {field.created_at};"
             elif self.dialect == "postgres":
                 return (
                     f"ALTER TABLE {self.table_name} RENAME COLUMN {old_name} TO {col};"
+                    if old_name != col
+                    else ""
                 )
         else:
             if self.dialect == "mysql":
-                return f"ADD {col} {field.created_at}"
+                return f"ALTER TABLE {self.table_name} ADD {col} {field.created_at};"
             else:
-                return f"""ALTER TABLE {self.table_name} ADD COLUMN {col} {field.created_at};"""
+                return f"""ALTER TABLE {self.table_name} ADD COLUMN IF NOT EXISTS {col} {field.created_at};"""
 
     def updated_at_alteration(self, name: str, field: UpdatedAtColumn) -> str:
         col = f'"{name}"' if self.dialect == "postgres" else f"`{name}`"
@@ -128,28 +131,79 @@ class AlterTable:
         if name in self.old_columns:
             self.old_columns = [c for c in self.old_columns if c != name]
             if self.dialect == "mysql":
-                return f"MODIFY COLUMN {col} {field.updated_at}"
+                return f"ALTER TABLE {self.table_name} MODIFY COLUMN {col} {field.updated_at};"
             elif self.dialect == "postgres":
                 return (
                     f"ALTER TABLE {self.table_name} RENAME COLUMN {old_name} TO {col};"
+                    if old_name != col
+                    else ""
                 )
         else:
             if self.dialect == "mysql":
-                return f"ADD {col} {field.updated_at}"
+                return f"ALTER TABLE {self.table_name} ADD {col} {field.updated_at};"
             else:
-                return f"""ALTER TABLE {self.table_name} ADD COLUMN {col} {field.updated_at};"""
+                return f"""ALTER TABLE {self.table_name} ADD COLUMN IF NOT EXISTS {col} {field.updated_at};"""
+
+    def foreign_key_alteration(self, name: str, field: ForeignKeyColumn) -> str:
+        pk, pk_type = field.table._get_pk_attributes(dialect=self.dialect)
+        parent_table_name = field.table._get_table_name()
+        col = f'"{name}"' if self.dialect == "postgres" else f"`{name}`"
+        old_name = f'"{name}"' if self.dialect == "postgres" else f"`{name}`"
+        _value = (
+            "{pk_type} {unique} {nullable} REFERENCES {parent_table_name}({pk}) ON DELETE {onDelete} ON UPDATE {onUpdate}".format(
+                onDelete=field.onDelete,
+                onUpdate=field.onUpdate,
+                pk_type=pk_type,
+                parent_table_name=f'"{parent_table_name}"'
+                if self.dialect == "postgres"
+                else f"`{parent_table_name}`",
+                pk=f'"{pk}"' if self.dialect == "postgres" else f"`{pk}`",
+                nullable="NOT NULL",
+                unique="UNIQUE" if field.maps_to == "1-1" else "",
+            )
+            if field.required
+            else "{pk_type} REFERENCES {parent_table_name}({pk}) ON DELETE SET NULL".format(
+                pk_type=pk_type,
+                parent_table_name=f'"{parent_table_name}"'
+                if self.dialect == "postgres"
+                else f"`{parent_table_name}`",
+                pk=f'"{pk}"' if self.dialect == "postgres" else f"`{pk}`",
+            )
+        )
+
+        if old_name in self.old_columns:
+            self.old_columns = [c for c in self.old_columns if c != name]
+            if self.dialect == "mysql":
+                return f"""
+                -- First, drop the existing foreign key constraint
+                ALTER TABLE {self.table_name} DROP {col};
+                
+                -- Then, modify the column and add the new foreign key constraint
+                ALTER TABLE {self.table_name} ADD {col} {_value};
+                """
+            elif self.dialect == "postgres":
+                return f"RENAME COLUMN {old_name} TO {col}" if old_name != col else ""
+
+        else:
+            if self.dialect == "postgres":
+                return f"ALTER TABLE {self.table_name} ADD {col} {_value};"
+            else:
+                return f"ALTER TABLE {self.table_name} ADD {col} {_value};"
 
     @property
     def get_alter_table_params(self):
         pks = []
         alterations = []
-
         # add or modify columns
         for name, field in inspect.getmembers(self.model):
             if isinstance(field, PrimaryKeyColumn):
                 col = f'"{name}"' if self.dialect == "postgres" else f"`{name}`"
-                pks.append(col)
+                if name not in self.old_columns:
+                    raise InvalidDropOperationException(
+                        f"You can not alter the primary key column to '{name}' consider setting the drop option to recreate the table '{self.model._get_table_name()}'."
+                    )
                 self.old_columns = [c for c in self.old_columns if c != name]
+                pks.append(col)
             elif isinstance(field, Column):
                 alterations.append(self.column_alteration(name=name, field=field))
             elif isinstance(field, CreatedAtColumn):
@@ -157,49 +211,14 @@ class AlterTable:
             elif isinstance(field, UpdatedAtColumn):
                 alterations.append(self.updated_at_alteration(name=name, field=field))
             elif isinstance(field, ForeignKeyColumn):
-                pk, pk_type = field.table._get_pk_attributes(dialect=self.dialect)
-                parent_table_name = field.table._get_table_name()
-                col = f'"{name}"' if self.dialect == "postgres" else f"`{name}`"
-                old_name = f'"{name}"' if self.dialect == "postgres" else f"`{name}`"
-                _value = (
-                    "{pk_type} {unique} {nullable} REFERENCES {parent_table_name}({pk}) ON DELETE {onDelete} ON UPDATE {onUpdate}".format(
-                        onDelete=field.onDelete,
-                        onUpdate=field.onUpdate,
-                        pk_type=pk_type,
-                        parent_table_name=f'"{parent_table_name}"'
-                        if self.dialect == "postgres"
-                        else f"`{parent_table_name}`",
-                        pk=f'"{pk}"' if self.dialect == "postgres" else f"`{pk}`",
-                        nullable="NOT NULL",
-                        unique="UNIQUE" if field.maps_to == "1-1" else "",
-                    )
-                    if field.required
-                    else "{pk_type} REFERENCES {parent_table_name}({pk}) ON DELETE SET NULL".format(
-                        pk_type=pk_type,
-                        parent_table_name=f'"{parent_table_name}"'
-                        if self.dialect == "postgres"
-                        else f"`{parent_table_name}`",
-                        pk=f'"{pk}"' if self.dialect == "postgres" else f"`{pk}`",
-                    )
-                )
+                alterations.append(self.foreign_key_alteration(name=name, field=field))
 
-                if name in self.old_columns:
-                    self.old_columns = [c for c in self.old_columns if c != name]
-                    if self.dialect == "mysql":
-                        alterations.append(f"MODIFY COLUMN {col}")
-                    elif self.dialect == "postgres":
-                        alterations.append(f"ALTER COLUMN {col}")
-
-                else:
-                    alterations.append(
-                        f"ALTER TABLE {self.table_name} ADD {col} {_value}"
-                    )
         # delete columns
         for name in self.old_columns:
             col = f'"{name}"' if self.dialect == "postgres" else f"`{name}`"
             if self.dialect == "mysql":
-                alterations.append(f"DROP COLUMN {col}")
+                alterations.append(f"ALTER TABLE {self.table_name} DROP COLUMN {col};")
             elif self.dialect == "postgres":
                 alterations.append(f"ALTER TABLE {self.table_name} DROP COLUMN {col};")
 
-        return pks, alterations
+        return pks, list(reversed(alterations))

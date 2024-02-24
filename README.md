@@ -80,7 +80,7 @@
       - [Guidelines for Safe Usage](#guidelines-for-safe-usage)
 - [Ordering](#ordering)
 - [Filters](#filters)
-  - [Operators](#operators)
+    - [Operators](#operators)
 - [Data Aggregation](#data-aggregation)
   - [Aggregation Functions](#aggregation-functions)
 - [Utilities](#utilities)
@@ -663,6 +663,8 @@ The method returns a list of table names that have been created or that exist in
 | `drop`   | Whether to drop tables during syncing or not.                   | `bool` | `False` |
 | `force`  | Forcefully drop tables during syncing or not.                   | `bool` | `False` |
 | `alter`  | Alter tables instead of dropping them during syncing or not.    | `bool` | `False` |
+
+> 🥇 **We recommend you to use `drop` or `force` if you are going to change or modify `foreign` and `primary` keys. This is because setting the option `alter` doe not have an effect on `primary` key columns.**
 
 > We've noticed two steps involved in starting to work with our `orm`. Initially, you need to create a connection and then synchronize the tables in another step.
 

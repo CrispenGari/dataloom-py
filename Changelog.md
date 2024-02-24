@@ -4,7 +4,7 @@ Dataloom **`2.1.0`**
 
 ### Release Notes - `dataloom`
 
-We have release the new `dataloom` Version `2.1.0` (`2024-02-21`)
+We have release the new `dataloom` Version `2.1.0` (`2024-02-24`)
 
 ##### Features
 
@@ -33,11 +33,15 @@ We have release the new `dataloom` Version `2.1.0` (`2024-02-21`)
   ```
 
 - updated documentation.
--
+- enable table alterations as an option of `sync` and `connect_and_sync` function.
+  ```py
+  conn, tables = pg_loom.connect_and_sync([Profile, User], alter=True)
+  ```
+  > 🥇 **We recommend you to use `drop` or `force` if you are going to change or modify `foreign` and `primary` keys. This is because setting the option `alter` doe not have an effect on `primary` key columns.**
 
 ===
-Dataloom **`2.0.0`**
-===
+
+# Dataloom **`2.0.0`**
 
 ### Release Notes - `dataloom`
 

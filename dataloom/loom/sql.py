@@ -103,6 +103,14 @@ class sql(SQL):
                     self.conn.commit()
         elif self.dialect == "mysql":
             with self.conn.cursor(buffered=True) as cursor:
+                if _is_script:
+                    for part in sql.split(";"):
+                        try:
+                            cursor.execute(part + ";")
+                        except Exception:
+                            pass
+                    return None
+
                 if args is None:
                     cursor.execute(sql)
                 else:

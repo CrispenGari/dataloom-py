@@ -10,6 +10,10 @@ class InvalidPropertyException(Exception):
     pass
 
 
+class InvalidDropOperationException(Exception):
+    pass
+
+
 class InvalidConnectionURI(Exception):
     pass
 

@@ -1,7 +1,7 @@
 # Configuration file for unit testing.
 
 
-push = False
+push = True
 
 
 class PgConfig:

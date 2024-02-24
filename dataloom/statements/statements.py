@@ -2,7 +2,12 @@ class MySqlStatements:
     # Altering tables
 
     ALTER_TABLE_COMMAND = """
-    ALTER TABLE {table_name} {alterations};
+        -- Begin a transaction
+        START TRANSACTION;
+            {alterations}
+        -- Commit the transaction
+        COMMIT;
+    
     """
 
     # describing tables
