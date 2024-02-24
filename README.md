@@ -80,7 +80,7 @@
       - [Guidelines for Safe Usage](#guidelines-for-safe-usage)
 - [Ordering](#ordering)
 - [Filters](#filters)
-    - [Operators](#operators)
+  - [Operators](#operators)
 - [Data Aggregation](#data-aggregation)
   - [Aggregation Functions](#aggregation-functions)
 - [Utilities](#utilities)
@@ -1946,7 +1946,7 @@ print(user_post) """ ? =
 ### What is coming next?
 
 1. N-N associations
-2. Altering tables
+2. utilities functions
 
 ### Contributing
 

@@ -1,4 +1,16 @@
 ===
+Dataloom **`2.1.1`**
+===
+
+### Release Notes - `dataloom`
+
+We have release the new `dataloom` Version `2.1.0` (`2024-02-24`)
+
+##### Features
+
+- updated documentation.
+
+===
 Dataloom **`2.1.0`**
 ===
 
