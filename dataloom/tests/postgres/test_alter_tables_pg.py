@@ -46,6 +46,7 @@ class TestAlterTableOnPG:
                 required=False,
             )
 
+        pg_loom.connect_and_sync([Profile, User], drop=True, force=True)
         conn, tables = pg_loom.connect_and_sync([Profile, User], alter=True)
 
         assert len(pg_loom.inspect(Profile, print_table=False)) == 2
