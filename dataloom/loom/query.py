@@ -71,6 +71,7 @@ class query(Query):
         offset: Optional[int] = None,
         order: Optional[list[Order] | Order] = [],
         group: Optional[list[Group] | Group] = [],
+        distinct: bool = False,
     ) -> list:
         data = []
 
@@ -88,6 +89,7 @@ class query(Query):
                 offset=offset,
                 order=order,
                 group=group,
+                distinct=distinct,
             )
             args = list(get_args(params)) + having_values
             rows = self._execute_sql(sql, fetchall=True, args=args)
@@ -119,6 +121,7 @@ class query(Query):
         offset: Optional[int] = None,
         order: Optional[list[Order] | Order] = [],
         group: Optional[list[Group] | Group] = [],
+        distinct: bool = False,
     ) -> list:
         data = []
         if not is_collection(include):
@@ -134,6 +137,7 @@ class query(Query):
                 offset=offset,
                 order=order,
                 group=group,
+                distinct=distinct,
             )
             args = list(get_args(params)) + having_values
             rows = self._execute_sql(sql, fetchall=True, args=args)

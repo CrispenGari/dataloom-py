@@ -619,3 +619,83 @@ class TestQueryingMySQL:
         assert len(post) == 3
 
         conn.close()
+
+    def test_distinct(self):
+        from dataloom import (
+            Loom,
+            Model,
+            Column,
+            PrimaryKeyColumn,
+            CreatedAtColumn,
+            TableColumn,
+            ForeignKeyColumn,
+            Filter,
+            ColumnValue,
+        )
+        from dataloom.keys import MySQLConfig
+
+        mysql_loom = Loom(
+            dialect="mysql",
+            database=MySQLConfig.database,
+            password=MySQLConfig.password,
+            user=MySQLConfig.user,
+        )
+
+        class User(Model):
+            __tablename__: TableColumn = TableColumn(name="users")
+            id = PrimaryKeyColumn(type="int", auto_increment=True)
+            name = Column(type="text", nullable=False, default="Bob")
+            username = Column(type="varchar", unique=True, length=255)
+            tokenVersion = Column(type="int", default=0)
+
+        class Post(Model):
+            __tablename__: TableColumn = TableColumn(name="posts")
+            id = PrimaryKeyColumn(
+                type="int", auto_increment=True, nullable=False, unique=True
+            )
+            completed = Column(type="boolean", default=False)
+            title = Column(type="varchar", length=255, nullable=False)
+            # timestamps
+            createdAt = CreatedAtColumn()
+            # relations
+            userId = ForeignKeyColumn(
+                User,
+                maps_to="1-N",
+                type="int",
+                required=True,
+                onDelete="CASCADE",
+                onUpdate="CASCADE",
+            )
+
+        conn, tables = mysql_loom.connect_and_sync([User, Post], drop=True, force=True)
+        userId = mysql_loom.insert_one(
+            instance=User,
+            values=ColumnValue(name="username", value="@miller"),
+        )
+        for title in ["Hey", "Hello", "What are you doing", "Coding"]:
+            mysql_loom.insert_one(
+                instance=Post,
+                values=[
+                    ColumnValue(name="userId", value=userId),
+                    ColumnValue(name="title", value=title),
+                ],
+            )
+
+        post = mysql_loom.find_many(
+            Post,
+            filters=Filter(
+                column="id",
+                operator="not",
+                value=2,
+            ),
+            select=["completed"],
+            distinct=True,
+        )
+        assert len(post) == 1
+        post = mysql_loom.find_all(
+            Post,
+            select=["completed"],
+            distinct=True,
+        )
+        assert len(post) == 1
+        conn.close()

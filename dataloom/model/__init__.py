@@ -158,6 +158,7 @@ class Model:
         offset: Optional[int] = None,
         order: Optional[list[Order] | Order] = [],
         group: Optional[list[Group] | Group] = [],
+        distinct: bool = False,
     ):
         if not is_collection(select):
             select = [select]
@@ -216,6 +217,7 @@ class Model:
                     pk_name=pk_name,
                     groups=(group_columns, group_fns),
                     having=having_columns,
+                    distinct=distinct,
                 )
             else:
                 sql = GetStatement(
@@ -228,6 +230,7 @@ class Model:
                     orders=orders,
                     groups=(group_columns, group_fns),
                     having=having_columns,
+                    distinct=distinct,
                 )
         else:
             raise UnsupportedDialectException(

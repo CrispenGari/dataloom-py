@@ -13,7 +13,7 @@
 14. updating data ✅
 15. apply delete with limit ✅
 16. between ✅
-16. distict
+16. distinct
 17. sum, avg,count, min & max
 18. Not ✅
 

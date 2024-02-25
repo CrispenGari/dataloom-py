@@ -34,6 +34,29 @@ post = mysql_loom.find_one(
 
 > Note that the `between` operator works on value ranges that are numbers.
 
+- Distinct row selection has been added for the method `find_all()` and `find_many()`
+
+```py
+post = mysql_loom.find_many(
+    Post,
+    filters=Filter(
+        column="id",
+        operator="between",
+        value=[1, 7],
+    ),
+    select=["completed"],
+    distinct=True,
+)
+
+post = mysql_loom.find_all(
+    Post,
+    select=["completed"],
+    distinct=True,
+)
+```
+
+> The result will return the `distinct` rows of data based on the completed value.
+
 # Dataloom **`2.1.1`**
 
 ### Release Notes - `dataloom`

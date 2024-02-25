@@ -95,14 +95,15 @@ for title in ["Hey", "Hello", "What are you doing", "Coding"]:
     )
 
 
-post = mysql_loom.find_one(
+post = mysql_loom.find_many(
     Post,
     filters=Filter(
         column="id",
         operator="between",
-        value=["Hey", "Hello"],
+        value=[1, 7],
     ),
-    select=["id"],
+    select=["completed"],
+    distinct=True,
 )
 
 print(post)

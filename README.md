@@ -793,6 +793,7 @@ The `find_all()` method takes in the following arguments:
 | `order`    | Collection of columns to order the documents by.                                           | `list[Order]`            | `None`  | `No`     |
 | `include`  | Collection or a `Include` of related models to eagerly load.                               | `list[Include]\|Include` | `None`  | `No`     |
 | `group`    | Collection of `Group` which specifies how you want your data to be grouped during queries. | `list[Group]\|Group`     | `None`  | `No`     |
+| `distinct` | Boolean telling dataloom to return distinct row values based on selected fields or not.    | `bool`                   | `False` | `No`     |
 
 > 👍 **Pro Tip**: A collection can be any python iterable, the supported iterables are `list`, `set`, `tuple`.
 
@@ -824,6 +825,7 @@ The `find_many()` method takes in the following arguments:
 | `include`  | Collection or a `Include` of related models to eagerly load.                               | `list[Include]\|Include` | `None`  | `No`     |
 | `group`    | Collection of `Group` which specifies how you want your data to be grouped during queries. | `list[Group]\|Group`     | `None`  | `No`     |
 | `filters`  | Collection of `Filter` or a `Filter` to apply to the query.                                | `list[Filter] \| Filter` | `None`  | `No`     |
+| `distinct` | Boolean telling dataloom to return distinct row values based on selected fields or not.    | `bool`                   | `False` | `No`     |
 
 > 👍 **Pro Tip**: The distinction between the `find_all()` and `find_many()` methods lies in the fact that `find_many()` enables you to apply specific filters, whereas `find_all()` retrieves all the documents within the specified model.
 

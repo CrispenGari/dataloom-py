@@ -243,6 +243,7 @@ class Loom(ILoom):
         offset: Optional[int] = None,
         order: Optional[list[Order] | Order] = [],
         group: Optional[list[Group] | Group] = [],
+        distinct: bool = False,
     ) -> list:
         """
         find_many
@@ -268,6 +269,8 @@ class Loom(ILoom):
             The order in which to retrieve rows. Default is an empty list.
         group : list[Group] | Group, optional
             The grouping of the retrieved rows. Default is an empty list.
+        distinct:
+            Weather to return the distinct row values for the selected columns or not.
 
         Returns
         -------
@@ -313,6 +316,7 @@ class Loom(ILoom):
             filters=filters,
             order=order,
             group=group,
+            distinct=distinct,
         )
 
     def find_all(
@@ -324,6 +328,7 @@ class Loom(ILoom):
         offset: Optional[int] = None,
         order: Optional[list[Order] | Order] = [],
         group: Optional[list[Group] | Group] = [],
+        distinct: bool = False,
     ) -> list:
         """
         find_all
@@ -345,6 +350,8 @@ class Loom(ILoom):
             The offset of the rows to retrieve, useful for pagination. Default is None.
         order : list[Order] | None, optional
             The order in which to retrieve rows. Default is an empty list.
+        distinct:
+            Weather to return the distinct row values for the selected columns or not.
 
         Returns
         -------
@@ -390,6 +397,7 @@ class Loom(ILoom):
             offset=offset,
             order=order,
             group=group,
+            distinct=distinct,
         )
 
     def find_by_pk(
