@@ -2,7 +2,9 @@ from typing_extensions import Literal, Any
 from dataclasses import dataclass, field
 from typing import Optional
 
-OPERATOR_LITERAL = Literal["eq", "neq", "lt", "gt", "leq", "geq", "in", "notIn", "like"]
+OPERATOR_LITERAL = Literal[
+    "eq", "neq", "lt", "gt", "leq", "geq", "in", "notIn", "like", "not", "between"
+]
 SLQ_OPERAND_LITERAL = Literal["AND", "OR"]
 INCREMENT_DECREMENT_LITERAL = Literal["increment", "decrement"]
 SQL_LOGGER_LITERAL = Literal["console", "file"]
@@ -23,6 +25,8 @@ SLQ_OPERATORS = {
     "in": "IN",
     "notIn": "NOT IN",
     "like": "LIKE",
+    "not": "NOT",
+    "between": "BETWEEN",
 }
 SLQ_OPERAND = {
     "AND": "AND",

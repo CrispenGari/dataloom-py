@@ -1,4 +1,4 @@
-1. altering tables
+1. altering tables ✅
 2. inserting data  ✅
 3. created at and updated at field ✅
 4. foreign key and primary key  ✅
@@ -12,10 +12,10 @@
 13. grouping data
 14. updating data ✅
 15. apply delete with limit ✅
-16. between
+16. between ✅
 16. distict
 17. sum, avg,count, min & max
-18. Not
+18. Not ✅
 
 
 --------- conn
@@ -28,4 +28,4 @@
 
 
 ---------- bugs
-1. fixing logger index
+1. fixing logger index ✅

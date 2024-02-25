@@ -42,7 +42,7 @@ def get_table_filters(
                 op = get_operator(filter.operator)
                 join = "" if len(filters) == idx + 1 else f" {filter.join_next_with}"
 
-                if op == "IN" or op == "NOT IN":
+                if op == "IN" or op == "NOT IN" or op == "BETWEEN":
                     if is_collection(filter.value):
                         _list = ", ".join(
                             ["?" if dialect == "sqlite" else "%s" for i in filter.value]
@@ -90,6 +90,33 @@ def get_table_filters(
                 else:
                     raise InvalidFilterValuesException(
                         f'The column "{filter.column}" value can only be a list, tuple or dictionary but got {type(filter.value)} .'
+                    )
+            elif op == "BETWEEN":
+                if is_collection(filter.value):
+                    if len(filter.value) != 2:
+                        raise InvalidFilterValuesException(
+                            f"The operator BETWEEN expects a collection of two range values but got {len(filter.value)}."
+                        )
+                    _min, _max = ["?", "?"] if dialect == "sqlite" else ["%s", "%s"]
+                    _key = (
+                        f'"{key}" {op} {_min} AND {_max}'
+                        if dialect == "postgres"
+                        else f"`{key}` {op} {_min} AND {_max}"
+                    )
+                else:
+                    raise InvalidFilterValuesException(
+                        f'The column "{filter.column}" value can only be a list, tuple or dictionary but got {type(filter.value)} .'
+                    )
+            elif op == "NOT":
+                if not is_collection(filter.value):
+                    _key = (
+                        f'{op} "{key}" = %s'
+                        if dialect == "postgres"
+                        else f"{op} `{key}` = {'%s' if dialect == 'mysql' else '?'}"
+                    )
+                else:
+                    raise InvalidFilterValuesException(
+                        f'The column "{filter.column}" value can not be a collection for the operator NOT.'
                     )
             else:
                 if not is_collection(filter.value):

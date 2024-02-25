@@ -379,3 +379,233 @@ class TestQueryingPG:
         assert [u for u in many_4] == [{"id": 1, "name": "Bob", "username": "@miller"}]
 
         conn.close()
+
+    def test_find_one_op_not_and_between(self):
+        from dataloom import (
+            Loom,
+            Model,
+            Column,
+            PrimaryKeyColumn,
+            CreatedAtColumn,
+            TableColumn,
+            ForeignKeyColumn,
+            Filter,
+            ColumnValue,
+        )
+        from dataloom.keys import PgConfig
+        import pytest
+        from dataloom.exceptions import InvalidFilterValuesException
+
+        pg_loom = Loom(
+            dialect="postgres",
+            database=PgConfig.database,
+            password=PgConfig.password,
+            user=PgConfig.user,
+        )
+
+        class User(Model):
+            __tablename__: TableColumn = TableColumn(name="users")
+            id = PrimaryKeyColumn(type="int", auto_increment=True)
+            name = Column(type="text", nullable=False, default="Bob")
+            username = Column(type="varchar", unique=True, length=255)
+            tokenVersion = Column(type="int", default=0)
+
+        class Post(Model):
+            __tablename__: TableColumn = TableColumn(name="posts")
+            id = PrimaryKeyColumn(
+                type="int", auto_increment=True, nullable=False, unique=True
+            )
+            completed = Column(type="boolean", default=False)
+            title = Column(type="varchar", length=255, nullable=False)
+            # timestamps
+            createdAt = CreatedAtColumn()
+            # relations
+            userId = ForeignKeyColumn(
+                User,
+                maps_to="1-N",
+                type="int",
+                required=True,
+                onDelete="CASCADE",
+                onUpdate="CASCADE",
+            )
+
+        conn, tables = pg_loom.connect_and_sync([User, Post], drop=True, force=True)
+        userId = pg_loom.insert_one(
+            instance=User,
+            values=ColumnValue(name="username", value="@miller"),
+        )
+        for title in ["Hey", "Hello", "What are you doing", "Coding"]:
+            pg_loom.insert_one(
+                instance=Post,
+                values=[
+                    ColumnValue(name="userId", value=userId),
+                    ColumnValue(name="title", value=title),
+                ],
+            )
+
+        with pytest.raises(InvalidFilterValuesException) as exc_info:
+            pg_loom.find_one(
+                Post,
+                filters=Filter(
+                    column="id",
+                    operator="between",
+                    value=[2, 8, 9],
+                ),
+                select=["id"],
+            )
+        assert (
+            str(exc_info.value)
+            == "The operator BETWEEN expects a collection of two range values but got 3."
+        )
+        with pytest.raises(InvalidFilterValuesException) as exc_info:
+            pg_loom.find_one(
+                Post,
+                filters=Filter(
+                    column="id",
+                    operator="not",
+                    value=[2, 8, 9],
+                ),
+                select=["id"],
+            )
+        assert (
+            str(exc_info.value)
+            == 'The column "id" value can not be a collection for the operator NOT.'
+        )
+
+        post = pg_loom.find_one(
+            Post,
+            filters=Filter(
+                column="id",
+                operator="between",
+                value=[2, 6],
+            ),
+            select=["id"],
+        )
+        assert post == {"id": 2}
+        post = pg_loom.find_one(
+            Post,
+            filters=Filter(
+                column="id",
+                operator="not",
+                value=2,
+            ),
+            select=["id"],
+        )
+        assert post == {"id": 1}
+
+        conn.close()
+
+    def test_find_many_op_not_and_between(self):
+        from dataloom import (
+            Loom,
+            Model,
+            Column,
+            PrimaryKeyColumn,
+            CreatedAtColumn,
+            TableColumn,
+            ForeignKeyColumn,
+            Filter,
+            ColumnValue,
+        )
+        from dataloom.keys import PgConfig
+        import pytest
+        from dataloom.exceptions import InvalidFilterValuesException
+
+        pg_loom = Loom(
+            dialect="postgres",
+            database=PgConfig.database,
+            password=PgConfig.password,
+            user=PgConfig.user,
+        )
+
+        class User(Model):
+            __tablename__: TableColumn = TableColumn(name="users")
+            id = PrimaryKeyColumn(type="int", auto_increment=True)
+            name = Column(type="text", nullable=False, default="Bob")
+            username = Column(type="varchar", unique=True, length=255)
+            tokenVersion = Column(type="int", default=0)
+
+        class Post(Model):
+            __tablename__: TableColumn = TableColumn(name="posts")
+            id = PrimaryKeyColumn(
+                type="int", auto_increment=True, nullable=False, unique=True
+            )
+            completed = Column(type="boolean", default=False)
+            title = Column(type="varchar", length=255, nullable=False)
+            # timestamps
+            createdAt = CreatedAtColumn()
+            # relations
+            userId = ForeignKeyColumn(
+                User,
+                maps_to="1-N",
+                type="int",
+                required=True,
+                onDelete="CASCADE",
+                onUpdate="CASCADE",
+            )
+
+        conn, tables = pg_loom.connect_and_sync([User, Post], drop=True, force=True)
+        userId = pg_loom.insert_one(
+            instance=User,
+            values=ColumnValue(name="username", value="@miller"),
+        )
+        for title in ["Hey", "Hello", "What are you doing", "Coding"]:
+            pg_loom.insert_one(
+                instance=Post,
+                values=[
+                    ColumnValue(name="userId", value=userId),
+                    ColumnValue(name="title", value=title),
+                ],
+            )
+
+        with pytest.raises(InvalidFilterValuesException) as exc_info:
+            pg_loom.find_many(
+                Post,
+                filters=Filter(
+                    column="id",
+                    operator="between",
+                    value=[2, 8, 9],
+                ),
+                select=["id"],
+            )
+        assert (
+            str(exc_info.value)
+            == "The operator BETWEEN expects a collection of two range values but got 3."
+        )
+        with pytest.raises(InvalidFilterValuesException) as exc_info:
+            pg_loom.find_many(
+                Post,
+                filters=Filter(
+                    column="id",
+                    operator="not",
+                    value=[2, 8, 9],
+                ),
+                select=["id"],
+            )
+        assert (
+            str(exc_info.value)
+            == 'The column "id" value can not be a collection for the operator NOT.'
+        )
+
+        post = pg_loom.find_many(
+            Post,
+            filters=Filter(
+                column="id",
+                operator="between",
+                value=[2, 6],
+            ),
+            select=["id"],
+        )
+        assert len(post) == 3
+        post = pg_loom.find_many(
+            Post,
+            filters=Filter(
+                column="id",
+                operator="not",
+                value=2,
+            ),
+            select=["id"],
+        )
+        assert len(post) == 3
+
+        conn.close()
