@@ -1,10 +1,44 @@
 ===
-Dataloom **`2.1.1`**
+Dataloom **`2.2.0`**
 ===
 
 ### Release Notes - `dataloom`
 
-We have release the new `dataloom` Version `2.1.0` (`2024-02-24`)
+We have release the new `dataloom` Version `2.2.0` (`2024-02-24`)
+
+##### Features
+
+- updated documentation.
+- Added operators `BETWEEN` and `NOT` in filters now ypu can use them.
+
+```py
+post = mysql_loom.find_one(
+    Post,
+    filters=Filter(
+        column="id",
+        operator="between",
+        value=[1, 7],
+    ),
+    select=["id"],
+)
+post = mysql_loom.find_one(
+    Post,
+    filters=Filter(
+        column="id",
+        operator="not",
+        value=3,
+    ),
+    select=["id"],
+)
+```
+
+> Note that the `between` operator works on value ranges that are numbers.
+
+# Dataloom **`2.1.1`**
+
+### Release Notes - `dataloom`
+
+We have release the new `dataloom` Version `2.1.1` (`2024-02-24`)
 
 ##### Features
 

@@ -80,7 +80,7 @@
       - [Guidelines for Safe Usage](#guidelines-for-safe-usage)
 - [Ordering](#ordering)
 - [Filters](#filters)
-  - [Operators](#operators)
+    - [Operators](#operators)
 - [Data Aggregation](#data-aggregation)
   - [Aggregation Functions](#aggregation-functions)
 - [Utilities](#utilities)
@@ -1115,17 +1115,19 @@ res2 = mysql_loom.delete_one(
 
 You can use the `operator` to match the values. Here is the table of description for these filters.
 
-| Operator  | Explanation                                                                                                  | Expect                |
-| --------- | ------------------------------------------------------------------------------------------------------------ | --------------------- |
-| `'eq'`    | Indicates equality. It checks if the value is equal to the specified criteria.                               | Value == Criteria     |
-| `'lt'`    | Denotes less than. It checks if the value is less than the specified criteria.                               | Value < Criteria      |
-| `'gt'`    | Denotes greater than. It checks if the value is greater than the specified criteria.                         | Value > Criteria      |
-| `'leq'`   | Denotes less than or equal to. It checks if the value is less than or equal to the specified criteria.       | Value <= Criteria     |
-| `'geq'`   | Denotes greater than or equal to. It checks if the value is greater than or equal to the specified criteria. | Value >= Criteria     |
-| `'in'`    | Checks if the value is included in a specified list of values.                                               | Value in List         |
-| `'notIn'` | Checks if the value is not included in a specified list of values.                                           | Value not in List     |
-| `'like'`  | Performs a pattern matching operation. It checks if the value is similar to a specified pattern.             | Value matches Pattern |
-| `'neq'`   | Indicates non-equality. It checks if the value is not equal to the specified criteria.                       | Value != Criteria     |
+| Operator    | Explanation                                                                                                  | Expect                |
+| ----------- | ------------------------------------------------------------------------------------------------------------ | --------------------- |
+| `'eq'`      | Indicates equality. It checks if the value is equal to the specified criteria.                               | Value == Criteria     |
+| `'lt'`      | Denotes less than. It checks if the value is less than the specified criteria.                               | Value < Criteria      |
+| `'gt'`      | Denotes greater than. It checks if the value is greater than the specified criteria.                         | Value > Criteria      |
+| `'leq'`     | Denotes less than or equal to. It checks if the value is less than or equal to the specified criteria.       | Value <= Criteria     |
+| `'geq'`     | Denotes greater than or equal to. It checks if the value is greater than or equal to the specified criteria. | Value >= Criteria     |
+| `'in'`      | Checks if the value is included in a specified list of values.                                               | Value in List         |
+| `'notIn'`   | Checks if the value is not included in a specified list of values.                                           | Value not in List     |
+| `'like'`    | Performs a pattern matching operation. It checks if the value is similar to a specified pattern.             | Value matches Pattern |
+| `'not'`     | Indicates non-equality. It checks if the column value that does not equal to the specified criteria.         | NOT id = Criteria     |
+| `'neq'`     | Indicates non-equality. It checks if the value is not equal to the specified criteria.                       | Value != Criteria     |
+| `'between'` | It checks range values that matches a given range between the minimum and maximum.                           | id BETWEEN (min, max) |
 
 Let's talk about these filters in detail of code by example. Let's say you want to update a `Post` where the `id` matches `1` you can do it as follows:
 
