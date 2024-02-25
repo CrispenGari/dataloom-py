@@ -87,11 +87,26 @@ class MySqlStatements:
     )
 
     # selecting data
-    SELECT_COMMAND = "SELECT {column_names} FROM {table_name} {options};".strip()
-    SELECT_BY_PK = "SELECT {column_names} FROM {table_name} WHERE {pk_name} = {pk};"
-    SELECT_WHERE_COMMAND = (
-        "SELECT {column_names} FROM {table_name} WHERE {filters} {options};".strip()
+    SELECT_COMMAND = (
+        "SELECT {distinct} {column_names} FROM {table_name} {options};".strip()
     )
+    SELECT_BY_PK = "SELECT {column_names} FROM {table_name} WHERE {pk_name} = {pk};"
+    SELECT_WHERE_COMMAND = "SELECT {distinct} {column_names} FROM {table_name} WHERE {filters} {options};".strip()
+    SELECT_WHERE_FN_COMMAND = """
+    SELECT {fn}({column_names}) FROM (
+            SELECT {column_names}
+            FROM {table_name}
+            WHERE {filters}
+            {options}
+    ) AS subquery;
+    """
+    SELECT_FN_COMMAND = """
+    SELECT {fn}({column_names}) FROM (
+            SELECT {column_names}
+            FROM {table_name}
+            {options}
+    ) AS subquery;
+    """
 
     # ------------- child parent bidirectional sub queries
     SELECT_CHILD_BY_PK = """
@@ -214,11 +229,26 @@ class Sqlite3Statements:
     )
 
     # selecting data
-    SELECT_COMMAND = "SELECT {column_names} FROM {table_name} {options};".strip()
-    SELECT_BY_PK = "SELECT {column_names} FROM {table_name} WHERE {pk_name} = {pk};"
-    SELECT_WHERE_COMMAND = (
-        "SELECT {column_names} FROM {table_name} WHERE {filters} {options};".strip()
+    SELECT_COMMAND = (
+        "SELECT {distinct} {column_names} FROM {table_name} {options};".strip()
     )
+    SELECT_BY_PK = "SELECT {column_names} FROM {table_name} WHERE {pk_name} = {pk};"
+    SELECT_WHERE_COMMAND = "SELECT {distinct} {column_names} FROM {table_name} WHERE {filters} {options};".strip()
+    SELECT_WHERE_FN_COMMAND = """
+    SELECT {fn}({column_names}) FROM (
+            SELECT {column_names}
+            FROM {table_name}
+            WHERE {filters}
+            {options}
+    ) AS subquery;
+    """
+    SELECT_FN_COMMAND = """
+    SELECT {fn}({column_names}) FROM (
+            SELECT {column_names}
+            FROM {table_name}
+            {options}
+    ) AS subquery;
+    """
 
     # ------------- child parent bidirectional sub queries
     SELECT_CHILD_BY_PK = """
@@ -339,11 +369,26 @@ class PgStatements:
     """
 
     # select
-    SELECT_COMMAND = "SELECT {column_names} FROM {table_name} {options};".strip()
-    SELECT_BY_PK = "SELECT {column_names} FROM {table_name} WHERE {pk_name} = {pk};"
-    SELECT_WHERE_COMMAND = (
-        "SELECT {column_names} FROM {table_name} WHERE {filters} {options};".strip()
+    SELECT_COMMAND = (
+        "SELECT {distinct} {column_names} FROM {table_name} {options};".strip()
     )
+    SELECT_BY_PK = "SELECT {column_names} FROM {table_name} WHERE {pk_name} = {pk};"
+    SELECT_WHERE_COMMAND = "SELECT {distinct} {column_names} FROM {table_name} WHERE {filters} {options};".strip()
+    SELECT_WHERE_FN_COMMAND = """
+    SELECT {fn}({column_names}) FROM (
+            SELECT {column_names}
+            FROM {table_name}
+            WHERE {filters}
+            {options}
+    ) AS subquery;
+    """
+    SELECT_FN_COMMAND = """
+    SELECT {fn}({column_names}) FROM (
+            SELECT {column_names}
+            FROM {table_name}
+            {options}
+    ) AS subquery;
+    """
 
     # ------------- child parent bidirectional sub queries
     SELECT_CHILD_BY_PK = """

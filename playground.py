@@ -52,33 +52,53 @@ mysql_loom = Loom(
 )
 
 
-class Profile(Model):
-    __tablename__: Optional[TableColumn] = TableColumn(name="profiles")
-    _id = PrimaryKeyColumn(type="int", auto_increment=True)
-    name = Column(type="text", nullable=False, default="Bob")
-
-
 class User(Model):
-    __tablename__: Optional[TableColumn] = TableColumn(name="users")
+    __tablename__: TableColumn = TableColumn(name="users")
     id = PrimaryKeyColumn(type="int", auto_increment=True)
     name = Column(type="text", nullable=False, default="Bob")
     username = Column(type="varchar", unique=True, length=255)
-    bio = Column(type="varchar", unique=False, length=200, default="Hello world")
     tokenVersion = Column(type="int", default=0)
 
-    createdAt = CreatedAtColumn()
-    updatedAt = UpdatedAtColumn()
 
-    profileId = ForeignKeyColumn(
-        Profile,
+class Post(Model):
+    __tablename__: TableColumn = TableColumn(name="posts")
+    id = PrimaryKeyColumn(type="int", auto_increment=True, nullable=False, unique=True)
+    completed = Column(type="boolean", default=False)
+    title = Column(type="varchar", length=255, nullable=False)
+    # timestamps
+    createdAt = CreatedAtColumn()
+    # relations
+    userId = ForeignKeyColumn(
+        User,
+        maps_to="1-N",
         type="int",
-        maps_to="1-1",
+        required=True,
         onDelete="CASCADE",
         onUpdate="CASCADE",
-        required=False,
     )
 
 
-conn, tables = pg_loom.connect_and_sync([Profile, User], alter=True)
+conn, tables = mysql_loom.connect_and_sync([User, Post], drop=True, force=True)
 
-print(pg_loom.inspect(Profile, print_table=False))
+userId = mysql_loom.insert_one(
+    instance=User,
+    values=ColumnValue(name="username", value="@miller"),
+)
+
+for title in ["Hey", "Hello", "What are you doing", "Coding"]:
+    mysql_loom.insert_one(
+        instance=Post,
+        values=[
+            ColumnValue(name="userId", value=userId),
+            ColumnValue(name="title", value=title),
+        ],
+    )
+
+
+avg = mysql_loom.avg(
+    instance=Post,
+    column="id",
+    distinct=True,
+)
+
+print(avg)

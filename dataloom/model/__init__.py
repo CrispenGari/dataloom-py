@@ -16,6 +16,7 @@ from dataloom.types import (
     Order,
     Include,
     Group,
+    UTILS_FUNCTION_LITERAL,
 )
 from dataloom.utils import (
     get_table_filters,
@@ -158,12 +159,13 @@ class Model:
         offset: Optional[int] = None,
         order: Optional[list[Order] | Order] = [],
         group: Optional[list[Group] | Group] = [],
+        distinct: bool = False,
+        function: Optional[UTILS_FUNCTION_LITERAL] = None,
     ):
         if not is_collection(select):
             select = [select]
         orders = []
         # what are the foreign keys?
-
         fields, pk_name, fks, updatedAtColumName = get_table_fields(
             cls, dialect=dialect
         )
@@ -184,6 +186,10 @@ class Model:
                     f'The table "{cls._get_table_name()}" does not have a column "{column}".'
                 )
 
+        if function is not None:
+            select = [
+                f'{"DISTINCT " if distinct else ''}{f'"{column}"' if dialect == 'postgres' else f"`{column}`"}'
+            ]
         placeholder_filters, placeholder_filter_values = get_table_filters(
             table_name=cls._get_table_name(),
             dialect=dialect,
@@ -216,6 +222,8 @@ class Model:
                     pk_name=pk_name,
                     groups=(group_columns, group_fns),
                     having=having_columns,
+                    distinct=distinct,
+                    function=function,
                 )
             else:
                 sql = GetStatement(
@@ -228,6 +236,8 @@ class Model:
                     orders=orders,
                     groups=(group_columns, group_fns),
                     having=having_columns,
+                    distinct=distinct,
+                    function=function,
                 )
         else:
             raise UnsupportedDialectException(

@@ -12,7 +12,11 @@ from dataloom.statements.statements import (
     PgStatements,
     Sqlite3Statements,
 )
-from dataloom.types import DIALECT_LITERAL, INCREMENT_DECREMENT_LITERAL
+from dataloom.types import (
+    DIALECT_LITERAL,
+    INCREMENT_DECREMENT_LITERAL,
+    UTILS_FUNCTION_LITERAL,
+)
 from dataloom.utils import (
     get_formatted_query,
     get_relationships,
@@ -213,6 +217,8 @@ class GetStatement[T]:
         orders: Optional[list[str]] = [],
         groups: list[tuple[str]] = [],
         having: list[str] = [],
+        distinct: bool = False,
+        function: Optional[UTILS_FUNCTION_LITERAL] = None,
     ):
         (group_columns, group_fns) = groups
         options = [
@@ -223,26 +229,62 @@ class GetStatement[T]:
             "" if offset is None else f"OFFSET { offset}",
         ]
         if self.dialect == "postgres":
-            sql = PgStatements.SELECT_WHERE_COMMAND.format(
-                column_names=", ".join([f'"{f}"' for f in fields] + group_fns),
-                table_name=f'"{self.table_name}"',
-                filters=" ".join(placeholder_filters),
-                options=" ".join(options),
-            )
+            if function is None:
+                sql = PgStatements.SELECT_WHERE_COMMAND.format(
+                    column_names=", ".join([f'"{f}"' for f in fields] + group_fns),
+                    table_name=f'"{self.table_name}"',
+                    filters=" ".join(placeholder_filters),
+                    options=" ".join(options),
+                    distinct="DISTINCT" if distinct else "",
+                )
+            else:
+                sql = PgStatements.SELECT_WHERE_FN_COMMAND.format(
+                    fn=function.upper(),
+                    column_names=", ".join(fields),
+                    table_name=f'"{self.table_name}"',
+                    filters=" ".join(placeholder_filters),
+                    options=" ".join(options),
+                )
         elif self.dialect == "mysql":
-            sql = MySqlStatements.SELECT_WHERE_COMMAND.format(
-                column_names=", ".join([f"`{name}`" for name in fields] + group_fns),
-                table_name=f"`{self.table_name}`",
-                filters=" ".join(placeholder_filters),
-                options=" ".join(options),
-            )
+            if function is None:
+                sql = MySqlStatements.SELECT_WHERE_COMMAND.format(
+                    column_names=", ".join(
+                        [f"`{name}`" for name in fields] + group_fns
+                    ),
+                    table_name=f"`{self.table_name}`",
+                    filters=" ".join(placeholder_filters),
+                    options=" ".join(options),
+                    distinct="DISTINCT" if distinct else "",
+                )
+            else:
+                sql = MySqlStatements.SELECT_WHERE_FN_COMMAND.format(
+                    fn=function.upper(),
+                    column_names=", ".join(fields),
+                    table_name=f"`{self.table_name}`",
+                    filters=" ".join(placeholder_filters),
+                    options=" ".join(options),
+                )
+
         elif self.dialect == "sqlite":
-            sql = Sqlite3Statements.SELECT_WHERE_COMMAND.format(
-                column_names=", ".join([f"`{name}`" for name in fields] + group_fns),
-                table_name=f"`{self.table_name}`",
-                filters=" ".join(placeholder_filters),
-                options=" ".join(options),
-            )
+            if function is None:
+                sql = Sqlite3Statements.SELECT_WHERE_COMMAND.format(
+                    column_names=", ".join(
+                        [f"`{name}`" for name in fields] + group_fns
+                    ),
+                    table_name=f"`{self.table_name}`",
+                    filters=" ".join(placeholder_filters),
+                    options=" ".join(options),
+                    distinct="DISTINCT" if distinct else "",
+                )
+            else:
+                sql = Sqlite3Statements.SELECT_WHERE_FN_COMMAND.format(
+                    fn=function.upper(),
+                    column_names=", ".join(fields),
+                    table_name=f"`{self.table_name}`",
+                    filters=" ".join(placeholder_filters),
+                    options=" ".join(options),
+                )
+
         else:
             raise UnsupportedDialectException(
                 "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
@@ -258,6 +300,8 @@ class GetStatement[T]:
         orders: Optional[list[str]] = [],
         groups: list[tuple[str]] = [],
         having: list[str] = [],
+        distinct: bool = False,
+        function: Optional[UTILS_FUNCTION_LITERAL] = None,
     ):
         (group_columns, group_fns) = groups
         options = [
@@ -269,23 +313,57 @@ class GetStatement[T]:
         ]
 
         if self.dialect == "postgres":
-            sql = PgStatements.SELECT_COMMAND.format(
-                column_names=", ".join([f'"{name}"' for name in fields] + group_fns),
-                table_name=f'"{self.table_name}"',
-                options=" ".join(options),
-            )
+            if function is None:
+                sql = PgStatements.SELECT_COMMAND.format(
+                    column_names=", ".join(
+                        [f'"{name}"' for name in fields] + group_fns
+                    ),
+                    table_name=f'"{self.table_name}"',
+                    options=" ".join(options),
+                    distinct="DISTINCT" if distinct else "",
+                )
+            else:
+                sql = PgStatements.SELECT_FN_COMMAND.format(
+                    fn=function.upper(),
+                    column_names=", ".join(fields),
+                    table_name=f'"{self.table_name}"',
+                    options=" ".join(options),
+                )
         elif self.dialect == "mysql":
-            sql = MySqlStatements.SELECT_COMMAND.format(
-                column_names=", ".join([f"`{name}`" for name in fields] + group_fns),
-                table_name=f"`{self.table_name}`",
-                options=" ".join(options),
-            )
+            if function is None:
+                sql = MySqlStatements.SELECT_COMMAND.format(
+                    column_names=", ".join(fields)
+                    if function is not None
+                    else ", ".join([f"`{name}`" for name in fields] + group_fns),
+                    table_name=f"`{self.table_name}`",
+                    options=" ".join(options),
+                    distinct="DISTINCT" if distinct else "",
+                )
+            else:
+                sql = MySqlStatements.SELECT_FN_COMMAND.format(
+                    fn=function.upper(),
+                    column_names=", ".join(fields),
+                    table_name=f"`{self.table_name}`",
+                    options=" ".join(options),
+                )
+
         elif self.dialect == "sqlite":
-            sql = Sqlite3Statements.SELECT_COMMAND.format(
-                column_names=", ".join([f"`{name}`" for name in fields] + group_fns),
-                table_name=f"`{self.table_name}`",
-                options=" ".join(options),
-            )
+            if function is None:
+                sql = Sqlite3Statements.SELECT_COMMAND.format(
+                    column_names=", ".join(
+                        [f"`{name}`" for name in fields] + group_fns
+                    ),
+                    table_name=f"`{self.table_name}`",
+                    options=" ".join(options),
+                    distinct="DISTINCT" if distinct else "",
+                )
+            else:
+                sql = Sqlite3Statements.SELECT_FN_COMMAND.format(
+                    fn=function.upper(),
+                    column_names=", ".join(fields),
+                    table_name=f"`{self.table_name}`",
+                    options=" ".join(options),
+                )
         else:
             raise UnsupportedDialectException(
                 "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"

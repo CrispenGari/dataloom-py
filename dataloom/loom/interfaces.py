@@ -9,6 +9,64 @@ from mysql.connector.connection import MySQLConnectionAbstract
 
 class ILoom(ABC):
     @abstractclassmethod
+    def sum(
+        self,
+        instance: Model,
+        column: str,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+        distinct: bool = False,
+        filters: Optional[Filter | list[Filter]] = None,
+    ) -> list:
+        raise NotImplementedError("The sum method was not implemented.")
+
+    @abstractclassmethod
+    def max(
+        self,
+        instance: Model,
+        column: str,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+        distinct: bool = False,
+        filters: Optional[Filter | list[Filter]] = None,
+    ) -> list:
+        raise NotImplementedError("The max method was not implemented.")
+
+    @abstractclassmethod
+    def min(
+        self,
+        instance: Model,
+        column: str,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+        distinct: bool = False,
+        filters: Optional[Filter | list[Filter]] = None,
+    ) -> list:
+        raise NotImplementedError("The min method was not implemented.")
+
+    def count(
+        self,
+        instance: Model,
+        column: str,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+        distinct: bool = False,
+        filters: Optional[Filter | list[Filter]] = None,
+    ) -> list:
+        raise NotImplementedError("The count method was not implemented.")
+
+    def avg(
+        self,
+        instance: Model,
+        column: str,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+        distinct: bool = False,
+        filters: Optional[Filter | list[Filter]] = None,
+    ) -> list:
+        raise NotImplementedError("The count method was not implemented.")
+
+    @abstractclassmethod
     def increment(
         self,
         instance: Model,

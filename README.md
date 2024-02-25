@@ -80,13 +80,18 @@
       - [Guidelines for Safe Usage](#guidelines-for-safe-usage)
 - [Ordering](#ordering)
 - [Filters](#filters)
-  - [Operators](#operators)
+    - [Operators](#operators)
 - [Data Aggregation](#data-aggregation)
   - [Aggregation Functions](#aggregation-functions)
 - [Utilities](#utilities)
   - [1. `inspect`](#1-inspect)
   - [2. `decorators`](#2-decorators)
     - [`@initialize`](#initialize)
+  - [3. `count()`](#3-count)
+  - [4. `min()`](#4-min)
+  - [5. `max()`](#5-max)
+  - [6. `avg()`](#6-avg)
+  - [7. `sum()`](#7-sum)
 - [Associations](#associations)
   - [1. `1-1` Association](#1-1-1-association)
     - [Inserting](#inserting)
@@ -793,6 +798,7 @@ The `find_all()` method takes in the following arguments:
 | `order`    | Collection of columns to order the documents by.                                           | `list[Order]`            | `None`  | `No`     |
 | `include`  | Collection or a `Include` of related models to eagerly load.                               | `list[Include]\|Include` | `None`  | `No`     |
 | `group`    | Collection of `Group` which specifies how you want your data to be grouped during queries. | `list[Group]\|Group`     | `None`  | `No`     |
+| `distinct` | Boolean telling dataloom to return distinct row values based on selected fields or not.    | `bool`                   | `False` | `No`     |
 
 > 👍 **Pro Tip**: A collection can be any python iterable, the supported iterables are `list`, `set`, `tuple`.
 
@@ -824,6 +830,7 @@ The `find_many()` method takes in the following arguments:
 | `include`  | Collection or a `Include` of related models to eagerly load.                               | `list[Include]\|Include` | `None`  | `No`     |
 | `group`    | Collection of `Group` which specifies how you want your data to be grouped during queries. | `list[Group]\|Group`     | `None`  | `No`     |
 | `filters`  | Collection of `Filter` or a `Filter` to apply to the query.                                | `list[Filter] \| Filter` | `None`  | `No`     |
+| `distinct` | Boolean telling dataloom to return distinct row values based on selected fields or not.    | `bool`                   | `False` | `No`     |
 
 > 👍 **Pro Tip**: The distinction between the `find_all()` and `find_many()` methods lies in the fact that `find_many()` enables you to apply specific filters, whereas `find_all()` retrieves all the documents within the specified model.
 
@@ -1115,17 +1122,19 @@ res2 = mysql_loom.delete_one(
 
 You can use the `operator` to match the values. Here is the table of description for these filters.
 
-| Operator  | Explanation                                                                                                  | Expect                |
-| --------- | ------------------------------------------------------------------------------------------------------------ | --------------------- |
-| `'eq'`    | Indicates equality. It checks if the value is equal to the specified criteria.                               | Value == Criteria     |
-| `'lt'`    | Denotes less than. It checks if the value is less than the specified criteria.                               | Value < Criteria      |
-| `'gt'`    | Denotes greater than. It checks if the value is greater than the specified criteria.                         | Value > Criteria      |
-| `'leq'`   | Denotes less than or equal to. It checks if the value is less than or equal to the specified criteria.       | Value <= Criteria     |
-| `'geq'`   | Denotes greater than or equal to. It checks if the value is greater than or equal to the specified criteria. | Value >= Criteria     |
-| `'in'`    | Checks if the value is included in a specified list of values.                                               | Value in List         |
-| `'notIn'` | Checks if the value is not included in a specified list of values.                                           | Value not in List     |
-| `'like'`  | Performs a pattern matching operation. It checks if the value is similar to a specified pattern.             | Value matches Pattern |
-| `'neq'`   | Indicates non-equality. It checks if the value is not equal to the specified criteria.                       | Value != Criteria     |
+| Operator    | Explanation                                                                                                  | Expect                |
+| ----------- | ------------------------------------------------------------------------------------------------------------ | --------------------- |
+| `'eq'`      | Indicates equality. It checks if the value is equal to the specified criteria.                               | Value == Criteria     |
+| `'lt'`      | Denotes less than. It checks if the value is less than the specified criteria.                               | Value < Criteria      |
+| `'gt'`      | Denotes greater than. It checks if the value is greater than the specified criteria.                         | Value > Criteria      |
+| `'leq'`     | Denotes less than or equal to. It checks if the value is less than or equal to the specified criteria.       | Value <= Criteria     |
+| `'geq'`     | Denotes greater than or equal to. It checks if the value is greater than or equal to the specified criteria. | Value >= Criteria     |
+| `'in'`      | Checks if the value is included in a specified list of values.                                               | Value in List         |
+| `'notIn'`   | Checks if the value is not included in a specified list of values.                                           | Value not in List     |
+| `'like'`    | Performs a pattern matching operation. It checks if the value is similar to a specified pattern.             | Value matches Pattern |
+| `'not'`     | Indicates non-equality. It checks if the column value that does not equal to the specified criteria.         | NOT id = Criteria     |
+| `'neq'`     | Indicates non-equality. It checks if the value is not equal to the specified criteria.                       | Value != Criteria     |
+| `'between'` | It checks range values that matches a given range between the minimum and maximum.                           | id BETWEEN (min, max) |
 
 Let's talk about these filters in detail of code by example. Let's say you want to update a `Post` where the `id` matches `1` you can do it as follows:
 
@@ -1457,6 +1466,166 @@ profile = Profile(**profile)
 print(profile)  # ? = <Profile:id=1>
 print(profile.avatar)  # ? hello.jpg
 ```
+
+#### 3. `count()`
+
+This is a utility function that comes within the `loom` object that is used to count rows in a database table that meets a specific criteria. Here is an example on how to use this utility function.
+
+```py
+# example
+count = mysql_loom.count(
+    instance=Post,
+    filters=Filter(
+        column="id",
+        operator="between",
+        value=[1, 7],
+    ),
+    column="id",
+    limit=3,
+    offset=0,
+    distinct=True,
+)
+print(count)
+```
+
+The `count` function takes the following arguments:
+
+| Argument   | Description                                                                                | Type                     | Default | Required |
+| ---------- | ------------------------------------------------------------------------------------------ | ------------------------ | ------- | -------- |
+| `instance` | The model class to retrieve documents from.                                                | `Model`                  | `None`  | `Yes`    |
+| `column`   | A string of column to count values based on.                                               | `str`                    | `None`  | `Yes`    |
+| `limit`    | Maximum number of documents to retrieve.                                                   | `int`                    | `None`  | `No`     |
+| `offset`   | Number of documents to skip before counting.                                               | `int`                    | `0`     | `No`     |
+| `filters`  | Collection of `Filter` or a `Filter` to apply to the rows to be counted.                   | `list[Filter] \| Filter` | `None`  | `No`     |
+| `distinct` | Boolean telling dataloom to count distinct rows of values based on selected column or not. | `bool`                   | `False` | `No`     |
+
+#### 4. `min()`
+
+This is a utility function that comes within the `loom` object that is used to find the minimum value in rows of data in a database table that meets a specific criteria. Here is an example on how to use this utility function.
+
+```py
+# example
+_min = mysql_loom.min(
+    instance=Post,
+    filters=Filter(
+        column="id",
+        operator="between",
+        value=[1, 7],
+    ),
+    column="id",
+    limit=3,
+    offset=0,
+    distinct=True,
+)
+print(_min)
+```
+
+The `min` function takes the following arguments:
+
+| Argument   | Description                                                                                             | Type                     | Default | Required |
+| ---------- | ------------------------------------------------------------------------------------------------------- | ------------------------ | ------- | -------- |
+| `instance` | The model class to retrieve documents from.                                                             | `Model`                  | `None`  | `Yes`    |
+| `column`   | A string of column to find minimum values based on.                                                     | `str`                    | `None`  | `Yes`    |
+| `limit`    | Maximum number of documents to retrieve.                                                                | `int`                    | `None`  | `No`     |
+| `offset`   | Number of documents to skip before finding the minimum.                                                 | `int`                    | `0`     | `No`     |
+| `filters`  | Collection of `Filter` or a `Filter` to apply to the rows to be used.                                   | `list[Filter] \| Filter` | `None`  | `No`     |
+| `distinct` | Boolean telling dataloom to find minimum value in distinct rows values based on selected column or not. | `bool`                   | `False` | `No`     |
+
+#### 5. `max()`
+
+This is a utility function that comes within the `loom` object that is used to find the maximum value in rows of data in a database table that meets a specific criteria. Here is an example on how to use this utility function.
+
+```py
+# example
+_max = mysql_loom.max(
+    instance=Post,
+    filters=Filter(
+        column="id",
+        operator="between",
+        value=[1, 7],
+    ),
+    column="id",
+    limit=3,
+    offset=0,
+    distinct=True,
+)
+print(_max)
+```
+
+The `max` function takes the following arguments:
+
+| Argument   | Description                                                                                                | Type                     | Default | Required |
+| ---------- | ---------------------------------------------------------------------------------------------------------- | ------------------------ | ------- | -------- |
+| `instance` | The model class to retrieve documents from.                                                                | `Model`                  | `None`  | `Yes`    |
+| `column`   | A string of column to find maximum values based on.                                                        | `str`                    | `None`  | `Yes`    |
+| `limit`    | Maximum number of documents to retrieve.                                                                   | `int`                    | `None`  | `No`     |
+| `offset`   | Number of documents to skip before finding the maximum.                                                    | `int`                    | `0`     | `No`     |
+| `filters`  | Collection of `Filter` or a `Filter` to apply to the rows to be used.                                      | `list[Filter] \| Filter` | `None`  | `No`     |
+| `distinct` | Boolean telling dataloom to find maximum value in distinct rows of values based on selected column or not. | `bool`                   | `False` | `No`     |
+
+#### 6. `avg()`
+
+This is a utility function that comes within the `loom` object that is used to calculate the average value in rows of data in a database table that meets a specific criteria. Here is an example on how to use this utility function.
+
+```py
+# example
+_avg = mysql_loom.avg(
+    instance=Post,
+    filters=Filter(
+        column="id",
+        operator="between",
+        value=[1, 7],
+    ),
+    column="id",
+    limit=3,
+    offset=0,
+    distinct=True,
+)
+print(_avg)
+```
+
+The `max` function takes the following arguments:
+
+| Argument   | Description                                                                                                         | Type                     | Default | Required |
+| ---------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------ | ------- | -------- |
+| `instance` | The model class to retrieve documents from.                                                                         | `Model`                  | `None`  | `Yes`    |
+| `column`   | A string of column to calculate average values based on.                                                            | `str`                    | `None`  | `Yes`    |
+| `limit`    | Maximum number of documents to retrieve.                                                                            | `int`                    | `None`  | `No`     |
+| `offset`   | Number of documents to skip before finding the calculating the average.                                             | `int`                    | `0`     | `No`     |
+| `filters`  | Collection of `Filter` or a `Filter` to apply to the rows to be used.                                               | `list[Filter] \| Filter` | `None`  | `No`     |
+| `distinct` | Boolean telling dataloom to calculate the average value in distinct rows of values based on selected column or not. | `bool`                   | `False` | `No`     |
+
+#### 7. `sum()`
+
+This is a utility function that comes within the `loom` object that is used to find the total sum in rows of data in a database table that meets a specific criteria. Here is an example on how to use this utility function.
+
+```py
+# example
+_sum = mysql_loom.sum(
+    instance=Post,
+    filters=Filter(
+        column="id",
+        operator="between",
+        value=[1, 7],
+    ),
+    column="id",
+    limit=3,
+    offset=0,
+    distinct=True,
+)
+print(_sum)
+```
+
+The `sum` function takes the following arguments:
+
+| Argument   | Description                                                                                    | Type                     | Default | Required |
+| ---------- | ---------------------------------------------------------------------------------------------- | ------------------------ | ------- | -------- |
+| `instance` | The model class to retrieve documents from.                                                    | `Model`                  | `None`  | `Yes`    |
+| `column`   | A string of column to sum values based on.                                                     | `str`                    | `None`  | `Yes`    |
+| `limit`    | Maximum number of documents to retrieve.                                                       | `int`                    | `None`  | `No`     |
+| `offset`   | Number of documents to skip before summing.                                                    | `int`                    | `0`     | `No`     |
+| `filters`  | Collection of `Filter` or a `Filter` to apply to the rows to be used.                          | `list[Filter] \| Filter` | `None`  | `No`     |
+| `distinct` | Boolean telling dataloom to sum value in distinct rows values based on selected column or not. | `bool`                   | `False` | `No`     |
 
 ### Associations
 
@@ -1946,7 +2115,7 @@ print(user_post) """ ? =
 ### What is coming next?
 
 1. N-N associations
-2. utilities functions
+2. Query Builder
 
 ### Contributing
 
