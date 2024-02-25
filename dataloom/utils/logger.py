@@ -1,5 +1,6 @@
 from datetime import datetime
 from dataloom.types import DIALECT_LITERAL
+import re
 
 
 class Colors:
@@ -20,6 +21,7 @@ class logger:
     def file(fn):
         def wrapper(*args, **kwargs):
             sql_statement, file_name, dialect = fn(*args, **kwargs)
+            sql_statement = re.sub(r"\s+", " ", sql_statement)
             with open(file_name, "a+") as f:
                 f.write(
                     "[{time}] : Loom[{dialect}]: {sql_statement}\n".format(
@@ -36,10 +38,11 @@ class logger:
     def console(fn):
         def wrapper(*args, **kwargs):
             index, sql_statement, dialect = fn(*args, **kwargs)
+            sql_statement = re.sub(r"\s+", " ", sql_statement)
             if index % 2 == 0:
                 print(
                     Colors.BOLD
-                    + Colors.CYAN
+                    + Colors.PURPLE
                     + f"[{dialect}:{datetime.now().time()}] "
                     + Colors.RESET
                     + Colors.BOLD
@@ -50,7 +53,7 @@ class logger:
             else:
                 print(
                     Colors.BOLD
-                    + Colors.CYAN
+                    + Colors.PURPLE
                     + f"[{dialect}:{datetime.now().time()}] "
                     + Colors.RESET
                     + Colors.BOLD

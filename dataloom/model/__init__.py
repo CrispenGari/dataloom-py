@@ -188,10 +188,8 @@ class Model:
 
         if function is not None:
             select = [
-                f'{function.upper()}({"DISTINCT " if distinct else ''}{f"{column}" if dialect == 'postgres' else f"`{column}`"})'
+                f'{"DISTINCT " if distinct else ''}{f'"{column}"' if dialect == 'postgres' else f"`{column}`"}'
             ]
-            distinct = False
-
         placeholder_filters, placeholder_filter_values = get_table_filters(
             table_name=cls._get_table_name(),
             dialect=dialect,

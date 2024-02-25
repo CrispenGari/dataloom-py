@@ -95,17 +95,10 @@ for title in ["Hey", "Hello", "What are you doing", "Coding"]:
     )
 
 
-count = mysql_loom.count(
+avg = mysql_loom.avg(
     instance=Post,
-    filters=Filter(
-        column="id",
-        operator="between",
-        value=[1, 7],
-    ),
     column="id",
-    limit=3,
-    offset=0,
     distinct=True,
 )
 
-print(count)
+print(avg)

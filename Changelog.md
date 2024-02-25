@@ -69,6 +69,7 @@ post = loom.find_all(
     column="id",
   )
   ```
+- Updated logger colors and formatting.
 
 # Dataloom **`2.1.1`**
 
