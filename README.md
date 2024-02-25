@@ -2115,7 +2115,7 @@ print(user_post) """ ? =
 ### What is coming next?
 
 1. N-N associations
-2. utilities functions
+2. Query Builder
 
 ### Contributing
 
