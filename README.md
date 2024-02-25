@@ -87,6 +87,11 @@
   - [1. `inspect`](#1-inspect)
   - [2. `decorators`](#2-decorators)
     - [`@initialize`](#initialize)
+  - [3. `count()`](#3-count)
+  - [4. `min()`](#4-min)
+  - [5. `max()`](#5-max)
+  - [6. `avg()`](#6-avg)
+  - [7. `sum()`](#7-sum)
 - [Associations](#associations)
   - [1. `1-1` Association](#1-1-1-association)
     - [Inserting](#inserting)
@@ -1461,6 +1466,166 @@ profile = Profile(**profile)
 print(profile)  # ? = <Profile:id=1>
 print(profile.avatar)  # ? hello.jpg
 ```
+
+#### 3. `count()`
+
+This is a utility function that comes within the `loom` object that is used to count rows in a database table that meets a specific criteria. Here is an example on how to use this utility function.
+
+```py
+# example
+count = mysql_loom.count(
+    instance=Post,
+    filters=Filter(
+        column="id",
+        operator="between",
+        value=[1, 7],
+    ),
+    column="id",
+    limit=3,
+    offset=0,
+    distinct=True,
+)
+print(count)
+```
+
+The `count` function takes the following arguments:
+
+| Argument   | Description                                                                                | Type                     | Default | Required |
+| ---------- | ------------------------------------------------------------------------------------------ | ------------------------ | ------- | -------- |
+| `instance` | The model class to retrieve documents from.                                                | `Model`                  | `None`  | `Yes`    |
+| `column`   | A string of column to count values based on.                                               | `str`                    | `None`  | `Yes`    |
+| `limit`    | Maximum number of documents to retrieve.                                                   | `int`                    | `None`  | `No`     |
+| `offset`   | Number of documents to skip before counting.                                               | `int`                    | `0`     | `No`     |
+| `filters`  | Collection of `Filter` or a `Filter` to apply to the rows to be counted.                   | `list[Filter] \| Filter` | `None`  | `No`     |
+| `distinct` | Boolean telling dataloom to count distinct rows of values based on selected column or not. | `bool`                   | `False` | `No`     |
+
+#### 4. `min()`
+
+This is a utility function that comes within the `loom` object that is used to find the minimum value in rows of data in a database table that meets a specific criteria. Here is an example on how to use this utility function.
+
+```py
+# example
+_min = mysql_loom.min(
+    instance=Post,
+    filters=Filter(
+        column="id",
+        operator="between",
+        value=[1, 7],
+    ),
+    column="id",
+    limit=3,
+    offset=0,
+    distinct=True,
+)
+print(_min)
+```
+
+The `min` function takes the following arguments:
+
+| Argument   | Description                                                                                             | Type                     | Default | Required |
+| ---------- | ------------------------------------------------------------------------------------------------------- | ------------------------ | ------- | -------- |
+| `instance` | The model class to retrieve documents from.                                                             | `Model`                  | `None`  | `Yes`    |
+| `column`   | A string of column to find minimum values based on.                                                     | `str`                    | `None`  | `Yes`    |
+| `limit`    | Maximum number of documents to retrieve.                                                                | `int`                    | `None`  | `No`     |
+| `offset`   | Number of documents to skip before finding the minimum.                                                 | `int`                    | `0`     | `No`     |
+| `filters`  | Collection of `Filter` or a `Filter` to apply to the rows to be used.                                   | `list[Filter] \| Filter` | `None`  | `No`     |
+| `distinct` | Boolean telling dataloom to find minimum value in distinct rows values based on selected column or not. | `bool`                   | `False` | `No`     |
+
+#### 5. `max()`
+
+This is a utility function that comes within the `loom` object that is used to find the maximum value in rows of data in a database table that meets a specific criteria. Here is an example on how to use this utility function.
+
+```py
+# example
+_max = mysql_loom.max(
+    instance=Post,
+    filters=Filter(
+        column="id",
+        operator="between",
+        value=[1, 7],
+    ),
+    column="id",
+    limit=3,
+    offset=0,
+    distinct=True,
+)
+print(_max)
+```
+
+The `max` function takes the following arguments:
+
+| Argument   | Description                                                                                                | Type                     | Default | Required |
+| ---------- | ---------------------------------------------------------------------------------------------------------- | ------------------------ | ------- | -------- |
+| `instance` | The model class to retrieve documents from.                                                                | `Model`                  | `None`  | `Yes`    |
+| `column`   | A string of column to find maximum values based on.                                                        | `str`                    | `None`  | `Yes`    |
+| `limit`    | Maximum number of documents to retrieve.                                                                   | `int`                    | `None`  | `No`     |
+| `offset`   | Number of documents to skip before finding the maximum.                                                    | `int`                    | `0`     | `No`     |
+| `filters`  | Collection of `Filter` or a `Filter` to apply to the rows to be used.                                      | `list[Filter] \| Filter` | `None`  | `No`     |
+| `distinct` | Boolean telling dataloom to find maximum value in distinct rows of values based on selected column or not. | `bool`                   | `False` | `No`     |
+
+#### 6. `avg()`
+
+This is a utility function that comes within the `loom` object that is used to calculate the average value in rows of data in a database table that meets a specific criteria. Here is an example on how to use this utility function.
+
+```py
+# example
+_avg = mysql_loom.avg(
+    instance=Post,
+    filters=Filter(
+        column="id",
+        operator="between",
+        value=[1, 7],
+    ),
+    column="id",
+    limit=3,
+    offset=0,
+    distinct=True,
+)
+print(_avg)
+```
+
+The `max` function takes the following arguments:
+
+| Argument   | Description                                                                                                         | Type                     | Default | Required |
+| ---------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------ | ------- | -------- |
+| `instance` | The model class to retrieve documents from.                                                                         | `Model`                  | `None`  | `Yes`    |
+| `column`   | A string of column to calculate average values based on.                                                            | `str`                    | `None`  | `Yes`    |
+| `limit`    | Maximum number of documents to retrieve.                                                                            | `int`                    | `None`  | `No`     |
+| `offset`   | Number of documents to skip before finding the calculating the average.                                             | `int`                    | `0`     | `No`     |
+| `filters`  | Collection of `Filter` or a `Filter` to apply to the rows to be used.                                               | `list[Filter] \| Filter` | `None`  | `No`     |
+| `distinct` | Boolean telling dataloom to calculate the average value in distinct rows of values based on selected column or not. | `bool`                   | `False` | `No`     |
+
+#### 7. `sum()`
+
+This is a utility function that comes within the `loom` object that is used to find the total sum in rows of data in a database table that meets a specific criteria. Here is an example on how to use this utility function.
+
+```py
+# example
+_sum = mysql_loom.sum(
+    instance=Post,
+    filters=Filter(
+        column="id",
+        operator="between",
+        value=[1, 7],
+    ),
+    column="id",
+    limit=3,
+    offset=0,
+    distinct=True,
+)
+print(_sum)
+```
+
+The `sum` function takes the following arguments:
+
+| Argument   | Description                                                                                    | Type                     | Default | Required |
+| ---------- | ---------------------------------------------------------------------------------------------- | ------------------------ | ------- | -------- |
+| `instance` | The model class to retrieve documents from.                                                    | `Model`                  | `None`  | `Yes`    |
+| `column`   | A string of column to sum values based on.                                                     | `str`                    | `None`  | `Yes`    |
+| `limit`    | Maximum number of documents to retrieve.                                                       | `int`                    | `None`  | `No`     |
+| `offset`   | Number of documents to skip before summing.                                                    | `int`                    | `0`     | `No`     |
+| `filters`  | Collection of `Filter` or a `Filter` to apply to the rows to be used.                          | `list[Filter] \| Filter` | `None`  | `No`     |
+| `distinct` | Boolean telling dataloom to sum value in distinct rows values based on selected column or not. | `bool`                   | `False` | `No`     |
 
 ### Associations
 

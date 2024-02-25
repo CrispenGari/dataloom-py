@@ -95,15 +95,17 @@ for title in ["Hey", "Hello", "What are you doing", "Coding"]:
     )
 
 
-post = mysql_loom.find_many(
-    Post,
+count = mysql_loom.count(
+    instance=Post,
     filters=Filter(
         column="id",
         operator="between",
         value=[1, 7],
     ),
-    select=["completed"],
+    column="id",
+    limit=3,
+    offset=0,
     distinct=True,
 )
 
-print(post)
+print(count)

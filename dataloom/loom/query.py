@@ -192,7 +192,6 @@ class query(Query):
             select=select,
             offset=offset,
         )
-
         args = get_args(params)
         row = self._execute_sql(sql, args=args, fetchone=True)
         if row is None:

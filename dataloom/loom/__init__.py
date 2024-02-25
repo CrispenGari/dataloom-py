@@ -26,6 +26,7 @@ from dataloom.types import (
     Group,
 )
 from dataloom.loom.interfaces import ILoom
+from dataloom.loom.math import math
 
 
 class Loom(ILoom):
@@ -1338,7 +1339,7 @@ class Loom(ILoom):
         ...     id = PrimaryKeyColumn(type="int", auto_increment=True, nullable=False, unique=True)
         ...     type = Column(type="varchar", length=255, nullable=False)
         ... # connecting and syncing tables
-        ... conn, tables = mysql_loom.connect_and_sync(
+        ... conn, tables = loom.connect_and_sync(
         ...     [Category], drop=True, force=True
         ... )
         ... # closing the connection
@@ -1457,3 +1458,330 @@ class Loom(ILoom):
             return self.tables
         except Exception as e:
             raise Exception(e)
+
+    def sum(
+        self,
+        instance: Model,
+        column: str,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+        distinct: bool = False,
+        filters: Optional[Filter | list[Filter]] = None,
+    ) -> float | int:
+        """
+        sum
+        ---
+
+        Computes the sum of values in the specified column of a table.
+
+        Parameters
+        ----------
+        instance : Model
+            An instance of a Model class representing the table from which the sum will be computed.
+        column : str
+            The name of the column for which the sum will be calculated.
+        limit : int | None, optional
+            The maximum number of rows to consider for sum calculation. If None, all rows are considered. (default is None)
+        offset : int | None, optional
+            The number of rows to skip before starting to count for sum calculation. (default is None)
+        distinct : bool, optional
+            If True, only distinct values in the column will be summed. (default is False)
+        filters : Filter | list[Filter] | None, optional
+            Filters to apply to the rows before calculating the sum. It can be a single Filter object, a list of Filter objects, or None. (default is None)
+
+        Returns
+        -------
+        sum_value : float | int
+            The sum of values in the specified column. The return type depends on the type of the column.
+
+        See Also
+        --------
+        avg : Computes the average of values in a column.
+        min : Finds the minimum value in a column.
+        max : Finds the maximum value in a column.
+        count : Counts the number of rows in a table or satisfying certain conditions.
+
+        Examples
+        --------
+        >>> # Compute the sum of 'id' column in 'Post' table where id is between 1 and 7
+        ... res = loom.sum(
+        ...     instance=Post,
+        ...     filters=Filter(
+        ...         column="id",
+        ...         operator="between",
+        ...         value=[1, 7],
+        ...     ),
+        ...     column="id",
+        ...     distinct=False,
+        ...     limit=2,
+        ...     offset=0,
+        ... )
+        ...
+        ... print(res)
+
+        """
+        return math(dialect=self.dialect, _execute_sql=self._execute_sql).sum(
+            instance=instance,
+            column=column,
+            limit=limit,
+            offset=offset,
+            distinct=distinct,
+            filters=filters,
+        )
+
+    def avg(
+        self,
+        instance: Model,
+        column: str,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+        distinct: bool = False,
+        filters: Optional[Filter | list[Filter]] = None,
+    ) -> float:
+        """
+        avg
+        ---
+
+        Computes the average of values in the specified column of a table.
+
+        Parameters
+        ----------
+        instance : Model
+            An instance of a Model class representing the table from which the average will be computed.
+        column : str
+            The name of the column for which the average will be calculated.
+        limit : int | None, optional
+            The maximum number of rows to consider for average calculation. If None, all rows are considered. (default is None)
+        offset : int | None, optional
+            The number of rows to skip before starting to count for average calculation. (default is None)
+        distinct : bool, optional
+            If True, only distinct values in the column will be averaged. (default is False)
+        filters : Filter | list[Filter] | None, optional
+            Filters to apply to the rows before calculating the average. It can be a single Filter object, a list of Filter objects, or None. (default is None)
+
+        Returns
+        -------
+        avg_value : float
+            The average of values in the specified column.
+
+        See Also
+        --------
+        sum : Computes the sum of values in a column.
+        min : Finds the minimum value in a column.
+        max : Finds the maximum value in a column.
+        count : Counts the number of rows in a table or satisfying certain conditions.
+
+        Examples
+        --------
+        >>> # Compute the average of 'score' column in 'Student' table
+        ... average_score = loom.avg(
+        ...     instance=Student,
+        ...     column="score",
+        ...     distinct=True,
+        ...     limit=100,
+        ...     offset=10,
+        ... )
+        ...
+        ... print(average_score)
+
+        """
+        return math(dialect=self.dialect, _execute_sql=self._execute_sql).avg(
+            instance=instance,
+            column=column,
+            limit=limit,
+            offset=offset,
+            distinct=distinct,
+            filters=filters,
+        )
+
+    def min(
+        self,
+        instance: Model,
+        column: str,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+        distinct: bool = False,
+        filters: Optional[Filter | list[Filter]] = None,
+    ) -> float | int:
+        """
+        min
+        ---
+
+        Finds the minimum value in the specified column of a table.
+
+        Parameters
+        ----------
+        instance : Model
+            An instance of a Model class representing the table from which the minimum value will be found.
+        column : str
+            The name of the column in which the minimum value will be searched.
+        limit : int | None, optional
+            The maximum number of rows to consider for finding the minimum value. If None, all rows are considered. (default is None)
+        offset : int | None, optional
+            The number of rows to skip before starting to search for the minimum value. (default is None)
+        distinct : bool, optional
+            If True, only distinct values in the column will be considered. (default is False)
+        filters : Filter | list[Filter] | None, optional
+            Filters to apply to the rows before searching for the minimum value. It can be a single Filter object, a list of Filter objects, or None. (default is None)
+
+        Returns
+        -------
+        min_value : float | int
+            The minimum value found in the specified column.
+
+        See Also
+        --------
+        sum : Computes the sum of values in a column.
+        avg : Computes the average of values in a column.
+        max : Finds the maximum value in a column.
+        count : Counts the number of rows in a table or satisfying certain conditions.
+
+        Examples
+        --------
+        >>> # Find the minimum value in the 'price' column of 'Product' table
+        ... min_price = loom.min(
+        ...     instance=Product,
+        ...     column="price",
+        ...     distinct=True,
+        ...     limit=1000,
+        ...     offset=0,
+        ... )
+        ...
+        ... print(min_price)
+
+        """
+        return math(dialect=self.dialect, _execute_sql=self._execute_sql).min(
+            instance=instance,
+            column=column,
+            limit=limit,
+            offset=offset,
+            distinct=distinct,
+            filters=filters,
+        )
+
+    def max(
+        self,
+        instance: Model,
+        column: str,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+        distinct: bool = False,
+        filters: Optional[Filter | list[Filter]] = None,
+    ) -> float | int:
+        """
+        max
+        ---
+
+        Finds the maximum value in the specified column of a table.
+
+        Parameters
+        ----------
+        instance : Model
+            An instance of a Model class representing the table from which the maximum value will be found.
+        column : str
+            The name of the column in which the maximum value will be searched.
+        limit : int | None, optional
+            The maximum number of rows to consider for finding the maximum value. If None, all rows are considered. (default is None)
+        offset : int | None, optional
+            The number of rows to skip before starting to search for the maximum value. (default is None)
+        distinct : bool, optional
+            If True, only distinct values in the column will be considered. (default is False)
+        filters : Filter | list[Filter] | None, optional
+            Filters to apply to the rows before searching for the maximum value. It can be a single Filter object, a list of Filter objects, or None. (default is None)
+
+        Returns
+        -------
+        max_value : float | int
+            The maximum value found in the specified column.
+
+        See Also
+        --------
+        sum : Computes the sum of values in a column.
+        avg : Computes the average of values in a column.
+        min : Finds the minimum value in a column.
+        count : Counts the number of rows in a table or satisfying certain conditions.
+
+        Examples
+        --------
+        >>> # Find the maximum value in the 'price' column of 'Product' table
+        ... max_price = loom.max(
+        ...     instance=Product,
+        ...     column="price",
+        ...     distinct=True,
+        ...     limit=1000,
+        ...     offset=0,
+        ... )
+        ...
+        ... print(max_price)
+
+        """
+        return math(dialect=self.dialect, _execute_sql=self._execute_sql).max(
+            instance=instance,
+            column=column,
+            limit=limit,
+            offset=offset,
+            distinct=distinct,
+            filters=filters,
+        )
+
+    def count(
+        self,
+        instance: Model,
+        column: str,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+        distinct: bool = False,
+        filters: Optional[Filter | list[Filter]] = None,
+    ) -> int:
+        """
+        count
+        -----
+
+        Counts the number of rows in a table or satisfying certain conditions.
+
+        Parameters
+        ----------
+        instance : Model
+            An instance of a Model class representing the table for which the row count will be computed.
+        column : str
+            The name of the column to count rows from. It can be any column, or "*" to count all rows.
+        limit : int | None, optional
+            The maximum number of rows to consider for counting. If None, all rows are considered. (default is None)
+        offset : int | None, optional
+            The number of rows to skip before starting to count rows. (default is None)
+        distinct : bool, optional
+            If True, only distinct values in the column will be counted. (default is False)
+        filters : Filter | list[Filter] | None, optional
+            Filters to apply to the rows before counting. It can be a single Filter object, a list of Filter objects, or None. (default is None)
+
+        Returns
+        -------
+        row_count : int
+            The number of rows that match the specified conditions.
+
+        See Also
+        --------
+        sum : Computes the sum of values in a column.
+        avg : Computes the average of values in a column.
+        min : Finds the minimum value in a column.
+        max : Finds the maximum value in a column.
+
+        Examples
+        --------
+        >>> # Count the total number of users based on the specified column
+        ... total_users = loom.count(
+        ...     instance=User,
+        ...     column="id",
+        ... )
+        ...
+        ... print(total_users)
+
+        """
+        return math(dialect=self.dialect, _execute_sql=self._execute_sql).count(
+            instance=instance,
+            column=column,
+            limit=limit,
+            offset=offset,
+            distinct=distinct,
+            filters=filters,
+        )

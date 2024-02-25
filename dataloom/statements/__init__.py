@@ -12,7 +12,11 @@ from dataloom.statements.statements import (
     PgStatements,
     Sqlite3Statements,
 )
-from dataloom.types import DIALECT_LITERAL, INCREMENT_DECREMENT_LITERAL
+from dataloom.types import (
+    DIALECT_LITERAL,
+    INCREMENT_DECREMENT_LITERAL,
+    UTILS_FUNCTION_LITERAL,
+)
 from dataloom.utils import (
     get_formatted_query,
     get_relationships,
@@ -214,6 +218,7 @@ class GetStatement[T]:
         groups: list[tuple[str]] = [],
         having: list[str] = [],
         distinct: bool = False,
+        function: Optional[UTILS_FUNCTION_LITERAL] = None,
     ):
         (group_columns, group_fns) = groups
         options = [
@@ -225,7 +230,9 @@ class GetStatement[T]:
         ]
         if self.dialect == "postgres":
             sql = PgStatements.SELECT_WHERE_COMMAND.format(
-                column_names=", ".join([f'"{f}"' for f in fields] + group_fns),
+                column_names=", ".join(fields)
+                if function is not None
+                else ", ".join([f'"{f}"' for f in fields] + group_fns),
                 table_name=f'"{self.table_name}"',
                 filters=" ".join(placeholder_filters),
                 options=" ".join(options),
@@ -233,7 +240,9 @@ class GetStatement[T]:
             )
         elif self.dialect == "mysql":
             sql = MySqlStatements.SELECT_WHERE_COMMAND.format(
-                column_names=", ".join([f"`{name}`" for name in fields] + group_fns),
+                column_names=", ".join(fields)
+                if function is not None
+                else ", ".join([f"`{name}`" for name in fields] + group_fns),
                 table_name=f"`{self.table_name}`",
                 filters=" ".join(placeholder_filters),
                 options=" ".join(options),
@@ -241,7 +250,9 @@ class GetStatement[T]:
             )
         elif self.dialect == "sqlite":
             sql = Sqlite3Statements.SELECT_WHERE_COMMAND.format(
-                column_names=", ".join([f"`{name}`" for name in fields] + group_fns),
+                column_names=", ".join(fields)
+                if function is not None
+                else ", ".join([f"`{name}`" for name in fields] + group_fns),
                 table_name=f"`{self.table_name}`",
                 filters=" ".join(placeholder_filters),
                 options=" ".join(options),
@@ -263,6 +274,7 @@ class GetStatement[T]:
         groups: list[tuple[str]] = [],
         having: list[str] = [],
         distinct: bool = False,
+        function: Optional[UTILS_FUNCTION_LITERAL] = None,
     ):
         (group_columns, group_fns) = groups
         options = [
@@ -275,21 +287,27 @@ class GetStatement[T]:
 
         if self.dialect == "postgres":
             sql = PgStatements.SELECT_COMMAND.format(
-                column_names=", ".join([f'"{name}"' for name in fields] + group_fns),
+                column_names=", ".join(fields)
+                if function is not None
+                else ", ".join([f'"{name}"' for name in fields] + group_fns),
                 table_name=f'"{self.table_name}"',
                 options=" ".join(options),
                 distinct="DISTINCT" if distinct else "",
             )
         elif self.dialect == "mysql":
             sql = MySqlStatements.SELECT_COMMAND.format(
-                column_names=", ".join([f"`{name}`" for name in fields] + group_fns),
+                column_names=", ".join(fields)
+                if function is not None
+                else ", ".join([f"`{name}`" for name in fields] + group_fns),
                 table_name=f"`{self.table_name}`",
                 options=" ".join(options),
                 distinct="DISTINCT" if distinct else "",
             )
         elif self.dialect == "sqlite":
             sql = Sqlite3Statements.SELECT_COMMAND.format(
-                column_names=", ".join([f"`{name}`" for name in fields] + group_fns),
+                column_names=", ".join(fields)
+                if function is not None
+                else ", ".join([f"`{name}`" for name in fields] + group_fns),
                 table_name=f"`{self.table_name}`",
                 options=" ".join(options),
                 distinct="DISTINCT" if distinct else "",

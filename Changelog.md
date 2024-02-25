@@ -12,7 +12,7 @@ We have release the new `dataloom` Version `2.2.0` (`2024-02-24`)
 - Added operators `BETWEEN` and `NOT` in filters now ypu can use them.
 
 ```py
-post = mysql_loom.find_one(
+post = loom.find_one(
     Post,
     filters=Filter(
         column="id",
@@ -21,7 +21,7 @@ post = mysql_loom.find_one(
     ),
     select=["id"],
 )
-post = mysql_loom.find_one(
+post = loom.find_one(
     Post,
     filters=Filter(
         column="id",
@@ -37,7 +37,7 @@ post = mysql_loom.find_one(
 - Distinct row selection has been added for the method `find_all()` and `find_many()`
 
 ```py
-post = mysql_loom.find_many(
+post = loom.find_many(
     Post,
     filters=Filter(
         column="id",
@@ -48,7 +48,7 @@ post = mysql_loom.find_many(
     distinct=True,
 )
 
-post = mysql_loom.find_all(
+post = loom.find_all(
     Post,
     select=["completed"],
     distinct=True,
@@ -56,6 +56,19 @@ post = mysql_loom.find_all(
 ```
 
 > The result will return the `distinct` rows of data based on the completed value.
+
+- added utility functions `sum`, `avg`, `min`, `max` and `count` to the loom object.
+  ```py
+  count = loom.count(
+    instance=Post,
+    filters=Filter(
+        column="id",
+        operator="between",
+        value=[1, 7],
+    ),
+    column="id",
+  )
+  ```
 
 # Dataloom **`2.1.1`**
 
@@ -127,7 +140,7 @@ We have release the new `dataloom` Version `2.0.0` (`2024-02-21`)
   - Now you can fetch your child relationship together in your query
 
   ```py
-  user = mysql_loom.find_one(
+  user = loom.find_one(
     instance=User,
     filters=[Filter(column="id", value=userId)],
     include=[Include(model=Profile, select=["id", "avatar"], has="one")],
@@ -138,7 +151,7 @@ We have release the new `dataloom` Version `2.0.0` (`2024-02-21`)
   - You can apply limits, offsets, filters and orders to your child associations during queries
 
   ```py
-    post = mysql_loom.find_one(
+    post = loom.find_one(
       instance=Post,
       filters=[Filter(column="userId", value=userId)],
       select=["title", "id"],
@@ -181,7 +194,7 @@ We have release the new `dataloom` Version `2.0.0` (`2024-02-21`)
 
   # now you can do this
 
-  profile = mysql_loom.find_many(
+  profile = loom.find_many(
       instance=Profile,
   )
   print([Profile(**p) for p in profile]) # ? = [<Profile:id=1>]
@@ -197,20 +210,20 @@ We have release the new `dataloom` Version `2.0.0` (`2024-02-21`)
   - **Before**
 
   ```py
-  res = mysql_loom.find_by_pk(Profile, pk=profileId, select={"id", "avatar"}) # invalid
-  res = mysql_loom.find_by_pk(Profile, pk=profileId, select=("id", "avatar")) # invalid
-  res = mysql_loom.find_by_pk(Profile, pk=profileId, select="id") # invalid
-  res = mysql_loom.find_by_pk(Profile, pk=profileId, select=["id"]) # valid
+  res = loom.find_by_pk(Profile, pk=profileId, select={"id", "avatar"}) # invalid
+  res = loom.find_by_pk(Profile, pk=profileId, select=("id", "avatar")) # invalid
+  res = loom.find_by_pk(Profile, pk=profileId, select="id") # invalid
+  res = loom.find_by_pk(Profile, pk=profileId, select=["id"]) # valid
 
   ```
 
   - **Now**
 
   ```py
-  res = mysql_loom.find_by_pk(Profile, pk=profileId, select={"id", "avatar"}) # valid
-  res = mysql_loom.find_by_pk(Profile, pk=profileId, select=("id", "avatar")) # valid
-  res = mysql_loom.find_by_pk(Profile, pk=profileId, select="id") # valid
-  res = mysql_loom.find_by_pk(Profile, pk=profileId, select=["id"]) # valid
+  res = loom.find_by_pk(Profile, pk=profileId, select={"id", "avatar"}) # valid
+  res = loom.find_by_pk(Profile, pk=profileId, select=("id", "avatar")) # valid
+  res = loom.find_by_pk(Profile, pk=profileId, select="id") # valid
+  res = loom.find_by_pk(Profile, pk=profileId, select=["id"]) # valid
 
   ```
 

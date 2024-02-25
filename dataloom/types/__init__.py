@@ -8,6 +8,7 @@ OPERATOR_LITERAL = Literal[
 SLQ_OPERAND_LITERAL = Literal["AND", "OR"]
 INCREMENT_DECREMENT_LITERAL = Literal["increment", "decrement"]
 SQL_LOGGER_LITERAL = Literal["console", "file"]
+UTILS_FUNCTION_LITERAL = Literal["avg", "count", "min", "max", "sum"]
 
 CASCADE_LITERAL = Literal["NO ACTION", "CASCADE", "SET NULL"]
 DIALECT_LITERAL = Literal["postgres", "mysql", "sqlite"]

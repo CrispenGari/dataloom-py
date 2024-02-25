@@ -9,13 +9,16 @@
 10. querying with operations like (OR LIKE > < etc) ✅
 11. limit and pagination ✅
 12. in & not in  ✅
-13. grouping data
+13. grouping data ✅
 14. updating data ✅
 15. apply delete with limit ✅
 16. between ✅
-16. distinct
-17. sum, avg,count, min & max
+16. distinct ✅
+17. sum, avg,count, min & max, mean ✅
 18. Not ✅
+19. self relations
+20. N-N relations
+21. query builder
 
 
 --------- conn
