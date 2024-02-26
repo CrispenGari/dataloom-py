@@ -12,7 +12,7 @@ from dataloom.exceptions import UnsupportedDialectException, InvalidConnectionUR
 from dataloom.model import Model
 from dataloom.statements import GetStatement
 from dataloom.conn import ConnectionOptionsFactory
-from typing import Optional, Any
+from typing import Optional, Any, Literal
 from mysql.connector.pooling import PooledMySQLConnection
 from sqlite3 import Connection
 from mysql.connector.connection import MySQLConnectionAbstract
@@ -27,6 +27,7 @@ from dataloom.types import (
 )
 from dataloom.loom.interfaces import ILoom
 from dataloom.loom.math import math
+from dataloom.loom.qb import qb
 
 
 class Loom(ILoom):
@@ -1165,7 +1166,7 @@ class Loom(ILoom):
         mutation=True,
         bulk: bool = False,
         affected_rows: bool = False,
-        operation: Optional[str] = None,
+        operation: Optional[Literal["insert", "update", "delete", "read"]] = None,
         _verbose: int = 1,
         _is_script: bool = False,
     ) -> Any:
@@ -1785,3 +1786,28 @@ class Loom(ILoom):
             distinct=distinct,
             filters=filters,
         )
+
+        # qb
+
+    def getQueryBuilder(self):
+        """
+        getQueryBuilder
+        ---------------
+        Retrieves a query builder instance.
+
+        Parameters
+        ----------
+        No parameters
+
+        Returns
+        -------
+        qb
+            Query builder instance.
+
+        Examples
+        --------
+        >>> qb = loom.getQueryBuilder()
+        ... print(qb)
+        """
+        builder = qb(_execute_sql=self._execute_sql, dialect=self.dialect)
+        return builder

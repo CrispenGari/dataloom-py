@@ -105,6 +105,8 @@
   - [4. What about bidirectional queries?](#4-what-about-bidirectional-queries)
     - [1. Child to Parent](#1-child-to-parent)
     - [2. Parent to Child](#2-parent-to-child)
+- [Query Builder.](#query-builder)
+  - [Why Use Query Builder?](#why-use-query-builder)
 - [What is coming next?](#what-is-coming-next)
 - [Contributing](#contributing)
 - [License](#license)
@@ -2112,10 +2114,81 @@ print(user_post) """ ? =
 
 ```
 
+### Query Builder.
+
+Dataloom exposes a method called `getQueryBuilder`, which allows you to obtain a `qb` object. This object enables you to execute SQL queries directly from SQL scripts.
+
+```py
+qb = loom.getQueryBuilder()
+
+print(qb) # ? = Loom QB<mysql>
+```
+
+The `qb` object contains the method called `run`, which is used to execute SQL scripts or SQL queries.
+
+```py
+ids = qb.run("select id from posts;", fetchall=True)
+print(ids) # ? = [(1,), (2,), (3,), (4,)]
+```
+
+You can also execute SQL files. In the following example, we will demonstrate how you can execute SQL scripts using the `qb`. Let's say we have an SQL file called `qb.sql` which contains the following SQL code:
+
+```SQL
+SELECT id, title FROM posts WHERE id IN (1, 3, 2, 4) LIMIT 4 OFFSET  1;
+SELECT COUNT(*) FROM (
+    SELECT DISTINCT `id`
+    FROM `posts`
+    WHERE `id` < 5
+    LIMIT 3 OFFSET 2
+) AS subquery;
+```
+
+We can use the query builder to execute the SQL as follows:
+
+```py
+with open("qb.sql", "r") as reader:
+    sql = reader.read()
+res = qb.run(
+    sql,
+    fetchall=True,
+    is_script=True,
+)
+print(res)
+```
+
+> 👍 **Pro Tip:** Executing a script using query builder does not return a result. The result value is always `None`.
+
+The `run` method takes the following as arguments:
+
+| Argument        | Description                                                                            | Type                                           | Required | Default |
+| --------------- | -------------------------------------------------------------------------------------- | ---------------------------------------------- | -------- | ------- |
+| `sql`           | SQL query to execute.                                                                  | `str`                                          | Yes      |         |
+| `args`          | Parameters for the SQL query.                                                          | `Any \| None`                                  | No       | `None`  |
+| `fetchone`      | Whether to fetch only one result.                                                      | `bool`                                         | No       | `False` |
+| `fetchmany`     | Whether to fetch multiple results.                                                     | `bool`                                         | No       | `False` |
+| `fetchall`      | Whether to fetch all results.                                                          | `bool`                                         | No       | `False` |
+| `mutation`      | Whether the query is a mutation (insert, update, delete).                              | `bool`                                         | No       | `True`  |
+| `bulk`          | Whether the query is a bulk operation.                                                 | `bool`                                         | No       | `False` |
+| `affected_rows` | Whether to return affected rows.                                                       | `bool`                                         | No       | `False` |
+| `operation`     | Type of operation being performed.                                                     | `'insert', 'update', 'delete', 'read' \| None` | No       | `None`  |
+| `verbose`       | Verbosity level for logging . Set this option to `0` if you don't want logging at all. | `int`                                          | No       | `1`     |
+| `is_script`     | Whether the SQL is a script.                                                           | `bool`                                         | No       | `False` |
+
+#### Why Use Query Builder?
+
+- The query builder empowers developers to seamlessly execute `SQL` queries directly.
+- While Dataloom primarily utilizes `subqueries` for eager data fetching on models, developers may prefer to employ JOIN operations, which are achievable through the `qb` object.
+
+  ```python
+  qb = loom.getQueryBuilder()
+  result = qb.run("SELECT * FROM table1 INNER JOIN table2 ON table1.id = table2.table1_id;")
+  print(result)
+  ```
+
 ### What is coming next?
 
 1. N-N associations
-2. Query Builder
+2. Self relations
 
 ### Contributing
 

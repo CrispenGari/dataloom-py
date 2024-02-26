@@ -218,21 +218,6 @@ class ILoom(ABC):
     def tables(self):
         raise NotImplementedError("The tables property was not implemented")
 
-    @abstractclassmethod
-    def _execute_sql(
-        self,
-        sql: str,
-        args=None,
-        fetchone=False,
-        fetchmany=False,
-        fetchall=False,
-        mutation=True,
-        bulk: bool = False,
-        affected_rows: bool = False,
-        operation: Optional[str] = None,
-    ) -> Any:
-        raise NotImplementedError("The _execute_sql method was not implemented.")
-
     def connect(
         self,
     ) -> Any | PooledMySQLConnection | MySQLConnectionAbstract | Connection:
