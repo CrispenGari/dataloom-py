@@ -1,10 +1,44 @@
 ===
+Dataloom **`2.3.0`**
+===
+
+### Release Notes - `dataloom`
+
+We have release the new `dataloom` Version `2.3.0` (`2024-02-26`)
+
+##### Features
+
+- updated documentation.
+- Query Builder in executing queries and SQL Scripts.
+
+```py
+qb = loom.getQueryBuilder()
+res = qb.run("select id from posts;", fetchall=True)
+print(res)
+```
+
+We can use the query builder to execute the SQL as follows:
+
+```py
+with open("qb.sql", "r") as reader:
+    sql = reader.read()
+res = qb.run(
+    sql,
+    fetchall=True,
+    is_script=True,
+)
+print(res)
+```
+
+> 👍 **Pro Tip:** Executing a script using query builder does not return a result. The result value is always `None`.
+
+===
 Dataloom **`2.2.0`**
 ===
 
 ### Release Notes - `dataloom`
 
-We have release the new `dataloom` Version `2.2.0` (`2024-02-24`)
+We have release the new `dataloom` Version `2.2.0` (`2024-02-25`)
 
 ##### Features
 

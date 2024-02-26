@@ -95,10 +95,6 @@ for title in ["Hey", "Hello", "What are you doing", "Coding"]:
     )
 
 
-avg = mysql_loom.avg(
-    instance=Post,
-    column="id",
-    distinct=True,
-)
-
-print(avg)
+qb = mysql_loom.getQueryBuilder()
+res = qb.run("select id from posts;", fetchall=True)
+print(qb)

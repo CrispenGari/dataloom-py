@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any, Optional, Literal
 from dataloom.types import DIALECT_LITERAL, SQL_LOGGER_LITERAL
 from dataloom.exceptions import UnsupportedDialectException
 from sqlite3 import Connection
@@ -59,7 +59,7 @@ class sql(SQL):
         mutation=True,
         bulk: bool = False,
         affected_rows: bool = False,
-        operation: Optional[str] = None,
+        operation: Optional[Literal["insert", "update", "delete", "read"]] = None,
         _verbose: int = 1,
         _is_script: bool = False,
     ) -> Any:
@@ -110,7 +110,6 @@ class sql(SQL):
                         except Exception:
                             pass
                     return None
-
                 if args is None:
                     cursor.execute(sql)
                 else:
