@@ -193,6 +193,7 @@ class AlterTable:
     @property
     def get_alter_table_params(self):
         pks = []
+        fks = []
         alterations = []
         # add or modify columns
         for name, field in inspect.getmembers(self.model):
@@ -211,6 +212,8 @@ class AlterTable:
             elif isinstance(field, UpdatedAtColumn):
                 alterations.append(self.updated_at_alteration(name=name, field=field))
             elif isinstance(field, ForeignKeyColumn):
+                col = f'"{name}"' if self.dialect == "postgres" else f"`{name}`"
+                fks.append(col)
                 alterations.append(self.foreign_key_alteration(name=name, field=field))
 
         # delete columns
@@ -221,4 +224,4 @@ class AlterTable:
             elif self.dialect == "postgres":
                 alterations.append(f"ALTER TABLE {self.table_name} DROP COLUMN {col};")
 
-        return pks, list(reversed(alterations))
+        return pks, fks, list(reversed(alterations))

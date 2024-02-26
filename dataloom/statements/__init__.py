@@ -6,6 +6,7 @@ from dataloom.exceptions import (
     PkNotDefinedException,
     TooManyPkException,
     UnsupportedDialectException,
+    TooManyFkException,
 )
 from dataloom.statements.statements import (
     MySqlStatements,
@@ -23,6 +24,7 @@ from dataloom.utils import (
     get_create_table_params,
     get_table_fields,
     AlterTable,
+    get_create_reference_table_params,
 )
 
 
@@ -152,61 +154,119 @@ class GetStatement[T]:
         return sql
 
     @property
-    def _get_create_table_command(self) -> Optional[list[str]]:
+    def _get_create_table_command(self) -> str:
         # is the primary key defined in this table?
-        pks, user_fields, predefined_fields = get_create_table_params(
+        pks, fks, user_fields, predefined_fields = get_create_table_params(
             dialect=self.dialect,
             model=self.model,
         )
-
-        if len(pks) == 0:
+        if len(fks) > 2:
+            raise TooManyFkException(
+                f"Reference table '{self.table_name}' can not have more than 2 foreign keys."
+            )
+        if len(pks) == 0 and len(fks) != 2:
             raise PkNotDefinedException(
-                "Your table does not have a primary key column."
+                f"Your table '{self.table_name}' does not have a primary key column and it is not a reference table."
             )
         if len(pks) > 1:
             raise TooManyPkException(
                 f"You have defined many field as primary keys which is not allowed. Fields ({', '.join(pks)}) are primary keys."
             )
+
         fields = [*user_fields, *predefined_fields]
         fields_name = ", ".join(f for f in [" ".join(field) for field in fields])
         if self.dialect == "postgres":
-            sql = (
-                PgStatements.CREATE_NEW_TABLE.format(
-                    table_name=f'"{self.table_name}"', fields_name=fields_name
+            if len(fks) == 2:
+                pks, user_fields, fks = get_create_reference_table_params(
+                    dialect=self.dialect,
+                    model=self.model,
                 )
-                if not self.ignore_exists
-                else PgStatements.CREATE_NEW_TABLE_IF_NOT_EXITS.format(
-                    table_name=f'"{self.table_name}"', fields_name=fields_name
+                sql = (
+                    PgStatements.CREATE_REFERENCE_TABLE.format(
+                        table_name=f'"{self.table_name}"', fields_name=fields_name
+                    )
+                    if not self.ignore_exists
+                    else PgStatements.CREATE_REFERENCE_TABLE_IF_NOT_EXISTS.format(
+                        table_name=f'"{self.table_name}"',
+                        fields_names=", ".join(user_fields),
+                        fks=", ".join(fks),
+                        pks=", ".join(pks),
+                    )
                 )
-            )
+            else:
+                sql = (
+                    PgStatements.CREATE_NEW_TABLE.format(
+                        table_name=f'"{self.table_name}"', fields_name=fields_name
+                    )
+                    if not self.ignore_exists
+                    else PgStatements.CREATE_NEW_TABLE_IF_NOT_EXITS.format(
+                        table_name=f'"{self.table_name}"', fields_name=fields_name
+                    )
+                )
 
         elif self.dialect == "mysql":
-            sql = (
-                MySqlStatements.CREATE_NEW_TABLE.format(
-                    table_name=f"`{self.table_name}`", fields_name=fields_name
+            if len(fks) == 2:
+                pks, user_fields, fks = get_create_reference_table_params(
+                    dialect=self.dialect,
+                    model=self.model,
                 )
-                if not self.ignore_exists
-                else MySqlStatements.CREATE_NEW_TABLE_IF_NOT_EXITS.format(
-                    table_name=f"`{self.table_name}`", fields_name=fields_name
+                sql = (
+                    MySqlStatements.CREATE_REFERENCE_TABLE.format(
+                        table_name=f"`{self.table_name}`", fields_name=fields_name
+                    )
+                    if not self.ignore_exists
+                    else MySqlStatements.CREATE_REFERENCE_TABLE_IF_NOT_EXISTS.format(
+                        table_name=f"`{self.table_name}`",
+                        fields_names=", ".join(user_fields),
+                        fks=", ".join(fks),
+                        pks=", ".join(pks),
+                    )
                 )
-            )
+            else:
+                sql = (
+                    MySqlStatements.CREATE_NEW_TABLE.format(
+                        table_name=f"`{self.table_name}`", fields_name=fields_name
+                    )
+                    if not self.ignore_exists
+                    else MySqlStatements.CREATE_NEW_TABLE_IF_NOT_EXITS.format(
+                        table_name=f"`{self.table_name}`", fields_name=fields_name
+                    )
+                )
 
         elif self.dialect == "sqlite":
-            sql = (
-                Sqlite3Statements.CREATE_NEW_TABLE.format(
-                    table_name=f"`{self.table_name}`", fields_name=fields_name
+            if len(fks) == 2:
+                pks, user_fields, fks = get_create_reference_table_params(
+                    dialect=self.dialect,
+                    model=self.model,
                 )
-                if not self.ignore_exists
-                else Sqlite3Statements.CREATE_NEW_TABLE_IF_NOT_EXITS.format(
-                    table_name=f"`{self.table_name}`", fields_name=fields_name
+                sql = (
+                    Sqlite3Statements.CREATE_REFERENCE_TABLE.format(
+                        table_name=f"`{self.table_name}`", fields_name=fields_name
+                    )
+                    if not self.ignore_exists
+                    else Sqlite3Statements.CREATE_REFERENCE_TABLE_IF_NOT_EXISTS.format(
+                        table_name=f"`{self.table_name}`",
+                        fields_names=", ".join(user_fields),
+                        fks=", ".join(fks),
+                        pks=", ".join(pks),
+                    )
                 )
-            )
+            else:
+                sql = (
+                    Sqlite3Statements.CREATE_NEW_TABLE.format(
+                        table_name=f"`{self.table_name}`", fields_name=fields_name
+                    )
+                    if not self.ignore_exists
+                    else Sqlite3Statements.CREATE_NEW_TABLE_IF_NOT_EXITS.format(
+                        table_name=f"`{self.table_name}`", fields_name=fields_name
+                    )
+                )
 
         else:
             raise UnsupportedDialectException(
                 "The dialect passed is not supported the supported dialects are: {'postgres', 'mysql', 'sqlite'}"
             )
-        return [sql]
+        return sql
 
     def _get_select_where_command(
         self,
@@ -911,21 +971,27 @@ class GetStatement[T]:
         2. check if is new column
         3. check if the column has been removed
         """
-        pks, alterations = AlterTable(
+        pks, fks, alterations = AlterTable(
             dialect=self.dialect, model=self.model, old_columns=old_columns
         ).get_alter_table_params
 
         alterations = " ".join(alterations) if self.dialect != "sqlite" else ""
 
         # do we have a single primary key or not?
-        if len(pks) == 0:
+        if len(pks) == 0 and len(fks) != 2:
             raise PkNotDefinedException(
-                "Your table does not have a primary key column."
+                f"Your table '{self.table_name}' does not have a primary key column and it is not a reference table."
             )
         if len(pks) > 1:
             raise TooManyPkException(
                 f"You have defined many field as primary keys which is not allowed. Fields ({', '.join(pks)}) are primary keys."
             )
+
+        if len(fks) > 2:
+            raise TooManyFkException(
+                f"Reference table '{self.table_name}' can not have more than 2 foreign keys."
+            )
+
         if self.dialect == "postgres":
             sql = PgStatements.ALTER_TABLE_COMMAND.format(alterations=alterations)
         elif self.dialect == "mysql":
@@ -937,24 +1003,29 @@ class GetStatement[T]:
             old_table_name = f"`{self.table_name}`"
             columns, _, _, _ = get_table_fields(self.model, dialect=self.dialect)
             new_table_name = f"`{self.table_name}_new`"
-            pks, user_fields, predefined_fields = get_create_table_params(
+            pks, fks, user_fields, predefined_fields = get_create_table_params(
                 dialect=self.dialect,
                 model=self.model,
             )
-            if len(pks) == 0:
+
+            if len(pks) == 0 and len(fks) != 2:
                 raise PkNotDefinedException(
-                    "Your table does not have a primary key column."
+                    f"Your table '{self.table_name}' does not have a primary key column and it is not a reference table."
                 )
             if len(pks) > 1:
                 raise TooManyPkException(
                     f"You have defined many field as primary keys which is not allowed. Fields ({', '.join(pks)}) are primary keys."
                 )
+            if len(fks) > 2:
+                raise TooManyFkException(
+                    f"Reference table '{self.table_name}' can not have more than 2 foreign keys."
+                )
             fields = [*user_fields, *predefined_fields]
+
             fields_name = ", ".join(f for f in [" ".join(field) for field in fields])
             create_command = Sqlite3Statements.CREATE_NEW_TABLE_IF_NOT_EXITS.format(
                 table_name=new_table_name, fields_name=fields_name
             )
-
             sql = Sqlite3Statements.ALTER_TABLE_COMMAND.format(
                 create_new_table_command=create_command,
                 new_table_name=new_table_name,

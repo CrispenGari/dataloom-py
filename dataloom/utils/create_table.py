@@ -14,6 +14,7 @@ def get_create_table_params(
     model,
     dialect: DIALECT_LITERAL,
 ):
+    fks = []
     pks = []
     user_fields = []
     predefined_fields = []
@@ -75,6 +76,7 @@ def get_create_table_params(
             # 4. What is the relationship type being mapped?
             pk, pk_type = field.table._get_pk_attributes(dialect=dialect)
             parent_table_name = field.table._get_table_name()
+            fks.append(f'"{name}"' if dialect == "postgres" else f"`{name}`")
 
             value = (
                 "{pk_type} {unique} {nullable} REFERENCES {parent_table_name}({pk}) ON DELETE {onDelete} ON UPDATE {onUpdate}".format(
@@ -100,5 +102,50 @@ def get_create_table_params(
             predefined_fields.append(
                 (f'"{name}"' if dialect == "postgres" else f"`{name}`", value)
             )
+    return pks, fks, user_fields, predefined_fields
 
-    return pks, user_fields, predefined_fields
+
+def get_create_reference_table_params(
+    model,
+    dialect: DIALECT_LITERAL,
+):
+    pks = []
+    user_fields = []
+    fks = []
+
+    for name, field in inspect.getmembers(model):
+        if isinstance(field, PrimaryKeyColumn) or isinstance(field, Column):
+            raise Exception(
+                "Primary keys and columns can not be manually added in a reference table."
+            )
+        elif isinstance(field, CreatedAtColumn) or isinstance(field, UpdatedAtColumn):
+            raise Exception(
+                "Created at and Updated at columns are not allowed in reference tables."
+            )
+        elif isinstance(field, ForeignKeyColumn):
+            columnName = f'"{name}"' if dialect == "postgres" else f"`{name}`"
+            pk, pk_type = field.table._get_pk_attributes(dialect=dialect)
+            pk = f'"{pk}"' if dialect == "postgres" else f"`{pk}`"
+            table_name = (
+                f'"{field.table._get_table_name()}"'
+                if dialect == "postgres"
+                else f"`{field.table._get_table_name()}`"
+            )
+            user_fields.append(
+                "{columnName} {pk_type} {nullable}".format(
+                    pk_type=pk_type,
+                    nullable="NOT NULL" if field.required else "",
+                    columnName=columnName,
+                )
+            )
+            pks.append(columnName)
+            fks.append(
+                "FOREIGN KEY ({columnName}) REFERENCES {table_name}({pk}) ON DELETE {onDelete} ON UPDATE {onUpdate}".format(
+                    pk=pk,
+                    table_name=table_name,
+                    onDelete=field.onDelete,
+                    onUpdate=field.onUpdate,
+                    columnName=columnName,
+                )
+            )
+    return pks, user_fields, fks

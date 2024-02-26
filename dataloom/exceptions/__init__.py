@@ -22,6 +22,10 @@ class TooManyPkException(Exception):
     pass
 
 
+class TooManyFkException(Exception):
+    pass
+
+
 class UnsupportedDialectException(ValueError):
     pass
 

@@ -15,16 +15,7 @@ from dataloom import (
     Having,
 )
 
-"""
- ALTER TABLE "users" ALTER COLUMN "bio" TYPE VARCHAR(200),
- ALTER COLUMN "bio" DROP DEFAULT, ALTER COLUMN "bio" SET DEFAULT 'Hello world', ALTER COLUMN "bio" DROP NOT NULL, DROP CONSTRAINT IF EXISTS  "unique_bio";
 
-            ALTER TABLE "users" ALTER COLUMN "name" TYPE TEXT, ALTER COLUMN "name" DROP DEFAULT, ALTER COLUMN "name" SET DEFAULT 'Bob', ALTER COLUMN "name" DROP NOT NULL, ALTER COLUMN "name" SET NOT NULL, DROP CONSTRAINT IF EXISTS  "unique_name";
-            ALTER TABLE "users" ADD "p" BIGSERIAL REFERENCES "profiles"("id") ON DELETE SET NULL; 
-            ALTER TABLE "users" ALTER COLUMN "tokenVersion" TYPE INTEGER, ALTER COLUMN "tokenVersion" DROP DEFAULT, ALTER COLUMN "tokenVersion" SET DEFAULT '0', ALTER COLUMN "tokenVersion" DROP NOT NULL, DROP CONSTRAINT IF EXISTS  "unique_tokenVersion";
-            ALTER TABLE "users" ALTER COLUMN "username" TYPE VARCHAR(255), ALTER COLUMN "username" DROP DEFAULT, ALTER COLUMN "username" DROP NOT NULL, DROP CONSTRAINT IF EXISTS  "unique_username", ADD CONSTRAINT "unique_username" UNIQUE ("username");
-            ALTER TABLE "users" DROP COLUMN "p";
-"""
 from dataloom.decorators import initialize
 import json, time
 from typing import Optional
@@ -52,49 +43,89 @@ mysql_loom = Loom(
 )
 
 
-class User(Model):
-    __tablename__: TableColumn = TableColumn(name="users")
+class Employee(Model):
+    __tablename__: TableColumn = TableColumn(name="employees")
     id = PrimaryKeyColumn(type="int", auto_increment=True)
     name = Column(type="text", nullable=False, default="Bob")
-    username = Column(type="varchar", unique=True, length=255)
-    tokenVersion = Column(type="int", default=0)
-
-
-class Post(Model):
-    __tablename__: TableColumn = TableColumn(name="posts")
-    id = PrimaryKeyColumn(type="int", auto_increment=True, nullable=False, unique=True)
-    completed = Column(type="boolean", default=False)
-    title = Column(type="varchar", length=255, nullable=False)
-    # timestamps
-    createdAt = CreatedAtColumn()
-    # relations
-    userId = ForeignKeyColumn(
-        User,
-        maps_to="1-N",
-        type="int",
-        required=True,
-        onDelete="CASCADE",
-        onUpdate="CASCADE",
+    supervisorId = ForeignKeyColumn(
+        "Employee", maps_to="1-1", type="int", required=False
     )
 
 
-conn, tables = mysql_loom.connect_and_sync([User, Post], drop=True, force=True)
+class Employee(Model):
+    __tablename__: TableColumn = TableColumn(name="employees")
+    id = PrimaryKeyColumn(type="int", auto_increment=True)
+    name = Column(type="text", nullable=False, default="Bob")
+    supervisorId = ForeignKeyColumn(
+        "Employee", maps_to="1-1", type="int", required=False
+    )
 
-userId = mysql_loom.insert_one(
-    instance=User,
-    values=ColumnValue(name="username", value="@miller"),
+
+class Course(Model):
+    __tablename__: TableColumn = TableColumn(name="courses")
+    id = PrimaryKeyColumn(type="int", auto_increment=True)
+    name = Column(type="text", nullable=False, default="Bob")
+
+
+class Student(Model):
+    __tablename__: TableColumn = TableColumn(name="students")
+    id = PrimaryKeyColumn(type="int", auto_increment=True)
+    name = Column(type="text", nullable=False, default="Bob")
+
+
+# the only table that is allowed to have no primary key is the one that maps n-n and must have 2 foreign key columns
+
+
+class StudentCourses(Model):
+    __tablename__: TableColumn = TableColumn(name="students_courses")
+    studentId = ForeignKeyColumn(table=Student, type="int")
+    courseId = ForeignKeyColumn(table=Course, type="int")
+
+
+"""
+CREATE TABLE students (
+    student_id INT PRIMARY KEY,
+    student_name VARCHAR(100)
+);
+
+CREATE TABLE courses (
+    course_id INT PRIMARY KEY,
+    course_name VARCHAR(100)
+);
+
+CREATE TABLE student_courses (
+    student_id INT,
+    course_id INT,
+    PRIMARY KEY (student_id, course_id),
+    FOREIGN KEY (student_id) REFERENCES students(student_id),
+    FOREIGN KEY (course_id) REFERENCES courses(course_id)
+);
+
+"""
+
+"""
+INSERT INTO employees (id, name, supervisor_id) VALUES
+(1, 'John Doe', NULL),  -- John Doe doesn't have a supervisor
+(2, 'Jane Smith', 1),    -- Jane Smith's supervisor is John Doe
+(3, 'Michael Johnson', 1); -- Michael Johnson's supervisor is also John Doe
+"""
+
+
+conn, tables = sqlite_loom.connect_and_sync(
+    [Student, Course, StudentCourses], alter=True
 )
 
-for title in ["Hey", "Hello", "What are you doing", "Coding"]:
-    mysql_loom.insert_one(
-        instance=Post,
-        values=[
-            ColumnValue(name="userId", value=userId),
-            ColumnValue(name="title", value=title),
-        ],
-    )
 
+# userId = mysql_loom.insert_one(
+#     instance=User,
+#     values=ColumnValue(name="username", value="@miller"),
+# )
 
-qb = mysql_loom.getQueryBuilder()
-res = qb.run("select id from posts;", fetchall=True)
-print(qb)
+# for title in ["Hey", "Hello", "What are you doing", "Coding"]:
+#     mysql_loom.insert_one(
+#         instance=Post,
+#         values=[
+#             ColumnValue(name="userId", value=userId),
+#             ColumnValue(name="title", value=title),
+#         ],
+#     )

@@ -1417,9 +1417,8 @@ class Loom(ILoom):
             for model in models:
                 if drop or force:
                     self._execute_sql(model._drop_sql(dialect=self.dialect))
-                    for sql in model._create_sql(dialect=self.dialect):
-                        if sql is not None:
-                            self._execute_sql(sql)
+                    sql = model._create_sql(dialect=self.dialect)
+                    self._execute_sql(sql)
                 elif alter:
                     # 1. we only alter the table if it does exists
                     # 2. if not we just have to create a new table
@@ -1449,13 +1448,11 @@ class Loom(ILoom):
                         )
                         self._execute_sql(sql, _is_script=True)
                     else:
-                        for sql in model._create_sql(dialect=self.dialect):
-                            if sql is not None:
-                                self._execute_sql(sql)
+                        sql = model._create_sql(dialect=self.dialect)
+                        self._execute_sql(sql)
                 else:
-                    for sql in model._create_sql(dialect=self.dialect):
-                        if sql is not None:
-                            self._execute_sql(sql)
+                    sql = model._create_sql(dialect=self.dialect)
+                    self._execute_sql(sql)
             return self.tables
         except Exception as e:
             raise Exception(e)

@@ -47,7 +47,10 @@ class TestCreatingTablePG:
 
         with pytest.raises(Exception) as exc_info:
             _ = pg_loom.sync([User], drop=True, force=True)
-        assert str(exc_info.value) == "Your table does not have a primary key column."
+        assert (
+            str(exc_info.value)
+            == "Your table 'users' does not have a primary key column and it is not a reference table."
+        )
         conn.close()
 
     def test_table_name(self):
