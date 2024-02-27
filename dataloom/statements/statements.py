@@ -2,10 +2,10 @@ class MySqlStatements:
     # Altering tables
 
     ALTER_TABLE_COMMAND = """
-        -- Begin a transaction
+        -- Begin a transaction;
         START TRANSACTION;
             {alterations}
-        -- Commit the transaction
+        -- Commit the transaction;
         COMMIT;
     
     """
@@ -78,6 +78,22 @@ class MySqlStatements:
     CREATE_NEW_TABLE_IF_NOT_EXITS = (
         "CREATE TABLE IF NOT EXISTS {table_name} ({fields_name});"
     )
+    CREATE_REFERENCE_TABLE = """
+                CREATE TABLE {table_name} (
+                    {fields_names},
+                    PRIMARY KEY ({pks}),
+                    {fks}
+                );
+    """
+
+    CREATE_REFERENCE_TABLE_IF_NOT_EXISTS = """
+                CREATE TABLE IF NOT EXISTS {table_name} (
+                    {fields_names},
+                    PRIMARY KEY ({pks}),
+                    {fks}
+                );
+    """
+
     # insert
     INSERT_COMMAND_ONE = (
         "INSERT INTO {table_name} ({column_names}) VALUES ({placeholder_values});"
@@ -119,7 +135,7 @@ class MySqlStatements:
     SELECT_PARENT_BY_PK = """
     SELECT {parent_column_names} FROM {parent_table_name} WHERE {parent_fk_name} IN (
         SELECT {child_pk_name} FROM  (
-                    SELECT {child_pk_name} FROM {child_table_name} WHERE {child_pk_name} = {child_pk}
+                    SELECT {child_pk_name} FROM {child_table_name} WHERE {parent_pk_name} = {child_pk}
         ) AS subquery
     ) {orders} {limit} {offset};
     """
@@ -166,24 +182,21 @@ class Sqlite3Statements:
     # Altering tables
 
     ALTER_TABLE_COMMAND = """
-    -- Begin a transaction
+    -- Begin a transaction;
     BEGIN TRANSACTION;
-    
-    -- Create a new table with the desired schema
     {create_new_table_command}
 
-    -- Copy data from the old table to the new one
     INSERT INTO {new_table_name} ({new_table_columns})
     SELECT {new_table_columns}
     FROM {old_table_name};
 
-    -- Drop the old table
+    -- Drop the old table;
     DROP TABLE {old_table_name};
 
-    -- Rename the new table to the original table name
+    -- Rename the new table to the original table name;
     ALTER TABLE {new_table_name} RENAME TO {old_table_name};
     
-    -- Commit the transaction
+    -- Commit the transaction;
     COMMIT;
     """
     # describing table
@@ -258,7 +271,7 @@ class Sqlite3Statements:
     """
     SELECT_PARENT_BY_PK = """
     SELECT {parent_column_names} FROM {parent_table_name} WHERE {parent_fk_name} IN (
-        SELECT {child_pk_name} FROM {child_table_name} WHERE {child_pk_name} = {child_pk}
+        SELECT {child_pk_name} FROM {child_table_name} WHERE {parent_pk_name} = {child_pk}
     ) {orders} {limit} {offset};
     """
     GET_PK_COMMAND = "SELECT {pk_name} FROM {table_name} {filters} {options};".strip()
@@ -308,6 +321,21 @@ class Sqlite3Statements:
     CREATE_NEW_TABLE_IF_NOT_EXITS = (
         "CREATE TABLE IF NOT EXISTS {table_name} ({fields_name});"
     )
+    CREATE_REFERENCE_TABLE = """
+                CREATE TABLE {table_name} (
+                    {fields_names},
+                    PRIMARY KEY ({pks}),
+                    {fks}
+                );
+    """
+
+    CREATE_REFERENCE_TABLE_IF_NOT_EXISTS = """
+                CREATE TABLE IF NOT EXISTS {table_name} (
+                    {fields_names},
+                    PRIMARY KEY ({pks}),
+                    {fks}
+                );
+    """
     # insterting
     INSERT_COMMAND_ONE = (
         "INSERT INTO {table_name} ({column_names}) VALUES ({placeholder_values});"
@@ -398,7 +426,7 @@ class PgStatements:
     """
     SELECT_PARENT_BY_PK = """
     SELECT {parent_column_names} FROM {parent_table_name} WHERE {parent_fk_name} IN (
-        SELECT {child_pk_name} FROM {child_table_name} WHERE {child_pk_name} = {child_pk}
+        SELECT {child_pk_name} FROM {child_table_name} WHERE {parent_pk_name} = {child_pk}
     ) {orders} {limit} {offset};
     """
 
@@ -447,6 +475,21 @@ class PgStatements:
     CREATE_NEW_TABLE_IF_NOT_EXITS = (
         "CREATE TABLE IF NOT EXISTS {table_name} ({fields_name});"
     )
+    CREATE_REFERENCE_TABLE = """
+                CREATE TABLE {table_name} (
+                    {fields_names},
+                    PRIMARY KEY ({pks}),
+                    {fks}
+                );
+    """
+
+    CREATE_REFERENCE_TABLE_IF_NOT_EXISTS = """
+                CREATE TABLE IF NOT EXISTS {table_name} (
+                    {fields_names},
+                    PRIMARY KEY ({pks}),
+                    {fks}
+                );
+    """
     # altering tables
 
     # getting tables

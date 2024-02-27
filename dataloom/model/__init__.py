@@ -57,10 +57,9 @@ class Model:
 
     @classmethod
     def _create_sql(cls, dialect: DIALECT_LITERAL):
-        sqls = GetStatement(
+        return GetStatement(
             dialect=dialect, model=cls, table_name=cls._get_table_name()
         )._get_create_table_command
-        return sqls
 
     @classmethod
     def _alter_sql(cls, dialect: DIALECT_LITERAL, old_columns: list[str]):
@@ -674,6 +673,7 @@ class Model:
         child_pk_name: str,
         child_table_name: str,
         parent_fk_name: str,
+        parent_pk_name: Optional[str] = None,
         select: Optional[list[str] | str] = [],
         limit: Optional[int] = None,
         offset: Optional[int] = None,
@@ -715,6 +715,7 @@ class Model:
                 limit=limit,
                 offset=offset,
                 orders=orders,
+                parent_pk_name=parent_pk_name,
             )
         else:
             raise UnsupportedDialectException(

@@ -6,6 +6,14 @@ class InvalidArgumentsException(Exception):
     pass
 
 
+class InvalidReferenceNameException(ValueError):
+    pass
+
+
+class IllegalColumnException(ValueError):
+    pass
+
+
 class InvalidPropertyException(Exception):
     pass
 
@@ -19,6 +27,10 @@ class InvalidConnectionURI(Exception):
 
 
 class TooManyPkException(Exception):
+    pass
+
+
+class TooManyFkException(Exception):
     pass
 
 

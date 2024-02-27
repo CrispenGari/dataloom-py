@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dataloom"
-version = "2.3.0"
+version = "2.4.0"
 authors = [
     {name = "Crispen Gari", email = "crispengari@gmail.com"},
 ]
@@ -19,7 +19,8 @@ dependencies  =[
 ]
 keywords = ["ORM", "database", "data management", "SQLAlchemy" ]
 classifiers = [
-    "Development Status :: 1 - Planning",
+    'Development Status :: 5 - Production/Stable',
+    'Development Status :: 6 - Mature',
     "Intended Audience :: Developers",
     "Programming Language :: Python :: 3.12",
     "Operating System :: Unix",

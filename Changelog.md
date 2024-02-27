@@ -1,4 +1,83 @@
 ===
+Dataloom **`2.4.0`**
+===
+
+### Release Notes - `dataloom`
+
+We have release the new `dataloom` Version `2.4.0` (`2024-02-27`)
+
+##### Features
+
+- `sync` and `connect_and_sync` function can now take in a collection of `Model` or a single `Model` instance.
+- Updated documentation.
+- Fixing `ForeignKeyColumn` bugs.
+- Adding the `alias` as an argument to `Include` class so that developers can flexibly use their own alias for eager model inclusion rather than letting `dataloom` decide for them.
+- Adding the `junction_table` as an argument to the `Include` so that we can use this table as a reference for `N-N` associations.
+- Introducing self relations
+
+  - now you can define self relations in `dataloom`
+
+  ```py
+  class Employee(Model):
+    __tablename__: TableColumn = TableColumn(name="employees")
+    id = PrimaryKeyColumn(type="int", auto_increment=True)
+    name = Column(type="text", nullable=False, default="Bob")
+    supervisorId = ForeignKeyColumn(
+        "Employee", maps_to="1-1", type="int", required=False
+    )
+  ```
+
+  - You can also do eager self relations queries
+
+  ```py
+  emp_and_sup = mysql_loom.find_by_pk(
+      instance=Employee,
+      pk=2,
+      select=["id", "name", "supervisorId"],
+      include=Include(
+        model=Employee,
+        has="one",
+        select=["id", "name"],
+        alias="supervisor",
+      ),
+  )
+  print(emp_and_sup) # ? = {'id': 2, 'name': 'Michael Johnson', 'supervisorId': 1, 'supervisor': {'id': 1, 'name': 'John Doe'}}
+
+  ```
+
+- Introducing `N-N` relationship
+
+  - with this version of `dataloom` `n-n` relationships are now available. However you will need to define a reference table manual. We recommend you to follow our documentation to get the best out of it.
+
+  ```py
+  class Course(Model):
+      __tablename__: TableColumn = TableColumn(name="courses")
+      id = PrimaryKeyColumn(type="int", auto_increment=True)
+      name = Column(type="text", nullable=False, default="Bob")
+
+  class Student(Model):
+      __tablename__: TableColumn = TableColumn(name="students")
+      id = PrimaryKeyColumn(type="int", auto_increment=True)
+      name = Column(type="text", nullable=False, default="Bob")
+
+  class StudentCourses(Model):
+      __tablename__: TableColumn = TableColumn(name="students_courses")
+      studentId = ForeignKeyColumn(table=Student, type="int")
+      courseId = ForeignKeyColumn(table=Course, type="int")
+  ```
+
+  - you can do `eager` data fetching in this type of relationship, however you need to specify the `junction_table`. Here is an example:
+
+  ```py
+  english = mysql_loom.find_by_pk(
+    Course,
+    pk=engId,
+    select=["id", "name"],
+    include=Include(model=Student, junction_table=StudentCourses, has="many"),
+  )
+  ```
+
+===
 Dataloom **`2.3.0`**
 ===
 

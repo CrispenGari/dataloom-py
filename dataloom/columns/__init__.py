@@ -11,6 +11,7 @@ from dataloom.types import (
 )
 from dataclasses import dataclass
 from dataloom.exceptions import UnsupportedTypeException, UnsupportedDialectException
+from typing import Any
 
 
 class CreatedAtColumn:
@@ -257,8 +258,8 @@ class ForeignKeyColumn:
 
     Parameters
     ----------
-    table : Model
-        The referenced model to which the foreign key points.
+    table : Model | str
+        The referenced model to which the foreign key points. It takes in a model or a string, string only if you are trying to map self relations.
     maps_to : '1-1' | '1-N' | 'N-1' | 'N-N'
         The relationship type between the current model and the referenced model. For example, "1-N" for one-to-many.
     type : str
@@ -313,7 +314,7 @@ class ForeignKeyColumn:
 
     def __init__(
         self,
-        table,
+        table: Any | str,
         type: MYSQL_SQL_TYPES_LITERAL
         | POSTGRES_SQL_TYPES_LITERAL
         | SQLITE3_SQL_TYPES_LITERAL,
@@ -393,26 +394,18 @@ class ForeignKeyColumn:
     def sql_type(self, dialect: DIALECT_LITERAL):
         if dialect == "postgres":
             if self.type in POSTGRES_SQL_TYPES:
-                return (
-                    f"{POSTGRES_SQL_TYPES[self.type]}({self.length})"
-                    if self.length
-                    else POSTGRES_SQL_TYPES[self.type]
-                )
+                return POSTGRES_SQL_TYPES[self.type]
+
             else:
                 types = POSTGRES_SQL_TYPES.keys()
-            raise UnsupportedTypeException(
-                f"Unsupported column type: {self.type} for dialect '{dialect}' supported types are ({', '.join(types)})"
-            )
+                raise UnsupportedTypeException(
+                    f"Unsupported column type: {self.type} for dialect '{dialect}' supported types are ({', '.join(types)})"
+                )
 
         elif dialect == "mysql":
             if self.type in MYSQL_SQL_TYPES:
-                if (self.unique or self.default) and self.type == "text":
-                    return f"{MYSQL_SQL_TYPES['varchar']}({self.length if self.length is not None else 255})"
-                return (
-                    f"{MYSQL_SQL_TYPES[self.type]}({self.length})"
-                    if self.length
-                    else MYSQL_SQL_TYPES[self.type]
-                )
+                return MYSQL_SQL_TYPES[self.type]
+
             else:
                 types = MYSQL_SQL_TYPES.keys()
                 raise UnsupportedTypeException(
@@ -420,13 +413,7 @@ class ForeignKeyColumn:
                 )
         elif dialect == "sqlite":
             if self.type in SQLITE3_SQL_TYPES:
-                if self.length and self.type == "text":
-                    return f"{SQLITE3_SQL_TYPES['varchar']}({self.length})"
-                return (
-                    f"{SQLITE3_SQL_TYPES[self.type]}({self.length})"
-                    if self.length
-                    else SQLITE3_SQL_TYPES[self.type]
-                )
+                return SQLITE3_SQL_TYPES[self.type]
             else:
                 types = SQLITE3_SQL_TYPES.keys()
                 raise UnsupportedTypeException(

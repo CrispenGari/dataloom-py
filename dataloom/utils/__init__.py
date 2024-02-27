@@ -1,7 +1,10 @@
 from dataloom.statements import MySqlStatements, PgStatements, Sqlite3Statements
 
 from dataloom.utils.logger import console_logger, file_logger
-from dataloom.utils.create_table import get_create_table_params
+from dataloom.utils.create_table import (
+    get_create_table_params,
+    get_create_reference_table_params,
+)
 from dataloom.utils.alter_table import AlterTable
 from dataloom.utils.aggregations import get_groups
 from dataloom.utils.helpers import is_collection
@@ -164,4 +167,5 @@ __all__ = [
     is_collection,
     get_groups,
     AlterTable,
+    get_create_reference_table_params,
 ]

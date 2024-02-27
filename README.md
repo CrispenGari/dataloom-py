@@ -105,9 +105,14 @@
   - [4. What about bidirectional queries?](#4-what-about-bidirectional-queries)
     - [1. Child to Parent](#1-child-to-parent)
     - [2. Parent to Child](#2-parent-to-child)
+  - [5. `Self` Association](#5-self-association)
+    - [Inserting](#inserting-3)
+    - [Retrieving Records](#retrieving-records-3)
+  - [6. `N-N` Relationship](#6-n-n-relationship)
+    - [Inserting](#inserting-4)
+    - [Retrieving Records](#retrieving-records-4)
 - [Query Builder.](#query-builder)
   - [Why Use Query Builder?](#why-use-query-builder)
-- [What is coming next?](#what-is-coming-next)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -514,7 +519,7 @@ class Post(Model):
 This column accepts the following arguments:
 | Argument | Description | Type | Default |
 | ---------- | -------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- | ----------- |
-| `table` | Required. This is the parent table that the current model references. In our example, this is referred to as `User`. | `Model` | |
+| `table` | Required. This is the parent table that the current model references. In our example, this is referred to as `User`. It can be used as a string in self relations. | `Model`\| `str` | |
 | `type` | Optional. Specifies the data type of the foreign key. If not provided, dataloom can infer it from the parent table. | `str` \| `None` | `None` |
 | `required` | Optional. Indicates whether the foreign key is required or not. | `bool` | `False` |
 | `onDelete` | Optional. Specifies the action to be taken when the associated record in the parent table is deleted. | `str` [`"NO ACTION"`, `"SET NULL"`, `"CASCADE"`] | `"NO ACTION"` |
@@ -617,15 +622,17 @@ posts = pg_loom.find_all(
 
 The `Include` class facilitates eager loading for models with relationships. Below is a table detailing the parameters available for the `Include` class:
 
-| Argument  | Description                                                             | Type                          | Default  | Required |
-| --------- | ----------------------------------------------------------------------- | ----------------------------- | -------- | -------- |
-| `model`   | The model to be included when eagerly fetching records.                 | `Model`                       | -        | Yes      |
-| `order`   | The list of order specifications for sorting the included data.         | `list[Order]`, optional       | `[]`     | No       |
-| `limit`   | The maximum number of records to include.                               | `int \| None`, optional       | `0`      | No       |
-| `offset`  | The number of records to skip before including.                         | `int \| None`, optional       | `0`      | No       |
-| `select`  | The list of columns to include.                                         | `list[str] \| None`, optional | `None`   | No       |
-| `has`     | The relationship type between the current model and the included model. | `INCLUDE_LITERAL`, optional   | `"many"` | No       |
-| `include` | The extra included models.                                              | `list[Include]`, optional     | `[]`     | No       |
+| Argument         | Description                                                                                 | Type                | Default  | Required |
+| ---------------- | ------------------------------------------------------------------------------------------- | ------------------- | -------- | -------- |
+| `model`          | The model to be included when eagerly fetching records.                                     | `Model`             | -        | Yes      |
+| `junction_table` | The `junction_table` model that is used as a reference table in a many to many association. | `Model`             | `None`   | No       |
+| `order`          | The list of order specifications for sorting the included data.                             | `list[Order]`       | `[]`     | No       |
+| `limit`          | The maximum number of records to include.                                                   | `int \| None`       | `0`      | No       |
+| `offset`         | The number of records to skip before including.                                             | `int \| None`       | `0`      | No       |
+| `select`         | The list of columns to include.                                                             | `list[str] \| None` | `None`   | No       |
+| `has`            | The relationship type between the current model and the included model.                     | `INCLUDE_LITERAL`   | `"many"` | No       |
+| `include`        | The extra included models.                                                                  | `list[Include]`     | `[]`     | No       |
+| `alias`          | The alias name for the included model. Very important when mapping self relations.          | `str`               | `None`   | No       |
 
 #### `Group` Class
 
@@ -664,12 +671,12 @@ print(tables)
 
 The method returns a list of table names that have been created or that exist in your database. The `sync` method accepts the following arguments:
 
-| Argument | Description                                                     | Type   | Default |
-| -------- | --------------------------------------------------------------- | ------ | ------- |
-| `models` | A list of your table classes that inherit from the Model class. | `list` | `[]`    |
-| `drop`   | Whether to drop tables during syncing or not.                   | `bool` | `False` |
-| `force`  | Forcefully drop tables during syncing or not.                   | `bool` | `False` |
-| `alter`  | Alter tables instead of dropping them during syncing or not.    | `bool` | `False` |
+| Argument | Description                                                                                                                 | Type               | Default |
+| -------- | --------------------------------------------------------------------------------------------------------------------------- | ------------------ | ------- |
+| `models` | A collection or a single instance(s) of your table classes that inherit from the Model class.                               | `list[Model]\|Any` | `[]`    |
+| `drop`   | Whether to drop tables during syncing or not.                                                                               | `bool`             | `False` |
+| `force`  | Forcefully drop tables during syncing. In `mysql` this will temporarily disable foreign key checks when droping the tables. | `bool`             | `False` |
+| `alter`  | Alter tables instead of dropping them during syncing or not.                                                                | `bool`             | `False` |
 
 > 🥇 **We recommend you to use `drop` or `force` if you are going to change or modify `foreign` and `primary` keys. This is because setting the option `alter` doe not have an effect on `primary` key columns.**
 
@@ -2114,6 +2121,293 @@ print(user_post) """ ? =
 
 ```
 
+#### 5. `Self` Association
+
+Let's consider a scenario where we have a table `Employee`, where an employee can have a supervisor, which in this case a supervisor is also an employee. This is an example of self relations. The model definition for this can be done as follows in `dataloom`.
+
+```py
+class Employee(Model):
+    __tablename__: TableColumn = TableColumn(name="employees")
+    id = PrimaryKeyColumn(type="int", auto_increment=True)
+    name = Column(type="text", nullable=False, default="Bob")
+    supervisorId = ForeignKeyColumn(
+        "Employee", maps_to="1-1", type="int", required=False
+    )
+```
+
+So clearly we can see that when creating a `employee` it is not a must to have a `supervisorId` as this relationship is optional.
+
+> 👍 **Pro Tip:** Note that when doing self relations the referenced table must be a string that matches the table class name irrespective of case. In our case we used `"Employee"` and also `"employee"` and `"EMPLOYEe"` will be valid, however `"Employees"` and also `"employees"` and `"EMPLOYEEs"` are invalid.
+
+##### Inserting
+
+Here is how we can insert employees to this table and we will make `John` the supervisor of other employees.
+
+```py
+empId = mysql_loom.insert_one(
+    instance=Employee, values=ColumnValue(name="name", value="John Doe")
+)
+
+rows = mysql_loom.insert_bulk(
+    instance=Employee,
+    values=[
+        [
+            ColumnValue(name="name", value="Michael Johnson"),
+            ColumnValue(name="supervisorId", value=empId),
+        ],
+        [
+            ColumnValue(name="name", value="Jane Smith"),
+            ColumnValue(name="supervisorId", value=empId),
+        ],
+    ],
+)
+
+```
+
+- Some employees is are associated with a supervisor `John` which are `Jane` and `Michael`.
+- However the employee `John` does not have a supervisor.
+
+##### Retrieving Records
+
+Now let's query employee `Michael` with his supervisor.
+
+```py
+emp = mysql_loom.find_by_pk(
+    instance=Employee, pk=2, select=["id", "name", "supervisorId"]
+)
+sup = mysql_loom.find_by_pk(
+    instance=Employee, select=["id", "name"], pk=emp["supervisorId"]
+)
+emp_and_sup = {**emp, "supervisor": sup}
+print(emp_and_sup) # ? = {'id': 2, 'name': 'Michael Johnson', 'supervisorId': 1, 'supervisor': {'id': 1, 'name': 'John Doe'}}
+```
+
+We're querying the database to retrieve information about a `employee` and their associated `supervisor`.
+
+1. **Querying an Employee**:
+
+   - We use `mysql_loom.find_by_pk()` to fetch a single employee record from the database.
+   - The employee's ID is specified as `2`.
+
+2. **Querying Supervisor**:
+
+   - We use `mysql_loom.find_by_pk()` to retrieve a supervisor that is associated with this employee.
+   - We create a dictionary `emp_and_sup` containing the `employee` information and their `supervisor`.
+
+With eager loading this can be done in one query as follows the above can be done as follows:
+
+```py
+emp_and_sup = mysql_loom.find_by_pk(
+    instance=Employee,
+    pk=2,
+    select=["id", "name", "supervisorId"],
+    include=Include(
+        model=Employee,
+        has="one",
+        select=["id", "name"],
+        alias="supervisor",
+    ),
+)
+
+print(emp_and_sup) # ? = {'id': 2, 'name': 'Michael Johnson', 'supervisorId': 1, 'supervisor': {'id': 1, 'name': 'John Doe'}}
+```
+
+- We use `mysql_loom.find_by_pk()` to fetch a single an employee record from the database.
+- Additionally, we include associated `employee` record using `eager` loading with an `alias` of `supervisor`.
+
+> 👍 **Pro Tip:** Note that the `alias` is very important in this situation because it allows you to get the included relationships with objects that are named well, if you don't give an alias dataloom will just use the model class name as the alias of your included models, in this case you will get an object that looks like `{'id': 2, 'name': 'Michael Johnson', 'supervisorId': 1, 'employee': {'id': 1, 'name': 'John Doe'}}`, which practically and theoretically doesn't make sense.
+
+#### 6. `N-N` Relationship
+
+Let's consider a scenario where we have tables for `Students` and `Courses`. In this scenario, a student can enroll in many courses, and a single course can have many students enrolled. This represents a `Many-to-Many` relationship. The model definitions for this scenario can be done as follows in `dataloom`:
+
+**Table: Student**
+| Column Name | Data Type |
+|-------------|-----------|
+| `id` | `INT` |
+| `name`| `VARCHAR` |
+
+**Table: Course**
+| Column Name | Data Type |
+|-------------|-----------|
+| `id` | `INT` |
+| `name` | `VARCHAR` |
+| ... | ... |
+
+**Table: Student_Courses** (junction table)
+| Column Name | Data Type |
+|-------------|-----------|
+| `studentId` | `INT` |
+| `courseId` | `INT` |
+
+> 👍 **Pro Tip:** Note that the `junction` table can also be called `association`-table or `reference`-table or `joint`-table.
+
+In `dataloom` we can model the above relations as follows:
+
+```py
+class Course(Model):
+    __tablename__: TableColumn = TableColumn(name="courses")
+    id = PrimaryKeyColumn(type="int", auto_increment=True)
+    name = Column(type="text", nullable=False, default="Bob")
+
+
+class Student(Model):
+    __tablename__: TableColumn = TableColumn(name="students")
+    id = PrimaryKeyColumn(type="int", auto_increment=True)
+    name = Column(type="text", nullable=False, default="Bob")
+
+
+class StudentCourses(Model):
+    __tablename__: TableColumn = TableColumn(name="students_courses")
+    studentId = ForeignKeyColumn(table=Student, type="int")
+    courseId = ForeignKeyColumn(table=Course, type="int")
+
+```
+
+- The tables `students` and `courses` will not have foreign keys.
+- The `students_courses` table will have two columns that joins these two tables together in an `N-N` relational mapping.
+
+> 👍 **Pro Tip:** In a joint table no other columns such as `CreateAtColumn`, `UpdatedAtColumn`, `Column` and `PrimaryKeyColumn` are allowed and only exactly `2` foreign keys should be in this table.
+
+##### Inserting
+
+Here is how we can insert `students` and `courses` in their respective tables.
+
+```py
+
+# insert the courses
+mathId = mysql_loom.insert_one(
+    instance=Course, values=ColumnValue(name="name", value="Mathematics")
+)
+engId = mysql_loom.insert_one(
+    instance=Course, values=ColumnValue(name="name", value="English")
+)
+phyId = mysql_loom.insert_one(
+    instance=Course, values=ColumnValue(name="name", value="Physics")
+)
+
+# create students
+
+stud1 = mysql_loom.insert_one(
+    instance=Student, values=ColumnValue(name="name", value="Alice")
+)
+stud2 = mysql_loom.insert_one(
+    instance=Student, values=ColumnValue(name="name", value="Bob")
+)
+stud3 = mysql_loom.insert_one(
+    instance=Student, values=ColumnValue(name="name", value="Lisa")
+)
+
+```
+
+- You will notice that we are keeping in track of the `studentIds` and the `courseIds` because we will need them in the `joint-table` or `association-table`.
+- Now we can enrol students to their courses by inserting them in their id's in the association table.
+
+```py
+# enrolling students
+mysql_loom.insert_bulk(
+    instance=StudentCourses,
+    values=[
+        [
+            ColumnValue(name="studentId", value=stud1),
+            ColumnValue(name="courseId", value=mathId),
+        ],  # enrolling Alice to mathematics
+        [
+            ColumnValue(name="studentId", value=stud1),
+            ColumnValue(name="courseId", value=phyId),
+        ],  # enrolling Alice to physics
+        [
+            ColumnValue(name="studentId", value=stud1),
+            ColumnValue(name="courseId", value=engId),
+        ],  # enrolling Alice to english
+        [
+            ColumnValue(name="studentId", value=stud2),
+            ColumnValue(name="courseId", value=engId),
+        ],  # enrolling Bob to english
+        [
+            ColumnValue(name="studentId", value=stud3),
+            ColumnValue(name="courseId", value=phyId),
+        ],  # enrolling Lisa to physics
+        [
+            ColumnValue(name="studentId", value=stud3),
+            ColumnValue(name="courseId", value=engId),
+        ],  # enrolling Lisa to english
+    ],
+)
+
+```
+
+##### Retrieving Records
+
+Now let's query a student called `Alice` with her courses. We can do it as follows:
+
+```py
+s = mysql_loom.find_by_pk(
+    Student,
+    pk=stud1,
+    select=["id", "name"],
+)
+c = mysql_loom.find_many(
+    StudentCourses,
+    filters=Filter(column="studentId", value=stud1),
+    select=["courseId"],
+)
+courses = mysql_loom.find_many(
+    Course,
+    filters=Filter(column="id", operator="in", value=[list(i.values())[0] for i in c]),
+    select=["id", "name"],
+)
+
+alice = {**s, "courses": courses}
+print(courses) # ? = {'id': 1, 'name': 'Alice', 'courses': [{'id': 1, 'name': 'Mathematics'}, {'id': 2, 'name': 'English'}, {'id': 3, 'name': 'Physics'}]}
+```
+
+We're querying the database to retrieve information about a `student` and their associated `courses`. Here are the steps in achieving that:
+
+1. **Querying Student**:
+
+   - We use `mysql_loom.find_by_pk()` to fetch a single `student` record from the database in the table `students`.
+
+2. **Querying Course Id's**:
+   - Next we are going to query all the course ids of that student and store them in `c` in the joint table `students_courses`.
+   - We use `mysql_loom.find_many()` to retrieve the course `ids` of `alice`.
+3. **Querying Course**:
+   - Next we will query all the courses using the operator `in` in the `courses` table based on the id's we obtained previously.
+
+As you can see we are doing a lot of work to get the information about `Alice`. With eager loading this can be done in one query as follows the above can be done as follows:
+
+```py
+alice = mysql_loom.find_by_pk(
+    Student,
+    pk=stud1,
+    select=["id", "name"],
+    include=Include(
+        model=Course, junction_table=StudentCourses, alias="courses", has="many"
+    ),
+)
+
+print(alice) # ? = {'id': 1, 'name': 'Alice', 'courses': [{'id': 1, 'name': 'Mathematics'}, {'id': 2, 'name': 'English'}, {'id': 3, 'name': 'Physics'}]}
+```
+
+- We use `mysql_loom.find_by_pk()` to retrieve a single student record from the database.
+- Furthermore, we include the associated `course` records using `eager` loading with an `alias` of `courses`.
+- We specify a `junction_table` in our `Include` statement. This allows dataloom to recognize the relationship between the `students` and `courses` tables through this `junction_table`.
+
+> 👍 **Pro Tip:** It is crucial to specify the `junction_table` when querying in a many-to-many (`N-N`) relationship. This is because, by default, the models will not establish a direct many-to-many relationship without referencing the `junction_table`. They lack foreign key columns within them to facilitate this relationship.
+
+As for our last example let's query all the students that are enrolled in the `English` class. We can easily do it as follows:
+
+```py
+english = mysql_loom.find_by_pk(
+    Course,
+    pk=engId,
+    select=["id", "name"],
+    include=Include(model=Student, junction_table=StudentCourses, has="many"),
+)
+
+print(english) # ? = {'id': 2, 'name': 'English', 'students': [{'id': 1, 'name': 'Alice'}, {'id': 2, 'name': 'Bob'}, {'id': 3, 'name': 'Lisa'}]}
+```
+
 ### Query Builder.
 
 Dataloom exposes a method called `getQueryBuilder`, which allows you to obtain a `qb` object. This object enables you to execute SQL queries directly from SQL scripts.
@@ -2184,11 +2478,6 @@ The `run` method takes the following as arguments:
   result = qb.run("SELECT * FROM table1 INNER JOIN table2 ON table1.id = table2.table1_id;")
   print(result)
   ```
-
-### What is coming next?
-
-1. N-N associations
-2. Self relations
 
 ### Contributing
 

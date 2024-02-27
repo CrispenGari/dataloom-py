@@ -338,6 +338,8 @@ class Include[Model]:
     ----------
     model : Model
         The model to be included when eger fetching records.
+    junction_table: Model | None, optional
+        A junction table is a reference table for models that maps N-N relationship.
     order : list[Order], optional
         The list of order specifications for sorting the included data. Default is an empty list.
     limit : int | None, optional
@@ -350,6 +352,8 @@ class Include[Model]:
         The relationship type between the current model and the included model. Default is "many".
     include : list[Include], optional
         The extra included models.
+    alias : str, optional
+        The alias name for the included model. Very important when mapping self relations.
 
     Returns
     -------
@@ -376,12 +380,14 @@ class Include[Model]:
     """
 
     model: Model = field(repr=False)
+    junction_table: Optional[Model] = field(repr=False, default=None)
     order: list[Order] = field(repr=False, default_factory=list)
-    limit: Optional[int] = field(default=None)
-    offset: Optional[int] = field(default=None)
-    select: Optional[list[str]] = field(default_factory=list)
-    include: list["Include"] = field(default_factory=list)
-    has: INCLUDE_LITERAL = field(default="many")
+    limit: Optional[int] = field(default=None, repr=False)
+    offset: Optional[int] = field(default=None, repr=False)
+    select: Optional[list[str]] = field(default_factory=list, repr=False)
+    include: list["Include"] = field(default_factory=list, repr=False)
+    has: INCLUDE_LITERAL = field(default="many", repr=False)
+    alias: Optional[str] = field(default=None, repr=False)
 
 
 POSTGRES_SQL_TYPES = {
