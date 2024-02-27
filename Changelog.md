@@ -4,7 +4,7 @@ Dataloom **`2.4.0`**
 
 ### Release Notes - `dataloom`
 
-We have release the new `dataloom` Version `2.6.0` (`2024-02-27`)
+We have release the new `dataloom` Version `2.4.0` (`2024-02-27`)
 
 ##### Features
 
@@ -12,6 +12,7 @@ We have release the new `dataloom` Version `2.6.0` (`2024-02-27`)
 - Updated documentation.
 - Fixing `ForeignKeyColumn` bugs.
 - Adding the `alias` as an argument to `Include` class so that developers can flexibly use their own alias for eager model inclusion rather than letting `dataloom` decide for them.
+- Adding the `junction_table` as an argument to the `Include` so that we can use this table as a reference for `N-N` associations.
 - Introducing self relations
 
   - now you can define self relations in `dataloom`
@@ -63,6 +64,17 @@ We have release the new `dataloom` Version `2.6.0` (`2024-02-27`)
       __tablename__: TableColumn = TableColumn(name="students_courses")
       studentId = ForeignKeyColumn(table=Student, type="int")
       courseId = ForeignKeyColumn(table=Course, type="int")
+  ```
+
+  - you can do `eager` data fetching in this type of relationship, however you need to specify the `junction_table`. Here is an example:
+
+  ```py
+  english = mysql_loom.find_by_pk(
+    Course,
+    pk=engId,
+    select=["id", "name"],
+    include=Include(model=Student, junction_table=StudentCourses, has="many"),
+  )
   ```
 
 ===

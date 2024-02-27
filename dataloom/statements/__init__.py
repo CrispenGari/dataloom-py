@@ -160,7 +160,7 @@ class GetStatement[T]:
             dialect=self.dialect,
             model=self.model,
         )
-        if len(fks) > 2:
+        if len(fks) > 2 and len(pks) == 0:
             raise TooManyFkException(
                 f"Reference table '{self.table_name}' can not have more than 2 foreign keys."
             )
@@ -176,7 +176,7 @@ class GetStatement[T]:
         fields = [*user_fields, *predefined_fields]
         fields_name = ", ".join(f for f in [" ".join(field) for field in fields])
         if self.dialect == "postgres":
-            if len(fks) == 2 and len(pks) == 0:
+            if len(fks) == 2 or len(pks) == 0:
                 pks, user_fields, fks = get_create_reference_table_params(
                     dialect=self.dialect,
                     model=self.model,
@@ -205,7 +205,7 @@ class GetStatement[T]:
                 )
 
         elif self.dialect == "mysql":
-            if len(fks) == 2 and len(pks) == 0:
+            if len(fks) == 2 or len(pks) == 0:
                 pks, user_fields, fks = get_create_reference_table_params(
                     dialect=self.dialect,
                     model=self.model,
@@ -234,7 +234,7 @@ class GetStatement[T]:
                 )
 
         elif self.dialect == "sqlite":
-            if len(fks) == 2 and len(pks) == 0:
+            if len(fks) == 2 or len(pks) == 0:
                 pks, user_fields, fks = get_create_reference_table_params(
                     dialect=self.dialect,
                     model=self.model,
@@ -986,7 +986,10 @@ class GetStatement[T]:
         ).get_alter_table_params
 
         alterations = " ".join(alterations) if self.dialect != "sqlite" else ""
-
+        if len(fks) > 2 and len(pks) == 0:
+            raise TooManyFkException(
+                f"Reference table '{self.table_name}' can not have more than 2 foreign keys."
+            )
         # do we have a single primary key or not?
         if len(pks) == 0 and len(fks) != 2:
             raise PkNotDefinedException(
@@ -995,11 +998,6 @@ class GetStatement[T]:
         if len(pks) > 1:
             raise TooManyPkException(
                 f"You have defined many field as primary keys which is not allowed. Fields ({', '.join(pks)}) are primary keys."
-            )
-
-        if len(fks) > 2:
-            raise TooManyFkException(
-                f"Reference table '{self.table_name}' can not have more than 2 foreign keys."
             )
 
         if self.dialect == "postgres":
@@ -1017,7 +1015,10 @@ class GetStatement[T]:
                 dialect=self.dialect,
                 model=self.model,
             )
-
+            if len(fks) > 2 and len(pks) == 0:
+                raise TooManyFkException(
+                    f"Reference table '{self.table_name}' can not have more than 2 foreign keys."
+                )
             if len(pks) == 0 and len(fks) != 2:
                 raise PkNotDefinedException(
                     f"Your table '{self.table_name}' does not have a primary key column and it is not a reference table."
@@ -1026,10 +1027,7 @@ class GetStatement[T]:
                 raise TooManyPkException(
                     f"You have defined many field as primary keys which is not allowed. Fields ({', '.join(pks)}) are primary keys."
                 )
-            if len(fks) > 2:
-                raise TooManyFkException(
-                    f"Reference table '{self.table_name}' can not have more than 2 foreign keys."
-                )
+
             fields = [*user_fields, *predefined_fields]
 
             fields_name = ", ".join(f for f in [" ".join(field) for field in fields])
