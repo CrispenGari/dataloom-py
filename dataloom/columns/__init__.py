@@ -11,6 +11,7 @@ from dataloom.types import (
 )
 from dataclasses import dataclass
 from dataloom.exceptions import UnsupportedTypeException, UnsupportedDialectException
+from dataloom.model import Model
 
 
 class CreatedAtColumn:
@@ -257,8 +258,8 @@ class ForeignKeyColumn:
 
     Parameters
     ----------
-    table : Model
-        The referenced model to which the foreign key points.
+    table : Model | str
+        The referenced model to which the foreign key points. It takes in a model or a string, string only if you are trying to map self relations.
     maps_to : '1-1' | '1-N' | 'N-1' | 'N-N'
         The relationship type between the current model and the referenced model. For example, "1-N" for one-to-many.
     type : str
@@ -313,7 +314,7 @@ class ForeignKeyColumn:
 
     def __init__(
         self,
-        table,
+        table: Model | str,
         type: MYSQL_SQL_TYPES_LITERAL
         | POSTGRES_SQL_TYPES_LITERAL
         | SQLITE3_SQL_TYPES_LITERAL,
