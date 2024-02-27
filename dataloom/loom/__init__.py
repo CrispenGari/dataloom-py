@@ -28,6 +28,7 @@ from dataloom.types import (
 from dataloom.loom.interfaces import ILoom
 from dataloom.loom.math import math
 from dataloom.loom.qb import qb
+from dataloom.utils import is_collection
 
 
 class Loom(ILoom):
@@ -1292,7 +1293,7 @@ class Loom(ILoom):
         return self.conn
 
     def connect_and_sync(
-        self, models: list[Model], drop=False, force=False, alter=False
+        self, models: list[Model] | Model, drop=False, force=False, alter=False
     ) -> tuple[
         Any | PooledMySQLConnection | MySQLConnectionAbstract | Connection, list[str]
     ]:
@@ -1304,8 +1305,8 @@ class Loom(ILoom):
 
         Parameters
         ----------
-        models : list[Model]
-            A list of Python classes that inherit from a Model class with some Column fields defined as the column names of the table.
+        models : list[Model] | Model
+            A collection of Python classes or a Python Class that inherit from a Model class with some Column fields defined as the column names of the table.
         drop : bool, optional
             Whether or not to drop existing tables when the method is called again. Defaults to False.
         force : bool, optional
@@ -1360,7 +1361,7 @@ class Loom(ILoom):
         return self.conn, tables
 
     def sync(
-        self, models: list[Model], drop=False, force=False, alter=False
+        self, models: list[Model] | Model, drop=False, force=False, alter=False
     ) -> list[str]:
         """
         sync
@@ -1370,8 +1371,8 @@ class Loom(ILoom):
 
         Parameters
         ----------
-        models : list[Model]
-            A list of Python classes that inherit from a Model class with some Column fields defined as the column names of the table.
+        models : list[Model] | Model
+            A collection of Python classes or a Python Class that inherit from a Model class with some Column fields defined as the column names of the table.
         drop : bool, optional
             Whether or not to drop existing tables before synchronization. Defaults to False.
         force : bool, optional
@@ -1411,6 +1412,8 @@ class Loom(ILoom):
         ... )
 
         """
+        if not is_collection(models):
+            models = [models]
 
         for model in models:
             if force:

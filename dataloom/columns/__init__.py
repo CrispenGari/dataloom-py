@@ -394,26 +394,18 @@ class ForeignKeyColumn:
     def sql_type(self, dialect: DIALECT_LITERAL):
         if dialect == "postgres":
             if self.type in POSTGRES_SQL_TYPES:
-                return (
-                    f"{POSTGRES_SQL_TYPES[self.type]}({self.length})"
-                    if self.length
-                    else POSTGRES_SQL_TYPES[self.type]
-                )
+                return POSTGRES_SQL_TYPES[self.type]
+
             else:
                 types = POSTGRES_SQL_TYPES.keys()
-            raise UnsupportedTypeException(
-                f"Unsupported column type: {self.type} for dialect '{dialect}' supported types are ({', '.join(types)})"
-            )
+                raise UnsupportedTypeException(
+                    f"Unsupported column type: {self.type} for dialect '{dialect}' supported types are ({', '.join(types)})"
+                )
 
         elif dialect == "mysql":
             if self.type in MYSQL_SQL_TYPES:
-                if (self.unique or self.default) and self.type == "text":
-                    return f"{MYSQL_SQL_TYPES['varchar']}({self.length if self.length is not None else 255})"
-                return (
-                    f"{MYSQL_SQL_TYPES[self.type]}({self.length})"
-                    if self.length
-                    else MYSQL_SQL_TYPES[self.type]
-                )
+                return MYSQL_SQL_TYPES[self.type]
+
             else:
                 types = MYSQL_SQL_TYPES.keys()
                 raise UnsupportedTypeException(
@@ -421,13 +413,7 @@ class ForeignKeyColumn:
                 )
         elif dialect == "sqlite":
             if self.type in SQLITE3_SQL_TYPES:
-                if self.length and self.type == "text":
-                    return f"{SQLITE3_SQL_TYPES['varchar']}({self.length})"
-                return (
-                    f"{SQLITE3_SQL_TYPES[self.type]}({self.length})"
-                    if self.length
-                    else SQLITE3_SQL_TYPES[self.type]
-                )
+                return SQLITE3_SQL_TYPES[self.type]
             else:
                 types = SQLITE3_SQL_TYPES.keys()
                 raise UnsupportedTypeException(

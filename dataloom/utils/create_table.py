@@ -97,7 +97,7 @@ def get_create_table_params(
                 "{pk_type} {unique} {nullable} REFERENCES {parent_table_name}({pk}) ON DELETE {onDelete} ON UPDATE {onUpdate}".format(
                     onDelete=field.onDelete,
                     onUpdate=field.onUpdate,
-                    pk_type=pk_type,
+                    pk_type=field.sql_type(dialect=dialect),
                     parent_table_name=f'"{parent_table_name}"'
                     if dialect == "postgres"
                     else f"`{parent_table_name}`",
@@ -107,7 +107,7 @@ def get_create_table_params(
                 )
                 if field.required
                 else "{pk_type} REFERENCES {parent_table_name}({pk}) ON DELETE SET NULL".format(
-                    pk_type=pk_type,
+                    pk_type=field.sql_type(dialect=dialect),
                     parent_table_name=f'"{parent_table_name}"'
                     if dialect == "postgres"
                     else f"`{parent_table_name}`",
@@ -148,7 +148,7 @@ def get_create_reference_table_params(
             )
             user_fields.append(
                 "{columnName} {pk_type} {nullable}".format(
-                    pk_type=pk_type,
+                    pk_type=field.sql_type(dialect=dialect),
                     nullable="NOT NULL" if field.required else "",
                     columnName=columnName,
                 )

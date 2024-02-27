@@ -224,7 +224,11 @@ def get_table_fields(model, dialect: DIALECT_LITERAL):
             fields.append(name)
         elif isinstance(field, ForeignKeyColumn):
             fields.append(name)
-            table_name = field.table._get_table_name()
+            table_name = (
+                model._get_table_name()
+                if isinstance(field.table, str)
+                else field.table._get_table_name()
+            )
             fks.append({table_name: name, "mapped_to": field.maps_to})
         elif isinstance(field, PrimaryKeyColumn):
             fields.append(name)

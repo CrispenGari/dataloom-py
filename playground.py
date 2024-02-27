@@ -48,7 +48,7 @@ class Employee(Model):
     id = PrimaryKeyColumn(type="int", auto_increment=True)
     name = Column(type="text", nullable=False, default="Bob")
     supervisorId = ForeignKeyColumn(
-        "Employees", maps_to="1-1", type="int", required=False
+        "Employee", maps_to="1-1", type="int", required=False
     )
 
 
@@ -68,32 +68,42 @@ class StudentCourses(Model):
     __tablename__: TableColumn = TableColumn(name="students_courses")
     studentId = ForeignKeyColumn(table=Student, type="int")
     courseId = ForeignKeyColumn(table=Course, type="int")
-    id = PrimaryKeyColumn(type="int")
 
 
-"""
-INSERT INTO employees (id, name, supervisor_id) VALUES
-(1, 'John Doe', NULL),  -- John Doe doesn't have a supervisor
-(2, 'Jane Smith', 1),    -- Jane Smith's supervisor is John Doe
-(3, 'Michael Johnson', 1); -- Michael Johnson's supervisor is also John Doe
-"""
-
-
-conn, tables = mysql_loom.connect_and_sync(
+conn, tables = pg_loom.connect_and_sync(
     [Student, Course, StudentCourses, Employee], force=True
 )
 
 
-# userId = mysql_loom.insert_one(
-#     instance=User,
-#     values=ColumnValue(name="username", value="@miller"),
-# )
+empId = pg_loom.insert_one(
+    instance=Employee, values=ColumnValue(name="name", value="John Doe")
+)
 
-# for title in ["Hey", "Hello", "What are you doing", "Coding"]:
-#     mysql_loom.insert_one(
-#         instance=Post,
-#         values=[
-#             ColumnValue(name="userId", value=userId),
-#             ColumnValue(name="title", value=title),
-#         ],
-#     )
+rows = pg_loom.insert_bulk(
+    instance=Employee,
+    values=[
+        [
+            ColumnValue(name="name", value="Michael Johnson"),
+            ColumnValue(name="supervisorId", value=empId),
+        ],
+        [
+            ColumnValue(name="name", value="Jane Smith"),
+            ColumnValue(name="supervisorId", value=empId),
+        ],
+    ],
+)
+
+
+emp_and_sup = pg_loom.find_by_pk(
+    instance=Employee,
+    pk=1,
+    select=["id", "name", "supervisorId"],
+    include=Include(
+        model=Employee,
+        has="one",
+        select=["id", "name"],
+        alias="supervisor",
+    ),
+)
+
+print(emp_and_sup)

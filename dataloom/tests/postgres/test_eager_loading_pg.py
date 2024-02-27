@@ -1088,3 +1088,88 @@ class TestEagerLoadingOnPG:
         conn.close()
 
         conn.close()
+
+    def test_self_relations_eager(self):
+        from dataloom import (
+            Loom,
+            Model,
+            Column,
+            PrimaryKeyColumn,
+            TableColumn,
+            ForeignKeyColumn,
+            ColumnValue,
+            Include,
+        )
+        from dataloom.keys import PgConfig
+
+        pg_loom = Loom(
+            dialect="postgres",
+            database=PgConfig.database,
+            password=PgConfig.password,
+            user=PgConfig.user,
+        )
+
+        class Employee(Model):
+            __tablename__: TableColumn = TableColumn(name="employees")
+            id = PrimaryKeyColumn(type="int", auto_increment=True)
+            name = Column(type="text", nullable=False, default="Bob")
+            supervisorId = ForeignKeyColumn(
+                "Employee", maps_to="1-1", type="int", required=False
+            )
+
+        conn, tables = pg_loom.connect_and_sync([Employee], force=True)
+
+        empId = pg_loom.insert_one(
+            instance=Employee, values=ColumnValue(name="name", value="John Doe")
+        )
+
+        _ = pg_loom.insert_bulk(
+            instance=Employee,
+            values=[
+                [
+                    ColumnValue(name="name", value="Michael Johnson"),
+                    ColumnValue(name="supervisorId", value=empId),
+                ],
+                [
+                    ColumnValue(name="name", value="Jane Smith"),
+                    ColumnValue(name="supervisorId", value=empId),
+                ],
+            ],
+        )
+
+        emp_and_sup = pg_loom.find_by_pk(
+            instance=Employee,
+            pk=2,
+            select=["id", "name", "supervisorId"],
+            include=Include(
+                model=Employee,
+                has="one",
+                select=["id", "name"],
+                alias="supervisor",
+            ),
+        )
+
+        assert emp_and_sup == {
+            "id": 2,
+            "name": "Michael Johnson",
+            "supervisorId": 1,
+            "supervisor": {"id": 1, "name": "John Doe"},
+        }
+        emp_and_sup = pg_loom.find_by_pk(
+            instance=Employee,
+            pk=1,
+            select=["id", "name", "supervisorId"],
+            include=Include(
+                model=Employee,
+                has="one",
+                select=["id", "name"],
+                alias="supervisor",
+            ),
+        )
+        assert emp_and_sup == {
+            "id": 1,
+            "name": "John Doe",
+            "supervisorId": None,
+            "supervisor": None,
+        }
+        conn.close()

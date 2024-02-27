@@ -105,6 +105,10 @@
   - [4. What about bidirectional queries?](#4-what-about-bidirectional-queries)
     - [1. Child to Parent](#1-child-to-parent)
     - [2. Parent to Child](#2-parent-to-child)
+  - [5. `Self` Association](#5-self-association)
+    - [Inserting](#inserting-3)
+  - [6. `N-N` Relationship](#6-n-n-relationship)
+    - [Retrieving Records](#retrieving-records-3)
 - [Query Builder.](#query-builder)
   - [Why Use Query Builder?](#why-use-query-builder)
 - [What is coming next?](#what-is-coming-next)
@@ -514,7 +518,7 @@ class Post(Model):
 This column accepts the following arguments:
 | Argument | Description | Type | Default |
 | ---------- | -------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- | ----------- |
-| `table` | Required. This is the parent table that the current model references. In our example, this is referred to as `User`. | `Model` | |
+| `table` | Required. This is the parent table that the current model references. In our example, this is referred to as `User`. It can be used as a string in self relations. | `Model`\| `str` | |
 | `type` | Optional. Specifies the data type of the foreign key. If not provided, dataloom can infer it from the parent table. | `str` \| `None` | `None` |
 | `required` | Optional. Indicates whether the foreign key is required or not. | `bool` | `False` |
 | `onDelete` | Optional. Specifies the action to be taken when the associated record in the parent table is deleted. | `str` [`"NO ACTION"`, `"SET NULL"`, `"CASCADE"`] | `"NO ACTION"` |
@@ -617,15 +621,16 @@ posts = pg_loom.find_all(
 
 The `Include` class facilitates eager loading for models with relationships. Below is a table detailing the parameters available for the `Include` class:
 
-| Argument  | Description                                                             | Type                          | Default  | Required |
-| --------- | ----------------------------------------------------------------------- | ----------------------------- | -------- | -------- |
-| `model`   | The model to be included when eagerly fetching records.                 | `Model`                       | -        | Yes      |
-| `order`   | The list of order specifications for sorting the included data.         | `list[Order]`, optional       | `[]`     | No       |
-| `limit`   | The maximum number of records to include.                               | `int \| None`, optional       | `0`      | No       |
-| `offset`  | The number of records to skip before including.                         | `int \| None`, optional       | `0`      | No       |
-| `select`  | The list of columns to include.                                         | `list[str] \| None`, optional | `None`   | No       |
-| `has`     | The relationship type between the current model and the included model. | `INCLUDE_LITERAL`, optional   | `"many"` | No       |
-| `include` | The extra included models.                                              | `list[Include]`, optional     | `[]`     | No       |
+| Argument  | Description                                                                        | Type                | Default  | Required |
+| --------- | ---------------------------------------------------------------------------------- | ------------------- | -------- | -------- |
+| `model`   | The model to be included when eagerly fetching records.                            | `Model`             | -        | Yes      |
+| `order`   | The list of order specifications for sorting the included data.                    | `list[Order]`       | `[]`     | No       |
+| `limit`   | The maximum number of records to include.                                          | `int \| None`       | `0`      | No       |
+| `offset`  | The number of records to skip before including.                                    | `int \| None`       | `0`      | No       |
+| `select`  | The list of columns to include.                                                    | `list[str] \| None` | `None`   | No       |
+| `has`     | The relationship type between the current model and the included model.            | `INCLUDE_LITERAL`   | `"many"` | No       |
+| `include` | The extra included models.                                                         | `list[Include]`     | `[]`     | No       |
+| `alias`   | The alias name for the included model. Very important when mapping self relations. | `str`               | `None`   | No       |
 
 #### `Group` Class
 
@@ -664,12 +669,12 @@ print(tables)
 
 The method returns a list of table names that have been created or that exist in your database. The `sync` method accepts the following arguments:
 
-| Argument | Description                                                                                                                 | Type   | Default |
-| -------- | --------------------------------------------------------------------------------------------------------------------------- | ------ | ------- |
-| `models` | A list of your table classes that inherit from the Model class.                                                             | `list` | `[]`    |
-| `drop`   | Whether to drop tables during syncing or not.                                                                               | `bool` | `False` |
-| `force`  | Forcefully drop tables during syncing. In `mysql` this will temporarily disable foreign key checks when droping the tables. | `bool` | `False` |
-| `alter`  | Alter tables instead of dropping them during syncing or not.                                                                | `bool` | `False` |
+| Argument | Description                                                                                                                 | Type               | Default |
+| -------- | --------------------------------------------------------------------------------------------------------------------------- | ------------------ | ------- |
+| `models` | A collection or a single instance(s) of your table classes that inherit from the Model class.                               | `list[Model]\|Any` | `[]`    |
+| `drop`   | Whether to drop tables during syncing or not.                                                                               | `bool`             | `False` |
+| `force`  | Forcefully drop tables during syncing. In `mysql` this will temporarily disable foreign key checks when droping the tables. | `bool`             | `False` |
+| `alter`  | Alter tables instead of dropping them during syncing or not.                                                                | `bool`             | `False` |
 
 > 🥇 **We recommend you to use `drop` or `force` if you are going to change or modify `foreign` and `primary` keys. This is because setting the option `alter` doe not have an effect on `primary` key columns.**
 
@@ -2114,6 +2119,104 @@ print(user_post) """ ? =
 
 ```
 
+#### 5. `Self` Association
+
+Let's consider a scenario where we have a table `Employee`, where an employee can have a supervisor, which in this case a supervisor is also an employee. This is an example of self relations. The model definition for this can be done as follows in `dataloom`.
+
+```py
+class Employee(Model):
+    __tablename__: TableColumn = TableColumn(name="employees")
+    id = PrimaryKeyColumn(type="int", auto_increment=True)
+    name = Column(type="text", nullable=False, default="Bob")
+    supervisorId = ForeignKeyColumn(
+        "Employee", maps_to="1-1", type="int", required=False
+    )
+```
+
+So clearly we can see that when creating a `employee` it is not a must to have a `supervisorId` as this relationship is optional.
+
+> 👍 **Pro Tip:** Note that when doing self relations the referenced table must be a string that matches the table class name irrespective of case. In our case we used `"Employee"` and also `"employee"` and `"EMPLOYEe"` will be valid, however `"Employees"` and also `"employees"` and `"EMPLOYEEs"` are invalid.
+
+##### Inserting
+
+Here is how we can insert employees to this table and we will make `John` the supervisor of other employees.
+
+```py
+empId = mysql_loom.insert_one(
+    instance=Employee, values=ColumnValue(name="name", value="John Doe")
+)
+
+rows = mysql_loom.insert_bulk(
+    instance=Employee,
+    values=[
+        [
+            ColumnValue(name="name", value="Michael Johnson"),
+            ColumnValue(name="supervisorId", value=empId),
+        ],
+        [
+            ColumnValue(name="name", value="Jane Smith"),
+            ColumnValue(name="supervisorId", value=empId),
+        ],
+    ],
+)
+
+```
+
+- Some employees is are associated with a supervisor `John` which are `Jane` and `Michael`.
+- However the employee `John` does not have a supervisor.
+
+#### 6. `N-N` Relationship
+
+##### Retrieving Records
+
+Now let's query employee `Michael` with his supervisor.
+
+```py
+emp = mysql_loom.find_by_pk(
+    instance=Employee, pk=2, select=["id", "name", "supervisorId"]
+)
+sup = mysql_loom.find_by_pk(
+    instance=Employee, select=["id", "name"], pk=emp["supervisorId"]
+)
+emp_and_sup = {**emp, "supervisor": sup}
+print(emp_and_sup) # ? = {'id': 2, 'name': 'Michael Johnson', 'supervisorId': 1, 'supervisor': {'id': 1, 'name': 'John Doe'}}
+```
+
+We're querying the database to retrieve information about a `employee` and their associated `supervisor`.
+
+1. **Querying an Employee**:
+
+   - We use `mysql_loom.find_by_pk()` to fetch a single employee record from the database.
+   - The employee's ID is specified as `2`.
+
+2. **Querying Supervisor**:
+
+   - We use `mysql_loom.find_by_pk()` to retrieve a supervisor that is associated with this employee.
+   - We create a dictionary `emp_and_sup` containing the `employee` information and their `supervisor`.
+
+With eager loading this can be done in one query as follows the above can be done as follows:
+
+```py
+emp_and_sup = mysql_loom.find_by_pk(
+    instance=Employee,
+    pk=2,
+    select=["id", "name", "supervisorId"],
+    include=Include(
+        model=Employee,
+        has="one",
+        select=["id", "name"],
+        alias="supervisor",
+    ),
+)
+
+print(emp_and_sup) # ? = {'id': 2, 'name': 'Michael Johnson', 'supervisorId': 1, 'supervisor': {'id': 1, 'name': 'John Doe'}}
+```
+
+- We use `mysql_loom.find_by_pk()` to fetch a single an employee record from the database.
+- Additionally, we include associated `employee` record using `eager` loading with an `alias` of `supervisor`.
+
+> 👍 **Pro Tip:** Note that the `alias` is very important in this situation because it allows you to get the included relationships with objects that are named well, if you don't give an alias dataloom will just use the model class name as the alias of your included models, in this case you will get an object that looks like `{'id': 2, 'name': 'Michael Johnson', 'supervisorId': 1, 'employee': {'id': 1, 'name': 'John Doe'}}`, which practically and theoretically doesn't make sense.
+
 ### Query Builder.
 
 Dataloom exposes a method called `getQueryBuilder`, which allows you to obtain a `qb` object. This object enables you to execute SQL queries directly from SQL scripts.
@@ -2188,7 +2291,6 @@ The `run` method takes the following as arguments:
 ### What is coming next?
 
 1. N-N associations
-2. Self relations
 
 ### Contributing
 
