@@ -6,11 +6,11 @@ class InvalidArgumentsException(Exception):
     pass
 
 
-class InvalidReferenceNameException(Exception):
+class InvalidReferenceNameException(ValueError):
     pass
 
 
-class IllegalColumnException(Exception):
+class IllegalColumnException(ValueError):
     pass
 
 

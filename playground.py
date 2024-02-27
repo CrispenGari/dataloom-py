@@ -48,7 +48,7 @@ class Employee(Model):
     id = PrimaryKeyColumn(type="int", auto_increment=True)
     name = Column(type="text", nullable=False, default="Bob")
     supervisorId = ForeignKeyColumn(
-        "Employee", maps_to="1-1", type="int", required=False
+        "Employees", maps_to="1-1", type="int", required=False
     )
 
 
@@ -64,13 +64,11 @@ class Student(Model):
     name = Column(type="text", nullable=False, default="Bob")
 
 
-# the only table that is allowed to have no primary key is the one that maps n-n and must have 2 foreign key columns
-
-
 class StudentCourses(Model):
     __tablename__: TableColumn = TableColumn(name="students_courses")
     studentId = ForeignKeyColumn(table=Student, type="int")
     courseId = ForeignKeyColumn(table=Course, type="int")
+    id = PrimaryKeyColumn(type="int")
 
 
 """

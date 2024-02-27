@@ -135,3 +135,141 @@ class TestCreatingTablePG:
         assert len(tables) >= 2
         assert "users" in tables and "posts" in tables
         conn.close()
+
+    def test_create_self_relations_table(self):
+        from dataloom import (
+            Loom,
+            Model,
+            TableColumn,
+            Column,
+            PrimaryKeyColumn,
+            ForeignKeyColumn,
+        )
+        from dataloom.exceptions import InvalidReferenceNameException
+        import pytest
+
+        from dataloom.keys import PgConfig
+
+        pg_loom = Loom(
+            dialect="postgres",
+            database=PgConfig.database,
+            password=PgConfig.password,
+            user=PgConfig.user,
+        )
+
+        with pytest.raises(InvalidReferenceNameException) as info:
+
+            class Employee(Model):
+                __tablename__: TableColumn = TableColumn(name="employees")
+                id = PrimaryKeyColumn(type="int", auto_increment=True)
+                name = Column(type="text", nullable=False, default="Bob")
+                supervisorId = ForeignKeyColumn(
+                    "Employees", maps_to="1-1", type="int", required=False
+                )
+
+            conn, tables = pg_loom.connect_and_sync([Employee], drop=True, force=True)
+            conn.close()
+        assert (
+            str(info.value)
+            == "It seems like you are trying to create self relations on model 'Employee', however reference model is a string that does not match this model class definition signature."
+        )
+
+    def test_create_n2n_relations_tables(self):
+        from dataloom import (
+            Loom,
+            Model,
+            TableColumn,
+            Column,
+            PrimaryKeyColumn,
+            ForeignKeyColumn,
+            CreatedAtColumn,
+        )
+        from dataloom.exceptions import (
+            IllegalColumnException,
+            PkNotDefinedException,
+            TooManyFkException,
+        )
+        import pytest
+
+        from dataloom.keys import PgConfig
+
+        pg_loom = Loom(
+            dialect="postgres",
+            database=PgConfig.database,
+            password=PgConfig.password,
+            user=PgConfig.user,
+        )
+
+        class Course(Model):
+            __tablename__: TableColumn = TableColumn(name="courses")
+            id = PrimaryKeyColumn(type="int", auto_increment=True)
+            name = Column(type="text", nullable=False, default="Bob")
+
+        class Student(Model):
+            __tablename__: TableColumn = TableColumn(name="students")
+            id = PrimaryKeyColumn(type="int", auto_increment=True)
+            name = Column(type="text", nullable=False, default="Bob")
+
+        with pytest.raises(PkNotDefinedException) as info:
+
+            class StudentCourses(Model):
+                __tablename__: TableColumn = TableColumn(name="students_courses")
+                studentId = ForeignKeyColumn(table=Student, type="int")
+
+            conn, tables = pg_loom.connect_and_sync(
+                [Student, Course, StudentCourses], drop=True, force=True
+            )
+            conn.close()
+        assert (
+            str(info.value)
+            == "Your table 'students_courses' does not have a primary key column and it is not a reference table."
+        )
+
+        with pytest.raises(TooManyFkException) as info:
+
+            class StudentCourses(Model):
+                __tablename__: TableColumn = TableColumn(name="students_courses")
+                studentId = ForeignKeyColumn(table=Student, type="int")
+                courseId = ForeignKeyColumn(table=Course, type="int")
+                coursed = ForeignKeyColumn(table=Course, type="int")
+
+            conn, tables = pg_loom.connect_and_sync(
+                [Student, Course, StudentCourses], drop=True, force=True
+            )
+            conn.close()
+        assert (
+            str(info.value)
+            == "Reference table 'students_courses' can not have more than 2 foreign keys."
+        )
+        with pytest.raises(IllegalColumnException) as info:
+
+            class StudentCourses(Model):
+                __tablename__: TableColumn = TableColumn(name="students_courses")
+                studentId = ForeignKeyColumn(table=Student, type="int")
+                courseId = ForeignKeyColumn(table=Course, type="int")
+                id = PrimaryKeyColumn(type="int")
+
+            conn, tables = pg_loom.connect_and_sync(
+                [Student, Course, StudentCourses], drop=True, force=True
+            )
+            conn.close()
+        assert (
+            str(info.value)
+            == "Primary keys and columns can not be manually added in a reference table."
+        )
+        with pytest.raises(IllegalColumnException) as info:
+
+            class StudentCourses(Model):
+                __tablename__: TableColumn = TableColumn(name="students_courses")
+                studentId = ForeignKeyColumn(table=Student, type="int")
+                courseId = ForeignKeyColumn(table=Course, type="int")
+                c = CreatedAtColumn()
+
+            conn, tables = pg_loom.connect_and_sync(
+                [Student, Course, StudentCourses], drop=True, force=True
+            )
+            conn.close()
+        assert (
+            str(info.value)
+            == "Created at and Updated at columns are not allowed in reference tables."
+        )

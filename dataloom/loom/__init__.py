@@ -1348,18 +1348,16 @@ class Loom(ILoom):
         ...     conn.close()
 
         """
-        try:
-            self.conn = self.connect()
-            self.sql_obj = SQL(
-                conn=self.conn,
-                dialect=self.dialect,
-                sql_logger=self.sql_logger,
-                logs_filename=self.logs_filename,
-            )
-            tables = self.sync(models=models, drop=drop, force=force, alter=alter)
-            return self.conn, tables
-        except Exception as e:
-            raise Exception(e)
+
+        self.conn = self.connect()
+        self.sql_obj = SQL(
+            conn=self.conn,
+            dialect=self.dialect,
+            sql_logger=self.sql_logger,
+            logs_filename=self.logs_filename,
+        )
+        tables = self.sync(models=models, drop=drop, force=force, alter=alter)
+        return self.conn, tables
 
     def sync(
         self, models: list[Model], drop=False, force=False, alter=False
@@ -1413,61 +1411,57 @@ class Loom(ILoom):
         ... )
 
         """
-        try:
-            for model in models:
-                if force:
-                    if self.dialect == "mysql":
-                        # temporarily disable fk checks.
-                        self._execute_sql("SET FOREIGN_KEY_CHECKS = 0;", _verbose=0)
-                        self._execute_sql(model._drop_sql(dialect=self.dialect))
-                        sql = model._create_sql(dialect=self.dialect)
-                        self._execute_sql(sql)
-                        self._execute_sql("SET FOREIGN_KEY_CHECKS = 1;", _verbose=0)
-                    else:
-                        self._execute_sql(model._drop_sql(dialect=self.dialect))
-                        sql = model._create_sql(dialect=self.dialect)
-                        self._execute_sql(sql)
-                elif drop or force:
+
+        for model in models:
+            if force:
+                if self.dialect == "mysql":
+                    # temporarily disable fk checks.
+                    self._execute_sql("SET FOREIGN_KEY_CHECKS = 0;", _verbose=0)
                     self._execute_sql(model._drop_sql(dialect=self.dialect))
                     sql = model._create_sql(dialect=self.dialect)
                     self._execute_sql(sql)
-                elif alter:
-                    # 1. we only alter the table if it does exists
-                    # 2. if not we just have to create a new table
-                    if model._get_table_name() in self.tables:
-                        sql1 = model._get_describe_stm(
-                            dialect=self.dialect, fields=["column_name"]
-                        )
-                        args = None
+                    self._execute_sql("SET FOREIGN_KEY_CHECKS = 1;", _verbose=0)
+                else:
+                    self._execute_sql(model._drop_sql(dialect=self.dialect))
+                    sql = model._create_sql(dialect=self.dialect)
+                    self._execute_sql(sql)
+            elif drop or force:
+                self._execute_sql(model._drop_sql(dialect=self.dialect))
+                sql = model._create_sql(dialect=self.dialect)
+                self._execute_sql(sql)
+            elif alter:
+                # 1. we only alter the table if it does exists
+                # 2. if not we just have to create a new table
+                if model._get_table_name() in self.tables:
+                    sql1 = model._get_describe_stm(
+                        dialect=self.dialect, fields=["column_name"]
+                    )
+                    args = None
+                    if self.dialect == "mysql":
+                        args = (self.database, model._get_table_name())
+                    elif self.dialect == "postgres":
+                        args = ("public", model._get_table_name())
+                    elif self.dialect == "sqlite":
+                        args = ()
+                    cols = self._execute_sql(sql1, _verbose=0, args=args, fetchall=True)
+                    if cols is not None:
                         if self.dialect == "mysql":
-                            args = (self.database, model._get_table_name())
+                            old_columns = [col for (col,) in cols]
                         elif self.dialect == "postgres":
-                            args = ("public", model._get_table_name())
-                        elif self.dialect == "sqlite":
-                            args = ()
-                        cols = self._execute_sql(
-                            sql1, _verbose=0, args=args, fetchall=True
-                        )
-                        if cols is not None:
-                            if self.dialect == "mysql":
-                                old_columns = [col for (col,) in cols]
-                            elif self.dialect == "postgres":
-                                old_columns = [col for (col,) in cols]
-                            else:
-                                old_columns = [col[1] for col in cols]
-                        sql = model._alter_sql(
-                            dialect=self.dialect, old_columns=old_columns
-                        )
-                        self._execute_sql(sql, _is_script=True)
-                    else:
-                        sql = model._create_sql(dialect=self.dialect)
-                        self._execute_sql(sql)
+                            old_columns = [col for (col,) in cols]
+                        else:
+                            old_columns = [col[1] for col in cols]
+                    sql = model._alter_sql(
+                        dialect=self.dialect, old_columns=old_columns
+                    )
+                    self._execute_sql(sql, _is_script=True)
                 else:
                     sql = model._create_sql(dialect=self.dialect)
                     self._execute_sql(sql)
-            return self.tables
-        except Exception as e:
-            raise Exception(e)
+            else:
+                sql = model._create_sql(dialect=self.dialect)
+                self._execute_sql(sql)
+        return self.tables
 
     def sum(
         self,

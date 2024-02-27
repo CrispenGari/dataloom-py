@@ -11,7 +11,7 @@ from dataloom.types import (
 )
 from dataclasses import dataclass
 from dataloom.exceptions import UnsupportedTypeException, UnsupportedDialectException
-from dataloom.model import Model
+from typing import Any
 
 
 class CreatedAtColumn:
@@ -314,7 +314,7 @@ class ForeignKeyColumn:
 
     def __init__(
         self,
-        table: Model | str,
+        table: Any | str,
         type: MYSQL_SQL_TYPES_LITERAL
         | POSTGRES_SQL_TYPES_LITERAL
         | SQLITE3_SQL_TYPES_LITERAL,
