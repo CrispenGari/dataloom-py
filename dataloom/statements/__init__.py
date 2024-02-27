@@ -176,7 +176,7 @@ class GetStatement[T]:
         fields = [*user_fields, *predefined_fields]
         fields_name = ", ".join(f for f in [" ".join(field) for field in fields])
         if self.dialect == "postgres":
-            if len(fks) == 2:
+            if len(fks) == 2 and len(pks) == 0:
                 pks, user_fields, fks = get_create_reference_table_params(
                     dialect=self.dialect,
                     model=self.model,
@@ -205,7 +205,7 @@ class GetStatement[T]:
                 )
 
         elif self.dialect == "mysql":
-            if len(fks) == 2:
+            if len(fks) == 2 and len(pks) == 0:
                 pks, user_fields, fks = get_create_reference_table_params(
                     dialect=self.dialect,
                     model=self.model,
@@ -234,7 +234,7 @@ class GetStatement[T]:
                 )
 
         elif self.dialect == "sqlite":
-            if len(fks) == 2:
+            if len(fks) == 2 and len(pks) == 0:
                 pks, user_fields, fks = get_create_reference_table_params(
                     dialect=self.dialect,
                     model=self.model,
@@ -875,6 +875,7 @@ class GetStatement[T]:
         child_pk_name: str,
         child_table_name: str,
         parent_fk_name: str,
+        parent_pk_name: Optional[str] = None,
         fields: list = [],
         limit: Optional[int] = None,
         offset: Optional[int] = None,
@@ -887,6 +888,9 @@ class GetStatement[T]:
                 parent_fk_name=f'"{parent_fk_name}"',
                 child_table_name=f'"{child_table_name}"',
                 child_pk_name=child_pk_name,
+                parent_pk_name=parent_pk_name
+                if parent_pk_name is not None
+                else child_pk_name,
                 child_pk="%s",
                 limit="" if limit is None else "LIMIT %s",
                 offset="" if offset is None else "OFFSET %s",
@@ -899,6 +903,9 @@ class GetStatement[T]:
                 parent_fk_name=f"`{parent_fk_name}`",
                 child_table_name=f"`{child_table_name}`",
                 child_pk_name=child_pk_name,
+                parent_pk_name=parent_pk_name
+                if parent_pk_name is not None
+                else child_pk_name,
                 child_pk="%s",
                 limit="" if limit is None else "LIMIT %s",
                 offset="" if offset is None else "OFFSET %s",
@@ -911,6 +918,9 @@ class GetStatement[T]:
                 parent_fk_name=f"`{parent_fk_name}`",
                 child_table_name=f"`{child_table_name}`",
                 child_pk_name=child_pk_name,
+                parent_pk_name=parent_pk_name
+                if parent_pk_name is not None
+                else child_pk_name,
                 child_pk="?",
                 limit="" if limit is None else "LIMIT ?",
                 offset="" if offset is None else "OFFSET ?",

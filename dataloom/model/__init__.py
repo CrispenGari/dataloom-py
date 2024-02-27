@@ -673,6 +673,7 @@ class Model:
         child_pk_name: str,
         child_table_name: str,
         parent_fk_name: str,
+        parent_pk_name: Optional[str] = None,
         select: Optional[list[str] | str] = [],
         limit: Optional[int] = None,
         offset: Optional[int] = None,
@@ -714,6 +715,7 @@ class Model:
                 limit=limit,
                 offset=offset,
                 orders=orders,
+                parent_pk_name=parent_pk_name,
             )
         else:
             raise UnsupportedDialectException(

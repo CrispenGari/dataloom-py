@@ -338,6 +338,8 @@ class Include[Model]:
     ----------
     model : Model
         The model to be included when eger fetching records.
+    junction_table: Model|None, optional
+        A junction table is a reference table for models that maps N-N relationship.
     order : list[Order], optional
         The list of order specifications for sorting the included data. Default is an empty list.
     limit : int | None, optional
@@ -378,6 +380,7 @@ class Include[Model]:
     """
 
     model: Model = field(repr=False)
+    junction_table: Optional[Model] = field(repr=False, default=None)
     order: list[Order] = field(repr=False, default_factory=list)
     limit: Optional[int] = field(default=None, repr=False)
     offset: Optional[int] = field(default=None, repr=False)

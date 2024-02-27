@@ -311,11 +311,24 @@ class subquery:
     def get_one_by_pk(
         self, parent: Model, include: Include, pk: Any, foreign_keys: list[dict]
     ):
+        # let's check for self relations here.
+        self_rel = parent._get_table_name() == include.model._get_table_name()
+        # let's check if the table has a juction table
+        many2many = include.junction_table is not None
         _, parent_pk_name, parent_fks, _ = get_table_fields(
-            parent, dialect=self.dialect
+            parent if not many2many else include.junction_table, dialect=self.dialect
         )
-        here = [fk for fk in foreign_keys if parent._get_table_name() in fk]
-        fks = here[0] if len(here) == 1 else dict()
+        if not many2many:
+            here = [fk for fk in foreign_keys if parent._get_table_name() in fk]
+            fks = here[0] if len(here) == 1 else dict()
+        else:
+            c = include.model._get_table_name()
+            for item in parent_fks:
+                if c in item:
+                    fks = item
+                else:
+                    child_fks = item
+
         relations = dict()
 
         has_one = include.has == "one"
@@ -327,8 +340,6 @@ class subquery:
             else include.alias
         )
 
-        # let's check for self relations here.
-        self_rel = parent._get_table_name() == include.model._get_table_name()
         if self_rel:
             fk = fks[parent._get_table_name()]
             sql, _, _ = parent._get_select_by_pk_stm(dialect=self.dialect, select=fk)
@@ -379,18 +390,45 @@ class subquery:
         else:
             # this table is a parent table. then the child is now the parent
             parent_table_name = parent._get_table_name()
-            fk = fks[parent_table_name]
-            child_pk_name = parent_pk_name
-            sql, selected = include.model._get_select_parent_by_pk_stm(
-                dialect=self.dialect,
-                select=include.select,
-                child_pk_name=child_pk_name,
-                child_table_name=parent._get_table_name(),
-                parent_fk_name=re.sub(r'"|`', "", child_pk_name) if self_rel else fk,
-                limit=None if has_one else include.limit,
-                offset=None if has_one else include.offset,
-                order=None if has_one else include.order,
-            )
+            if many2many:
+                child_table_name = include.model._get_table_name()
+                parent_pk_name = child_fks[parent_table_name]
+
+                fk = fks[child_table_name]
+                _, child_pk_name, parent_fks, _ = get_table_fields(
+                    include.model,
+                    dialect=self.dialect,
+                )
+                sql, selected = include.model._get_select_parent_by_pk_stm(
+                    dialect=self.dialect,
+                    select=include.select,
+                    child_pk_name=f'"{fk}"'
+                    if self.dialect == "postgres"
+                    else f"`{fk}`",
+                    parent_pk_name=f'"{parent_pk_name}"'
+                    if self.dialect == "postgres"
+                    else f"`{parent_pk_name}`",
+                    child_table_name=include.junction_table._get_table_name(),
+                    parent_fk_name=re.sub(r'"|`', "", child_pk_name),
+                    limit=None if has_one else include.limit,
+                    offset=None if has_one else include.offset,
+                    order=None if has_one else include.order,
+                )
+            else:
+                fk = fks[parent_table_name]
+                child_pk_name = parent_pk_name
+                sql, selected = include.model._get_select_parent_by_pk_stm(
+                    dialect=self.dialect,
+                    select=include.select,
+                    child_pk_name=child_pk_name,
+                    child_table_name=parent._get_table_name(),
+                    parent_fk_name=re.sub(r'"|`', "", child_pk_name)
+                    if self_rel
+                    else fk,
+                    limit=None if has_one else include.limit,
+                    offset=None if has_one else include.offset,
+                    order=None if has_one else include.order,
+                )
 
             if has_one:
                 rows = self._execute_sql(sql, args=(pk,), fetchone=has_one)

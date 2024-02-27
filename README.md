@@ -107,8 +107,10 @@
     - [2. Parent to Child](#2-parent-to-child)
   - [5. `Self` Association](#5-self-association)
     - [Inserting](#inserting-3)
-  - [6. `N-N` Relationship](#6-n-n-relationship)
     - [Retrieving Records](#retrieving-records-3)
+  - [6. `N-N` Relationship](#6-n-n-relationship)
+    - [Inserting](#inserting-4)
+    - [Retrieving Records](#retrieving-records-4)
 - [Query Builder.](#query-builder)
   - [Why Use Query Builder?](#why-use-query-builder)
 - [What is coming next?](#what-is-coming-next)
@@ -2165,7 +2167,175 @@ rows = mysql_loom.insert_bulk(
 - Some employees is are associated with a supervisor `John` which are `Jane` and `Michael`.
 - However the employee `John` does not have a supervisor.
 
+##### Retrieving Records
+
+Now let's query employee `Michael` with his supervisor.
+
+```py
+emp = mysql_loom.find_by_pk(
+    instance=Employee, pk=2, select=["id", "name", "supervisorId"]
+)
+sup = mysql_loom.find_by_pk(
+    instance=Employee, select=["id", "name"], pk=emp["supervisorId"]
+)
+emp_and_sup = {**emp, "supervisor": sup}
+print(emp_and_sup) # ? = {'id': 2, 'name': 'Michael Johnson', 'supervisorId': 1, 'supervisor': {'id': 1, 'name': 'John Doe'}}
+```
+
+We're querying the database to retrieve information about a `employee` and their associated `supervisor`.
+
+1. **Querying an Employee**:
+
+   - We use `mysql_loom.find_by_pk()` to fetch a single employee record from the database.
+   - The employee's ID is specified as `2`.
+
+2. **Querying Supervisor**:
+
+   - We use `mysql_loom.find_by_pk()` to retrieve a supervisor that is associated with this employee.
+   - We create a dictionary `emp_and_sup` containing the `employee` information and their `supervisor`.
+
+With eager loading this can be done in one query as follows the above can be done as follows:
+
+```py
+emp_and_sup = mysql_loom.find_by_pk(
+    instance=Employee,
+    pk=2,
+    select=["id", "name", "supervisorId"],
+    include=Include(
+        model=Employee,
+        has="one",
+        select=["id", "name"],
+        alias="supervisor",
+    ),
+)
+
+print(emp_and_sup) # ? = {'id': 2, 'name': 'Michael Johnson', 'supervisorId': 1, 'supervisor': {'id': 1, 'name': 'John Doe'}}
+```
+
+- We use `mysql_loom.find_by_pk()` to fetch a single an employee record from the database.
+- Additionally, we include associated `employee` record using `eager` loading with an `alias` of `supervisor`.
+
+> 👍 **Pro Tip:** Note that the `alias` is very important in this situation because it allows you to get the included relationships with objects that are named well, if you don't give an alias dataloom will just use the model class name as the alias of your included models, in this case you will get an object that looks like `{'id': 2, 'name': 'Michael Johnson', 'supervisorId': 1, 'employee': {'id': 1, 'name': 'John Doe'}}`, which practically and theoretically doesn't make sense.
+
 #### 6. `N-N` Relationship
+
+Let's consider a scenario where we have tables for `Students` and `Courses`. In this scenario, a student can enroll in many courses, and a single course can have many students enrolled. This represents a `Many-to-Many` relationship. The model definitions for this scenario can be done as follows in `dataloom`:
+
+**Table: Student**
+| Column Name | Data Type |
+|-------------|-----------|
+| `id` | `INT` |
+| `name`| `VARCHAR` |
+
+**Table: Course**
+| Column Name | Data Type |
+|-------------|-----------|
+| `id` | `INT` |
+| `name` | `VARCHAR` |
+| ... | ... |
+
+**Table: Student_Courses** (junction table)
+| Column Name | Data Type |
+|-------------|-----------|
+| `studentId` | `INT` |
+| `courseId` | `INT` |
+
+> 👍 **Pro Tip:** Note that the `junction` table can also be called `association`-table or `reference`-table or `joint`-table.
+
+In `dataloom` we can model the above relations as follows:
+
+```py
+class Course(Model):
+    __tablename__: TableColumn = TableColumn(name="courses")
+    id = PrimaryKeyColumn(type="int", auto_increment=True)
+    name = Column(type="text", nullable=False, default="Bob")
+
+
+class Student(Model):
+    __tablename__: TableColumn = TableColumn(name="students")
+    id = PrimaryKeyColumn(type="int", auto_increment=True)
+    name = Column(type="text", nullable=False, default="Bob")
+
+
+class StudentCourses(Model):
+    __tablename__: TableColumn = TableColumn(name="students_courses")
+    studentId = ForeignKeyColumn(table=Student, type="int")
+    courseId = ForeignKeyColumn(table=Course, type="int")
+
+```
+
+- The tables `students` and `courses` will not have foreign keys.
+- The `students_courses` table will have two columns that joins these two tables together in an `N-N` relational mapping.
+
+> 👍 **Pro Tip:** In a joint table no other columns such as `CreateAtColumn`, `UpdatedAtColumn`, `Column` and `PrimaryKeyColumn` are allowed and only exactly `2` foreign keys should be in this table.
+
+##### Inserting
+
+Here is how we can insert `students` and `courses` in their respective tables.
+
+```py
+
+# insert the courses
+mathId = mysql_loom.insert_one(
+    instance=Course, values=ColumnValue(name="name", value="Mathematics")
+)
+engId = mysql_loom.insert_one(
+    instance=Course, values=ColumnValue(name="name", value="English")
+)
+phyId = mysql_loom.insert_one(
+    instance=Course, values=ColumnValue(name="name", value="Physics")
+)
+
+# create students
+
+stud1 = mysql_loom.insert_one(
+    instance=Student, values=ColumnValue(name="name", value="Alice")
+)
+stud2 = mysql_loom.insert_one(
+    instance=Student, values=ColumnValue(name="name", value="Bob")
+)
+stud3 = mysql_loom.insert_one(
+    instance=Student, values=ColumnValue(name="name", value="Lisa")
+)
+
+```
+
+- You will notice that we are keeping in track of the `studentIds` and the `courseIds` because we will need them in the `joint-table` or `association-table`.
+- Now we can enrol students to their courses by inserting them in their id's in the association table.
+
+```py
+# enrolling students
+mysql_loom.insert_bulk(
+    instance=StudentCourses,
+    values=[
+        [
+            ColumnValue(name="studentId", value=stud1),
+            ColumnValue(name="courseId", value=mathId),
+        ],  # enrolling Alice to mathematics
+        [
+            ColumnValue(name="studentId", value=stud1),
+            ColumnValue(name="courseId", value=phyId),
+        ],  # enrolling Alice to physics
+        [
+            ColumnValue(name="studentId", value=stud1),
+            ColumnValue(name="courseId", value=engId),
+        ],  # enrolling Alice to english
+        [
+            ColumnValue(name="studentId", value=stud2),
+            ColumnValue(name="courseId", value=engId),
+        ],  # enrolling Bob to english
+        [
+            ColumnValue(name="studentId", value=stud3),
+            ColumnValue(name="courseId", value=phyId),
+        ],  # enrolling Lisa to physics
+        [
+            ColumnValue(name="studentId", value=stud3),
+            ColumnValue(name="courseId", value=engId),
+        ],  # enrolling Lisa to english
+    ],
+)
+
+```
 
 ##### Retrieving Records
 

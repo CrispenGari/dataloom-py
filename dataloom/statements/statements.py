@@ -135,7 +135,7 @@ class MySqlStatements:
     SELECT_PARENT_BY_PK = """
     SELECT {parent_column_names} FROM {parent_table_name} WHERE {parent_fk_name} IN (
         SELECT {child_pk_name} FROM  (
-                    SELECT {child_pk_name} FROM {child_table_name} WHERE {child_pk_name} = {child_pk}
+                    SELECT {child_pk_name} FROM {child_table_name} WHERE {parent_pk_name} = {child_pk}
         ) AS subquery
     ) {orders} {limit} {offset};
     """
@@ -271,7 +271,7 @@ class Sqlite3Statements:
     """
     SELECT_PARENT_BY_PK = """
     SELECT {parent_column_names} FROM {parent_table_name} WHERE {parent_fk_name} IN (
-        SELECT {child_pk_name} FROM {child_table_name} WHERE {child_pk_name} = {child_pk}
+        SELECT {child_pk_name} FROM {child_table_name} WHERE {parent_pk_name} = {child_pk}
     ) {orders} {limit} {offset};
     """
     GET_PK_COMMAND = "SELECT {pk_name} FROM {table_name} {filters} {options};".strip()
@@ -426,7 +426,7 @@ class PgStatements:
     """
     SELECT_PARENT_BY_PK = """
     SELECT {parent_column_names} FROM {parent_table_name} WHERE {parent_fk_name} IN (
-        SELECT {child_pk_name} FROM {child_table_name} WHERE {child_pk_name} = {child_pk}
+        SELECT {child_pk_name} FROM {child_table_name} WHERE {parent_pk_name} = {child_pk}
     ) {orders} {limit} {offset};
     """
 

@@ -43,15 +43,6 @@ mysql_loom = Loom(
 )
 
 
-class Employee(Model):
-    __tablename__: TableColumn = TableColumn(name="employees")
-    id = PrimaryKeyColumn(type="int", auto_increment=True)
-    name = Column(type="text", nullable=False, default="Bob")
-    supervisorId = ForeignKeyColumn(
-        "Employee", maps_to="1-1", type="int", required=False
-    )
-
-
 class Course(Model):
     __tablename__: TableColumn = TableColumn(name="courses")
     id = PrimaryKeyColumn(type="int", auto_increment=True)
@@ -70,40 +61,104 @@ class StudentCourses(Model):
     courseId = ForeignKeyColumn(table=Course, type="int")
 
 
-conn, tables = pg_loom.connect_and_sync(
-    [Student, Course, StudentCourses, Employee], force=True
+conn, tables = mysql_loom.connect_and_sync(
+    [Student, Course, StudentCourses], force=True
 )
 
-
-empId = pg_loom.insert_one(
-    instance=Employee, values=ColumnValue(name="name", value="John Doe")
+# insert the courses
+mathId = mysql_loom.insert_one(
+    instance=Course, values=ColumnValue(name="name", value="Mathematics")
+)
+engId = mysql_loom.insert_one(
+    instance=Course, values=ColumnValue(name="name", value="English")
+)
+phyId = mysql_loom.insert_one(
+    instance=Course, values=ColumnValue(name="name", value="Physics")
 )
 
-rows = pg_loom.insert_bulk(
-    instance=Employee,
+# create students
+
+stud1 = mysql_loom.insert_one(
+    instance=Student, values=ColumnValue(name="name", value="Alice")
+)
+stud2 = mysql_loom.insert_one(
+    instance=Student, values=ColumnValue(name="name", value="Bob")
+)
+stud3 = mysql_loom.insert_one(
+    instance=Student, values=ColumnValue(name="name", value="Lisa")
+)
+
+# enrolling students
+mysql_loom.insert_bulk(
+    instance=StudentCourses,
     values=[
         [
-            ColumnValue(name="name", value="Michael Johnson"),
-            ColumnValue(name="supervisorId", value=empId),
-        ],
+            ColumnValue(name="studentId", value=stud1),
+            ColumnValue(name="courseId", value=mathId),
+        ],  # enrolling Alice to mathematics
         [
-            ColumnValue(name="name", value="Jane Smith"),
-            ColumnValue(name="supervisorId", value=empId),
-        ],
+            ColumnValue(name="studentId", value=stud1),
+            ColumnValue(name="courseId", value=phyId),
+        ],  # enrolling Alice to physics
+        [
+            ColumnValue(name="studentId", value=stud1),
+            ColumnValue(name="courseId", value=engId),
+        ],  # enrolling Alice to english
+        [
+            ColumnValue(name="studentId", value=stud2),
+            ColumnValue(name="courseId", value=engId),
+        ],  # enrolling Bob to english
+        [
+            ColumnValue(name="studentId", value=stud3),
+            ColumnValue(name="courseId", value=phyId),
+        ],  # enrolling Lisa to physics
+        [
+            ColumnValue(name="studentId", value=stud3),
+            ColumnValue(name="courseId", value=engId),
+        ],  # enrolling Lisa to english
     ],
 )
 
-
-emp_and_sup = pg_loom.find_by_pk(
-    instance=Employee,
-    pk=1,
-    select=["id", "name", "supervisorId"],
-    include=Include(
-        model=Employee,
-        has="one",
-        select=["id", "name"],
-        alias="supervisor",
+s = mysql_loom.find_by_pk(
+    Student,
+    pk=stud1,
+    select=["id", "name"],
+)
+c = mysql_loom.find_many(
+    StudentCourses,
+    filters=Filter(column="studentId", value=stud1),
+    select=["courseId"],
+)
+courses = mysql_loom.find_many(
+    Course,
+    filters=Filter(
+        column="courseId", operator="in", value=[list(i.values())[0] for i in c]
     ),
+    select=["id", "name"],
 )
 
-print(emp_and_sup)
+alice = {**s, "courses": courses}
+print(courses)
+
+# alice = mysql_loom.find_by_pk(
+#     Student,
+#     pk=stud1,
+#     select=["id", "name"],
+#     include=Include(
+#         model=Course, junction_table=StudentCourses, alias="courses", has="many"
+#     ),
+# )
+
+# print(alice)
+
+
+# english = mysql_loom.find_by_pk(
+#     Course,
+#     pk=engId,
+#     select=["id", "name"],
+#     include=Include(
+#         model=Student, junction_table=StudentCourses, alias="students", has="many"
+#     ),
+# )
+
+# print(english)
