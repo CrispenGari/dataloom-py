@@ -664,12 +664,12 @@ print(tables)
 
 The method returns a list of table names that have been created or that exist in your database. The `sync` method accepts the following arguments:
 
-| Argument | Description                                                     | Type   | Default |
-| -------- | --------------------------------------------------------------- | ------ | ------- |
-| `models` | A list of your table classes that inherit from the Model class. | `list` | `[]`    |
-| `drop`   | Whether to drop tables during syncing or not.                   | `bool` | `False` |
-| `force`  | Forcefully drop tables during syncing or not.                   | `bool` | `False` |
-| `alter`  | Alter tables instead of dropping them during syncing or not.    | `bool` | `False` |
+| Argument | Description                                                                                                                 | Type   | Default |
+| -------- | --------------------------------------------------------------------------------------------------------------------------- | ------ | ------- |
+| `models` | A list of your table classes that inherit from the Model class.                                                             | `list` | `[]`    |
+| `drop`   | Whether to drop tables during syncing or not.                                                                               | `bool` | `False` |
+| `force`  | Forcefully drop tables during syncing. In `mysql` this will temporarily disable foreign key checks when droping the tables. | `bool` | `False` |
+| `alter`  | Alter tables instead of dropping them during syncing or not.                                                                | `bool` | `False` |
 
 > 🥇 **We recommend you to use `drop` or `force` if you are going to change or modify `foreign` and `primary` keys. This is because setting the option `alter` doe not have an effect on `primary` key columns.**
 

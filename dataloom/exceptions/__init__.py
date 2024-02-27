@@ -6,6 +6,14 @@ class InvalidArgumentsException(Exception):
     pass
 
 
+class InvalidReferenceNameException(Exception):
+    pass
+
+
+class IllegalColumnException(Exception):
+    pass
+
+
 class InvalidPropertyException(Exception):
     pass
 

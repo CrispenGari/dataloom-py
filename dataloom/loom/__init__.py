@@ -1415,7 +1415,19 @@ class Loom(ILoom):
         """
         try:
             for model in models:
-                if drop or force:
+                if force:
+                    if self.dialect == "mysql":
+                        # temporarily disable fk checks.
+                        self._execute_sql("SET FOREIGN_KEY_CHECKS = 0;", _verbose=0)
+                        self._execute_sql(model._drop_sql(dialect=self.dialect))
+                        sql = model._create_sql(dialect=self.dialect)
+                        self._execute_sql(sql)
+                        self._execute_sql("SET FOREIGN_KEY_CHECKS = 1;", _verbose=0)
+                    else:
+                        self._execute_sql(model._drop_sql(dialect=self.dialect))
+                        sql = model._create_sql(dialect=self.dialect)
+                        self._execute_sql(sql)
+                elif drop or force:
                     self._execute_sql(model._drop_sql(dialect=self.dialect))
                     sql = model._create_sql(dialect=self.dialect)
                     self._execute_sql(sql)

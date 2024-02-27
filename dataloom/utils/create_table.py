@@ -8,6 +8,7 @@ from dataloom.columns import (
 )
 from dataloom.types import DIALECT_LITERAL
 import re
+from dataloom.exceptions import InvalidReferenceNameException, IllegalColumnException
 
 
 def get_create_table_params(
@@ -74,10 +75,24 @@ def get_create_table_params(
             # 2. what is the type of the parent table pk?
             # 3. what is the name of the parent table?
             # 4. What is the relationship type being mapped?
-            pk, pk_type = field.table._get_pk_attributes(dialect=dialect)
-            parent_table_name = field.table._get_table_name()
-            fks.append(f'"{name}"' if dialect == "postgres" else f"`{name}`")
+            # 5. Is it a self relations
+            #  + in a self relation the field.table is a string that matches field.model.__class__.__name__
 
+            if isinstance(field.table, str):
+                # it is a self relation
+                if field.table.lower() == model.__name__.lower():
+                    pk, pk_type = model._get_pk_attributes(dialect=dialect)
+                    parent_table_name = model._get_table_name()
+                else:
+                    raise InvalidReferenceNameException(
+                        f"It seems like you are trying to create self relations on model '{ model.__name__}', however reference model is a string that does not match this model class definition signature."
+                    )
+
+            else:
+                pk, pk_type = field.table._get_pk_attributes(dialect=dialect)
+                parent_table_name = field.table._get_table_name()
+
+            fks.append(f'"{name}"' if dialect == "postgres" else f"`{name}`")
             value = (
                 "{pk_type} {unique} {nullable} REFERENCES {parent_table_name}({pk}) ON DELETE {onDelete} ON UPDATE {onUpdate}".format(
                     onDelete=field.onDelete,
@@ -115,11 +130,11 @@ def get_create_reference_table_params(
 
     for name, field in inspect.getmembers(model):
         if isinstance(field, PrimaryKeyColumn) or isinstance(field, Column):
-            raise Exception(
+            raise IllegalColumnException(
                 "Primary keys and columns can not be manually added in a reference table."
             )
         elif isinstance(field, CreatedAtColumn) or isinstance(field, UpdatedAtColumn):
-            raise Exception(
+            raise IllegalColumnException(
                 "Created at and Updated at columns are not allowed in reference tables."
             )
         elif isinstance(field, ForeignKeyColumn):

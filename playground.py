@@ -52,15 +52,6 @@ class Employee(Model):
     )
 
 
-class Employee(Model):
-    __tablename__: TableColumn = TableColumn(name="employees")
-    id = PrimaryKeyColumn(type="int", auto_increment=True)
-    name = Column(type="text", nullable=False, default="Bob")
-    supervisorId = ForeignKeyColumn(
-        "Employee", maps_to="1-1", type="int", required=False
-    )
-
-
 class Course(Model):
     __tablename__: TableColumn = TableColumn(name="courses")
     id = PrimaryKeyColumn(type="int", auto_increment=True)
@@ -83,27 +74,6 @@ class StudentCourses(Model):
 
 
 """
-CREATE TABLE students (
-    student_id INT PRIMARY KEY,
-    student_name VARCHAR(100)
-);
-
-CREATE TABLE courses (
-    course_id INT PRIMARY KEY,
-    course_name VARCHAR(100)
-);
-
-CREATE TABLE student_courses (
-    student_id INT,
-    course_id INT,
-    PRIMARY KEY (student_id, course_id),
-    FOREIGN KEY (student_id) REFERENCES students(student_id),
-    FOREIGN KEY (course_id) REFERENCES courses(course_id)
-);
-
-"""
-
-"""
 INSERT INTO employees (id, name, supervisor_id) VALUES
 (1, 'John Doe', NULL),  -- John Doe doesn't have a supervisor
 (2, 'Jane Smith', 1),    -- Jane Smith's supervisor is John Doe
@@ -111,8 +81,8 @@ INSERT INTO employees (id, name, supervisor_id) VALUES
 """
 
 
-conn, tables = sqlite_loom.connect_and_sync(
-    [Student, Course, StudentCourses], alter=True
+conn, tables = mysql_loom.connect_and_sync(
+    [Student, Course, StudentCourses, Employee], force=True
 )
 
 
