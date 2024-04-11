@@ -48,6 +48,15 @@ Why choose ``dataloom``?
 .. toctree::
    :maxdepth: 2
    :hidden:
+   :caption: API
+   
+   api/classes/index
+ 
+
+
+.. toctree::
+   :maxdepth: 2
+   :hidden:
    :caption: GitHub and Contribution
 
    github/contribution

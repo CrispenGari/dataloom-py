@@ -80,7 +80,7 @@
       - [Guidelines for Safe Usage](#guidelines-for-safe-usage)
 - [Ordering](#ordering)
 - [Filters](#filters)
-    - [Operators](#operators)
+  - [Operators](#operators)
 - [Data Aggregation](#data-aggregation)
   - [Aggregation Functions](#aggregation-functions)
 - [Utilities](#utilities)
@@ -485,14 +485,15 @@ class Post(Model):
 ```
 
 The following are the arguments that the `PrimaryKeyColumn` class accepts.
-| Argument | Description | Type | Default |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------ | --------------- | ------------- |
-| `type` | The datatype of your primary key. | `str` | `"int`" |
-| `length` | Optional to specify the length of the type. If passed as `N` with type `T`, it yields an SQL statement with type `T(N)`. | `int` \| `None` | `None` |
-| `auto_increment`| Optional to specify if the column will automatically increment or not. |`bool` |`False` |
-|`default` | Optional to specify the default value in a column. |`any` |`None` |
-|`nullable` | Optional to specify if the column will allow null values or not. |`bool` |`False` |
-|`unique` | Optional to specify if the column will contain unique values or not. |`bool` |`True` |
+
+| Argument         | Description                                                                                                              | Type            | Default |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------ | --------------- | ------- |
+| `type`           | The datatype of your primary key.                                                                                        | `str`           | `"int`" |
+| `length`         | Optional to specify the length of the type. If passed as `N` with type `T`, it yields an SQL statement with type `T(N)`. | `int` \| `None` | `None`  |
+| `auto_increment` | Optional to specify if the column will automatically increment or not.                                                   | `bool`          | `False` |
+| `default`        | Optional to specify the default value in a column.                                                                       | `any`           | `None`  |
+| `nullable`       | Optional to specify if the column will allow null values or not.                                                         | `bool`          | `False` |
+| `unique`         | Optional to specify if the column will contain unique values or not.                                                     | `bool`          | `True`  |
 
 #### `ForeignKeyColumn` Class
 
