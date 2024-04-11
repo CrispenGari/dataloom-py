@@ -11,17 +11,17 @@ Syncing tables involves the process of creating tables from models and saving th
 
 .. rst-class:: my-table
 
-+----------+----------------------------------------------------------------------------------------------------------------------------+-------+---------+
-| Argument | Description                                                                                                                | Type  | Default |
-+==========+============================================================================================================================+=======+=========+
-| models   | A collection or a single instance(s) of your table classes that inherit from the Model class.                              | Model | []      |
-+----------+----------------------------------------------------------------------------------------------------------------------------+-------+---------+
-| drop     | Whether to drop tables during syncing or not.                                                                              | bool  | False   |
-+----------+----------------------------------------------------------------------------------------------------------------------------+-------+---------+
-| force    | Forcefully drop tables during syncing. In mysql this will temporarily disable foreign key checks when dropping the tables. | bool  | False   |
-+----------+----------------------------------------------------------------------------------------------------------------------------+-------+---------+
-| alter    | Alter tables instead of dropping them during syncing or not.                                                               | bool  | False   |
-+----------+----------------------------------------------------------------------------------------------------------------------------+-------+---------+
++------------+----------------------------------------------------------------------------------------------------------------------------+-----------+-----------+
+| Argument   | Description                                                                                                                | Type      | Default   |
++============+============================================================================================================================+===========+===========+
+| ``models`` | A collection or a single instance(s) of your table classes that inherit from the ``Model`` class.                          | ``Model`` | ``[]``    |
++------------+----------------------------------------------------------------------------------------------------------------------------+-----------+-----------+
+| ``drop``   | Whether to drop tables during syncing or not.                                                                              | ``bool``  | ``False`` |
++------------+----------------------------------------------------------------------------------------------------------------------------+-----------+-----------+
+| ``force``  | Forcefully drop tables during syncing. In mysql this will temporarily disable foreign key checks when dropping the tables. | ``bool``  | ``False`` |
++------------+----------------------------------------------------------------------------------------------------------------------------+-----------+-----------+
+| ``alter``  | Alter tables instead of dropping them during syncing or not.                                                               | ``bool``  | ``False`` |
++------------+----------------------------------------------------------------------------------------------------------------------------+-----------+-----------+
 
 .. tip:: 🥇 We recommend you to use ``drop`` or ``force`` if you are going to change or modify ``foreign`` and ``primary`` keys. This is because setting the option ``alter`` does not have an effect on ``primary`` key columns.
 

@@ -52,9 +52,27 @@ Why choose ``dataloom``?
    
    api/classes/index
    api/tables/index
-   api/operations/index
+   api/qb
+
+.. toctree::
+   :maxdepth: 2
+   :hidden:
+   :caption: Examples
+   
+   examples/operations/index
+   examples/ordering
+   examples/filtering
+   examples/data_aggregation
+   examples/associations/index
  
 
+.. toctree::
+   :maxdepth: 2
+   :hidden:
+   :caption: Utilities
+   
+   utilities/index
+  
 
 .. toctree::
    :maxdepth: 2
