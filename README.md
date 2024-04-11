@@ -3,7 +3,7 @@
 **`dataloom`** is a lightweight and versatile Object-Relational Mapping (ORM) library for Python. With support for `PostgreSQL`, `MySQL`, and `SQLite3` databases, `dataloom` simplifies database interactions, providing a seamless experience for developers.
 
 <p align="center">
-<img src="https://github.com/CrispenGari/dataloom/blob/main/dataloom.png?raw=true" alt="dataloom" width="200">
+<img src="https://raw.githubusercontent.com/CrispenGari/dataloom-py/main/dataloom.png" alt="dataloom" width="200">
 </p>
 
 ---
