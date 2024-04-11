@@ -24,12 +24,12 @@ It accepts two arguments: ``name`` and ``value``. name represents the column nam
 
 .. rst-class:: my-table
 
-+----------+------------------------------------------------------------+------+---------+
-| Argument | Description                                                | Type | Default |
-+----------+------------------------------------------------------------+------+---------+
-| name     | The name of the column to be updated or inserted.          | str  | --      |
-+----------+------------------------------------------------------------+------+---------+
-| value    | The value to assign to the column during update or insert. | Any  | --      |
-+----------+------------------------------------------------------------+------+---------+
++-----------+------------------------------------------------------------+---------+---------+
+| Argument  | Description                                                | Type    | Default |
++-----------+------------------------------------------------------------+---------+---------+
+| ``name``  | The name of the column to be updated or inserted.          | ``str`` | --      |
++-----------+------------------------------------------------------------+---------+---------+
+| ``value`` | The value to assign to the column during update or insert. | ``Any`` | --      |
++-----------+------------------------------------------------------------+---------+---------+
 
 .. note:: The ``ColumnValue`` is used during data insertion and update.

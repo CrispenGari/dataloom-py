@@ -52,6 +52,7 @@ Why choose ``dataloom``?
    
    api/classes/index
    api/tables/index
+   api/operations/index
  
 
 
