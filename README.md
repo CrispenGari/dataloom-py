@@ -80,7 +80,7 @@
       - [Guidelines for Safe Usage](#guidelines-for-safe-usage)
 - [Ordering](#ordering)
 - [Filters](#filters)
-  - [Operators](#operators)
+    - [Operators](#operators)
 - [Data Aggregation](#data-aggregation)
   - [Aggregation Functions](#aggregation-functions)
 - [Utilities](#utilities)
@@ -113,6 +113,7 @@
     - [Retrieving Records](#retrieving-records-4)
 - [Query Builder.](#query-builder)
   - [Why Use Query Builder?](#why-use-query-builder)
+- [Documentation](#documentation)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -2482,6 +2483,10 @@ The `run` method takes the following as arguments:
   result = qb.run("SELECT * FROM table1 INNER JOIN table2 ON table1.id = table2.table1_id;")
   print(result)
   ```
+
+### Documentation
+
+You can read the full documentation of dataloom on [readthedocs.io](https://dataloom-py.readthedocs.io/en/latest/)
 
 ### Contributing
 
