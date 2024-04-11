@@ -80,7 +80,7 @@
       - [Guidelines for Safe Usage](#guidelines-for-safe-usage)
 - [Ordering](#ordering)
 - [Filters](#filters)
-    - [Operators](#operators)
+  - [Operators](#operators)
 - [Data Aggregation](#data-aggregation)
   - [Aggregation Functions](#aggregation-functions)
 - [Utilities](#utilities)
@@ -485,14 +485,15 @@ class Post(Model):
 ```
 
 The following are the arguments that the `PrimaryKeyColumn` class accepts.
-| Argument | Description | Type | Default |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------ | --------------- | ------------- |
-| `type` | The datatype of your primary key. | `str` | `"int`" |
-| `length` | Optional to specify the length of the type. If passed as `N` with type `T`, it yields an SQL statement with type `T(N)`. | `int` \| `None` | `None` |
-| `auto_increment`| Optional to specify if the column will automatically increment or not. |`bool` |`False` |
-|`default` | Optional to specify the default value in a column. |`any` |`None` |
-|`nullable` | Optional to specify if the column will allow null values or not. |`bool` |`False` |
-|`unique` | Optional to specify if the column will contain unique values or not. |`bool` |`True` |
+
+| Argument         | Description                                                                                                              | Type            | Default |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------ | --------------- | ------- |
+| `type`           | The datatype of your primary key.                                                                                        | `str`           | `"int`" |
+| `length`         | Optional to specify the length of the type. If passed as `N` with type `T`, it yields an SQL statement with type `T(N)`. | `int` \| `None` | `None`  |
+| `auto_increment` | Optional to specify if the column will automatically increment or not.                                                   | `bool`          | `False` |
+| `default`        | Optional to specify the default value in a column.                                                                       | `any`           | `None`  |
+| `nullable`       | Optional to specify if the column will allow null values or not.                                                         | `bool`          | `False` |
+| `unique`         | Optional to specify if the column will contain unique values or not.                                                     | `bool`          | `True`  |
 
 #### `ForeignKeyColumn` Class
 
@@ -703,7 +704,7 @@ Returns a `conn` and the list of `tablenames` that exist in the database. The me
 
 ### CRUD Operations with Dataloom
 
-In this section of the documentation, we will illustrate how to perform basic `CRUD` operations using `dataloom` on simple `Models`. Please note that in the following code snippets, I will be utilizing `sqlite_loom`. However, it's important to highlight that you can use any `loom` of your choice to follow along.
+In this section of the documentation, we will illustrate how to perform basic `CRUD` operations using `dataloom` on simple `Models`. Please note that in the following code snippets, I will be utilizing `sqlite_loom`, `mysql_loom`, `pg_loom` or `loom` interchangeably. However, it's important to highlight that you can use any `loom` of your choice to follow along.
 
 #### 1. Creating a Record
 
@@ -845,7 +846,7 @@ The `find_many()` method takes in the following arguments:
 
 ##### 3. `find_one()`
 
-Here is an example showing you how you can use `find_by_pk()` locate a single record in the database.
+Here is an example showing you how you can use `find_one()` locate a single record in the database.
 
 ```py
 user = mysql_loom.find_one(
@@ -1039,8 +1040,11 @@ To mitigate the potential risks associated with `delete_bulk()`, follow these gu
    - When calling `delete_bulk()`, make sure to provide a filter to specify the subset of records to be deleted. This helps prevent unintentional deletions.
 
    ```python
-   # Example: Delete records where 'status' is 'inactive'
-   sqlite_loom.delete_bulk(filter={'status': 'inactive'})
+    # Example: Delete records where 'status' is 'inactive'
+    affected_rows = mysql_loom.delete_bulk(
+        instance=User,
+        filters=Filter(column="status",  value='inactive'),
+    )
    ```
 
 2. **Consider Usage When Necessary:**
