@@ -4,10 +4,6 @@ Dataloom **`2.4.1`**
 
 ### Release Notes - `dataloom`
 
-We have release the new `dataloom` Version `2.4.1` (`2024-03-02`)
-
-##### Changes
-- Updated documentation.
 
 ===
 Dataloom **`2.4.0`**
