@@ -1,15 +1,27 @@
 ===
+Dataloom **`2.4.2`**
+===
+
+### Release Notes - `dataloom`
+
+We have release the new `dataloom` Version `2.4.2` (`2024-04-11`)
+
+##### Changes
+
+- updated documentation
+- documentation available on Read the Docs.
+
+===
 Dataloom **`2.4.1`**
 ===
 
 ### Release Notes - `dataloom`
 
-We have release the new `dataloom` Version `2.4.1` (`2024-04-11`)
+We have release the new `dataloom` Version `2.4.1` (`2024-03-02`)
 
-##### Features
+##### Changes
 
-- updated documentation
-- documentation available on Read the Docs.
+- Updated documentation.
 
 ===
 Dataloom **`2.4.0`**
